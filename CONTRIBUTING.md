@@ -12,6 +12,8 @@ yarn bootstrap
 
 While developing, you can run the [example app](/example/) to test your changes.
 
+Before you can use the example app, you will need a [Mapbox API access token](https://docs.mapbox.com/help/how-mapbox-works/access-tokens/), and must copy it into [mapbox_token.json](./example/mapbox_token.json).
+
 To start the packager:
 
 ```sh

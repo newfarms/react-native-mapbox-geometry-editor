@@ -5,8 +5,11 @@ Interactive shape editing on top of the Mapbox Maps SDK for React Native
 ## Installation
 
 ```sh
-npm install react-native-mapbox-geometry-editor
+yarn add react-native-mapbox-geometry-editor @react-native-mapbox-gl/maps
 ```
+
+The unofficial Mapbox Maps SDK for React Native, `@react-native-mapbox-gl/maps` is a peer dependency.
+To use it, you must have a [Mapbox API access token](https://docs.mapbox.com/help/how-mapbox-works/access-tokens/).
 
 ## Usage
 

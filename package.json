@@ -64,7 +64,8 @@
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "@react-native-mapbox-gl/maps": "^8.1.0-rc.8"
   },
   "jest": {
     "preset": "react-native",
