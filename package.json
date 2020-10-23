@@ -79,11 +79,6 @@
       "pre-commit": "yarn lint && yarn typescript"
     }
   },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
   "release-it": {
     "git": {
       "commitMessage": "Chore: release ${version}",
