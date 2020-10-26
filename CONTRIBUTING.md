@@ -4,6 +4,8 @@ We want this community to be friendly and respectful to each other. Please follo
 
 ## Development workflow
 
+We assume you have set up your [React Native](https://reactnative.dev/) development tools. To run the example app in this repository, you will need [React Native CLI](https://reactnative.dev/docs/environment-setup) tools. (The example is not managed by [Expo](https://expo.io/) tools.)
+
 To get started with the project, run `yarn bootstrap` in the root directory to install the required dependencies for each package:
 
 ```sh
@@ -23,6 +25,9 @@ To run the example app on Android:
 ```sh
 yarn example android
 ```
+
+- To run an Android release build, add `--variant=release` to the above command.
+- To run the app on a specific device, get the device ID from the output of `adb devices`, then add `--deviceId=$DEVICE_ID` to the above command.
 
 To run the example app on iOS:
 
@@ -55,14 +60,16 @@ To edit the Kotlin files, open `example/android` in Android studio and find the 
 
 ### Commit message convention
 
-We follow the [conventional commits specification](https://www.conventionalcommits.org/en) for our commit messages:
+We follow the following specification for our commit messages:
 
-- `fix`: bug fixes, e.g. fix crash due to deprecated method.
-- `feat`: new features, e.g. add new method to the module.
-- `refactor`: code refactor, e.g. migrate from class components to hooks.
-- `docs`: changes into documentation, e.g. add usage example for the module..
-- `test`: adding or updating tests, eg add integration tests using detox.
-- `chore`: tooling changes, e.g. change CI config.
+- `Chore`: small changes with minor importance
+- `Documentation`: changes in documentation, e.g. add usage example for the module..
+- `Feature`: new features, e.g. add new method to the module.
+- `Fix`: small bug fixes
+- `Refactor`: code refactor, e.g. migrate from class components to hooks.
+- `Style`: code or output formatting changes
+- `Test`: adding or updating tests
+- `Cleanup`: removing dead code or comments, reorganizing code (smaller than `Refactor`)
 
 Our pre-commit hooks verify that your commit message matches this format when committing.
 
@@ -87,8 +94,6 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn example ios`: run the example app on iOS.
 
 ### Sending a pull request
-
-> **Working on your first pull request?** You can learn how from this _free_ series: [How to Contribute to an Open Source Project on GitHub](https://egghead.io/series/how-to-contribute-to-an-open-source-project-on-github).
 
 When you're sending a pull request:
 
@@ -139,7 +144,7 @@ This Code of Conduct applies within all community spaces, and also applies when 
 
 ### Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at [INSERT CONTACT METHOD]. All complaints will be reviewed and investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders. All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the reporter of any incident.
 
