@@ -1,14 +1,24 @@
 /**
  * Geometry editor map canvas
+ * @packageDocumentation
  */
 
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL, { MapViewProps } from '@react-native-mapbox-gl/maps';
 
+/**
+ * Render properties for [[GeometryEditor]]
+ */
 interface GeometryEditorProps {
-  mapProps: MapViewProps;
-  children: React.ReactNode;
+  /**
+   * Additional properties for the [map](https://github.com/react-native-mapbox-gl/maps/blob/master/docs/MapView.md), including `style`.
+   */
+  readonly mapProps?: MapViewProps;
+  /**
+   * Additional child elements to render as children of the map
+   */
+  readonly children?: React.ReactNode;
 }
 
 /**
@@ -25,15 +35,11 @@ const styles = StyleSheet.create({
  * and listens to user input from the map and method calls
  * from the application to edit map geometry layers.
  *
- * @access public
- *
- * @param props - Render properties
- * @param props.children - Additional child elements to render as children of the map
- * @param props.mapProps - Additional properties for the [map](https://github.com/react-native-mapbox-gl/maps/blob/master/docs/MapView.md), including `style`.
+ * @param props  Render properties
  * @return Renderable React node
  */
-export default (props: GeometryEditorProps) => {
-  const { mapProps } = props;
+function GeometryEditor(props: GeometryEditorProps) {
+  const { mapProps = {} } = props;
   const { style: mapStyle, ...restMapProps } = mapProps;
 
   return (
@@ -41,4 +47,6 @@ export default (props: GeometryEditorProps) => {
       {props.children}
     </MapboxGL.MapView>
   );
-};
+}
+
+export default GeometryEditor;
