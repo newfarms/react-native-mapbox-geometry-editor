@@ -60,7 +60,7 @@ To edit the Kotlin files, open `example/android` in Android studio and find the 
 
 ### Commit message convention
 
-We follow the following specification for our commit messages:
+We use the following [commit message types](https://www.conventionalcommits.org/en/v1.0.0/):
 
 - `Chore`: small changes with minor importance
 - `Documentation`: changes in documentation, e.g. add usage example for the module..
