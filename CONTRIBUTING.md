@@ -103,6 +103,12 @@ When you're sending a pull request:
 - Follow the pull request template when opening a pull request.
 - For pull requests that change the API or implementation, discuss with maintainers first by opening an issue.
 
+### Unused files
+
+The following paths in the repository correspond to placeholder files that we may use for reference later if we choose to develop the associated features:
+
+- `.circleci/`
+
 ## Code of Conduct
 
 ### Our Pledge
