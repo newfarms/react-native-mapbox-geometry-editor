@@ -3,15 +3,23 @@
  */
 
 import * as React from 'react';
-import { StyleSheet } from 'react-native';
+import { SafeAreaView, StyleSheet } from 'react-native';
 
 import MapboxGL from '@react-native-mapbox-gl/maps';
 
 import token from '../mapbox_token.json';
 
+import { GeometryEditor } from 'react-native-mapbox-geometry-editor';
+
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'green',
+  },
   map: {
-    ...StyleSheet.absoluteFillObject,
+    margin: 10,
+    borderRadius: 10,
+    overflow: 'hidden',
   },
 });
 
@@ -26,8 +34,18 @@ MapboxGL.setAccessToken(token.accessToken);
  */
 export default function App() {
   return (
-    <MapboxGL.MapView style={styles.map}>
-      <MapboxGL.Camera centerCoordinate={[3.380271, 6.464217]} zoomLevel={14} />
-    </MapboxGL.MapView>
+    <SafeAreaView style={styles.container}>
+      <GeometryEditor
+        mapProps={{
+          style: styles.map,
+          styleURL: 'mapbox://styles/mapbox/dark-v10',
+        }}
+      >
+        <MapboxGL.Camera
+          centerCoordinate={[3.380271, 6.464217]}
+          zoomLevel={14}
+        />
+      </GeometryEditor>
+    </SafeAreaView>
   );
 }
