@@ -34,13 +34,13 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/newfarms/react-native-mapbox-geometry-editor/react-native-mapbox-geometry-editor",
+  "repository": "https://github.com/newfarms/react-native-mapbox-geometry-editor",
   "author": "Mojow Autonomous Solutions Inc. <bernard@mojow.ai> (https://github.com/newfarms)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/newfarms/react-native-mapbox-geometry-editor/react-native-mapbox-geometry-editor/issues"
+    "url": "https://github.com/newfarms/react-native-mapbox-geometry-editor/issues"
   },
-  "homepage": "https://github.com/newfarms/react-native-mapbox-geometry-editor/react-native-mapbox-geometry-editor#readme",
+  "homepage": "https://github.com/newfarms/react-native-mapbox-geometry-editor#readme",
   "devDependencies": {
     "@commitlint/config-conventional": "^8.3.4",
     "@react-native-community/bob": "^0.16.2",
@@ -73,20 +73,9 @@
       "<rootDir>/lib/"
     ]
   },
-  "husky": {
-    "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "yarn lint && yarn typescript"
-    }
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
   "release-it": {
     "git": {
-      "commitMessage": "chore: release ${version}",
+      "commitMessage": "Chore: release ${version}",
       "tagName": "v${version}"
     },
     "npm": {
