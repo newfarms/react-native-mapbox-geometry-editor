@@ -20,6 +20,7 @@
     "!**/__mocks__"
   ],
   "scripts": {
+    "docs": "typedoc --listInvalidSymbolLinks",
     "test": "jest",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
@@ -60,9 +61,11 @@
     "react": "16.11.0",
     "react-native": "0.62.2",
     "release-it": "^13.5.8",
+    "typedoc": "^0.19.2",
     "typescript": "^3.8.3"
   },
   "peerDependencies": {
+    "@react-native-mapbox-gl/maps": "^8.1.0-rc.8",
     "react": "*",
     "react-native": "*"
   },
@@ -108,7 +111,11 @@
       ]
     }
   },
-  "eslintIgnore": ["node_modules/", "lib/"],
+  "eslintIgnore": [
+    "docs/",
+    "lib/",
+    "node_modules/"
+  ],
   "prettier": {
     "quoteProps": "consistent",
     "singleQuote": true,
@@ -119,6 +126,10 @@
   "@react-native-community/bob": {
     "source": "src",
     "output": "lib",
-    "targets": ["commonjs", "module", "typescript"]
+    "targets": [
+      "commonjs",
+      "module",
+      "typescript"
+    ]
   }
 }

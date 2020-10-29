@@ -14,6 +14,8 @@ yarn bootstrap
 
 While developing, you can run the [example app](/example/) to test your changes.
 
+Before you can use the example app, you will need a [Mapbox API access token](https://docs.mapbox.com/help/how-mapbox-works/access-tokens/), and must copy it into `example/mapbox_token.json` (see [example/mapbox_token.json.example](./example/mapbox_token.json.example)).
+
 To start the packager:
 
 ```sh
@@ -89,6 +91,7 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn typescript`: type-check files with TypeScript.
 - `yarn lint`: lint files with ESLint.
 - `yarn test`: run unit tests with Jest.
+- `yarn docs`: render documentation using [Typedoc](https://typedoc.org/).
 - `yarn example start`: start the Metro server for the example app.
 - `yarn example android`: run the example app on Android.
 - `yarn example ios`: run the example app on iOS.

@@ -2,7 +2,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "react-native-mapbox-geometry-editor": ["./src/index"]
+      "react-native-mapbox-geometry-editor": ["./src/index"],
+      "@react-native-mapbox-gl/maps": ["./example/node_modules/@react-native-mapbox-gl/maps"],
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
