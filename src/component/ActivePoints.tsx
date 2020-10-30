@@ -24,7 +24,7 @@ interface ActivePointsProps {
 }
 
 /**
- * The diameter of point annotations
+ * The diameter of point annotations, measured in density-independent pixels
  */
 const ANNOTATION_SIZE = 20;
 
