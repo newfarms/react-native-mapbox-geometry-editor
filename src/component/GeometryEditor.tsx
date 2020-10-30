@@ -7,6 +7,11 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL, { MapViewProps } from '@react-native-mapbox-gl/maps';
 
+import ActivePoints from './ActivePoints';
+
+import useActivePoints from '../hooks/useActivePoints';
+import useEventHandlers from '../hooks/useEventHandlers';
+
 /**
  * Render properties for [[GeometryEditor]]
  */
@@ -40,10 +45,25 @@ const styles = StyleSheet.create({
  */
 function GeometryEditor(props: GeometryEditorProps) {
   const { mapProps = {} } = props;
-  const { style: mapStyle, ...restMapProps } = mapProps;
+  const { style: mapStyle, onPress: outerOnPress, ...restMapProps } = mapProps;
+  const {
+    activePoints,
+    activePointsOnPress,
+    activePointsOnDragEnd,
+  } = useActivePoints([[3.378421, 6.46571]]);
+  const onPress = useEventHandlers([activePointsOnPress, outerOnPress]);
 
   return (
-    <MapboxGL.MapView style={[styles.map, mapStyle]} {...restMapProps}>
+    <MapboxGL.MapView
+      style={[styles.map, mapStyle]}
+      onPress={onPress}
+      {...restMapProps}
+    >
+      <ActivePoints
+        coordinates={activePoints}
+        draggable={true}
+        onDragEnd={activePointsOnDragEnd}
+      />
       {props.children}
     </MapboxGL.MapView>
   );
