@@ -135,6 +135,9 @@
     ]
   },
   "dependencies": {
-    "lodash": "^4.17.20"
+    "lodash": "^4.17.20",
+    "mobx": "^6.0.2",
+    "mobx-keystone": "^0.48.0",
+    "mobx-react-lite": "^3.0.1"
   }
 }
