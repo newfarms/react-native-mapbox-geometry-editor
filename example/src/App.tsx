@@ -9,6 +9,11 @@ import MapboxGL from '@react-native-mapbox-gl/maps';
 
 import token from '../mapbox_token.json';
 
+/**
+ * Polyfill for React Native needed by 'react-native-mapbox-geometry-editor'
+ * See https://github.com/uuidjs/uuid#getrandomvalues-not-supported
+ */
+import 'react-native-get-random-values';
 import { GeometryEditor } from 'react-native-mapbox-geometry-editor';
 
 const styles = StyleSheet.create({
