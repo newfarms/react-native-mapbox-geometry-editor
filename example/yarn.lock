@@ -2015,6 +2015,11 @@ fancy-log@^1.3.2:
     parse-node-version "^1.0.0"
     time-stamp "^1.0.0"
 
+fast-base64-decode@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/fast-base64-decode/-/fast-base64-decode-1.0.0.tgz#b434a0dd7d92b12b43f26819300d2dafb83ee418"
+  integrity sha512-qwaScUgUGBYeDNRnbc/KyllVU88Jk1pRHPStuF/lO7B0/RTRLj7U0lkdTAutlBblY08rwZDff6tNU9cjv6j//Q==
+
 fb-watchman@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/fb-watchman/-/fb-watchman-2.0.1.tgz#fc84fb39d2709cf3ff6d743706157bb5708a8a85"
@@ -3656,6 +3661,13 @@ react-is@^16.12.0, react-is@^16.8.1, react-is@^16.8.4:
   version "16.13.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"
   integrity sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==
+
+react-native-get-random-values@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/react-native-get-random-values/-/react-native-get-random-values-1.5.0.tgz#91cda18f0e66e3d9d7660ba80c61c914030c1e05"
+  integrity sha512-LK+Wb8dEimJkd/dub7qziDmr9Tw4chhpzVeQ6JDo4czgfG4VXbptRyOMdu8503RiMF6y9pTH6ZUTkrrpprqT7w==
+  dependencies:
+    fast-base64-decode "^1.0.0"
 
 react-native@0.62.2:
   version "0.62.2"
