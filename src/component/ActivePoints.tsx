@@ -46,43 +46,68 @@ const styles = StyleSheet.create({
  * @param props Point annotation properties
  * @return Renderable React node
  */
-const SinglePoint = observer(
-  (props: {
-    features: FeatureListModel;
-    readonly draggable: boolean;
-    index: number;
-  }) => {
-    const { draggable, features, index } = props;
-    const id = `pointAnnotation${index}`;
-    const onDragEndWithIndex = useCallback(
-      (e: PointAnnotationPayload) => {
-        features.moveActiveCoordinate(e.geometry.coordinates, index);
-      },
-      [features, index]
-    );
+function _SinglePoint(props: {
+  /**
+   * The store used to get the active point to render
+   */
+  readonly features: FeatureListModel;
+  /**
+   * Whether or not the rendered point should be draggable
+   */
+  readonly draggable: boolean;
+  /**
+   * The index of the active point to render
+   */
+  readonly index: number;
+}) {
+  const { draggable, features, index } = props;
+  // Layer ID for Mapbox
+  const id = `pointAnnotation${index}`;
+  /**
+   * When the point is dragged, its new coordinates need to be saved to the store
+   */
+  const onDragEndWithIndex = useCallback(
+    (e: PointAnnotationPayload) => {
+      features.moveActiveCoordinate(e.geometry.coordinates, index);
+    },
+    [features, index]
+  );
 
-    return (
-      <MapboxGL.PointAnnotation
-        id={id}
-        coordinate={toJS(features.activePositions[index])}
-        draggable={draggable}
-        onDragEnd={onDragEndWithIndex as () => void}
-      >
-        <View style={styles.annotationContainer} />
-      </MapboxGL.PointAnnotation>
-    );
-  }
-);
+  /**
+   * Render a map point annotation.
+   * `toJS` is needed here because `MapboxGL.PointAnnotation` is not an observer.
+   * See https://mobx.js.org/react-integration.html#dont-pass-observables-into-components-that-arent-observer
+   */
+  return (
+    <MapboxGL.PointAnnotation
+      id={id}
+      coordinate={toJS(features.activePositions[index])}
+      draggable={draggable}
+      onDragEnd={onDragEndWithIndex as () => void}
+    >
+      <View style={styles.annotationContainer} />
+    </MapboxGL.PointAnnotation>
+  );
+}
 
 /**
- * Renders a list of points on a map, where the points are optionally draggable.
+ * Renderable MobX wrapper for [[_SinglePoint]]
+ */
+const SinglePoint = observer(_SinglePoint);
+
+/**
+ * Renders a list of active points on a map, where the points are optionally draggable.
  * @param props Render properties
  * @return Renderable React node
  */
-const ActivePoints = observer((props: ActivePointsProps) => {
+function _ActivePoints(props: ActivePointsProps) {
   const { draggable = false } = props;
   const { featureList: features } = useContext(StoreContext);
 
+  /**
+   * Render all points by mapping the appropriate
+   * data to [[SinglePoint]]
+   */
   const renderSinglePoint = useCallback(
     (_point: Position, index: number) => (
       <SinglePoint
@@ -95,6 +120,11 @@ const ActivePoints = observer((props: ActivePointsProps) => {
     [draggable, features]
   );
   return <>{features.activePositions.map(renderSinglePoint)}</>;
-});
+}
+
+/**
+ * Renderable MobX wrapper for [[_ActivePoints]]
+ */
+const ActivePoints = observer(_ActivePoints);
 
 export default ActivePoints;

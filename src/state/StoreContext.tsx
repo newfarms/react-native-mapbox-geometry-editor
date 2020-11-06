@@ -4,12 +4,15 @@ import { FeatureListModel } from './FeatureListModel';
 
 /**
  * A React context used to give children components access to MobX Keystone stores
+ * that manage state for this library.
  *
  * @access public
  */
-export default React.createContext({
+const StoreContext = React.createContext({
   /**
-   * A [[FeatureListModel]] instance
+   * A [[FeatureListModel]] instance storing editable map features
    */
   featureList: new FeatureListModel({}),
 });
+
+export default StoreContext;

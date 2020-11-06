@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
  * and listens to user input from the map and method calls
  * from the application to edit map geometry layers.
  *
- * @param props  Render properties
+ * @param props Render properties
  * @return Renderable React node
  */
 function GeometryEditor(props: GeometryEditorProps) {
@@ -47,6 +47,9 @@ function GeometryEditor(props: GeometryEditorProps) {
   const { style: mapStyle, onPress: outerOnPress, ...restMapProps } = mapProps;
 
   const { featureList: features } = useContext(StoreContext);
+  /**
+   * A touch callback for the map that will add a new active point
+   */
   const addPoint = useCallback(
     (feature: Event) => {
       features.addActivePoint(feature.geometry.coordinates);
@@ -56,6 +59,9 @@ function GeometryEditor(props: GeometryEditorProps) {
   );
   const onPress = useEventHandlers([addPoint, outerOnPress]);
 
+  /**
+   * Render both internal and client-provided map layers on the map
+   */
   return (
     <MapboxGL.MapView
       style={[styles.map, mapStyle]}

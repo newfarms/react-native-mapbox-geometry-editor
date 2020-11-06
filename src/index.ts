@@ -6,8 +6,10 @@ import { configure } from 'mobx';
  */
 let mobxOptions = {
   /**
-   * Allows users of the library to use different MobX versions from
-   * the library by separating MobX global state.
+   * Allows users of this library to use different MobX versions from
+   * the version of MobX used by this library.
+   * This configuration setting prevents MobX from sharing state
+   * across MobX instances.
    */
   isolateGlobalState: true,
 };

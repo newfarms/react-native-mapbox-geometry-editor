@@ -15,7 +15,7 @@ To use it, you must have a [Mapbox API access token](https://docs.mapbox.com/hel
 
 ```js
 /**
- * Polyfill for React Native
+ * Polyfill for React Native needed by 'react-native-mapbox-geometry-editor'
  * See https://github.com/uuidjs/uuid#getrandomvalues-not-supported
  */
 import 'react-native-get-random-values';
@@ -23,7 +23,7 @@ import 'react-native-get-random-values';
 import MapboxGeometryEditor from "react-native-mapbox-geometry-editor";
 
 // ...
-
+// TODO: Document a real example
 const result = await MapboxGeometryEditor.multiply(3, 7);
 ```
 
