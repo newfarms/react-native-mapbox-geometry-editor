@@ -2,6 +2,7 @@
  * Geometry editor map canvas
  * @packageDocumentation
  */
+import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL, { MapViewProps } from '@react-native-mapbox-gl/maps';
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
  * @param props Render properties
  * @return Renderable React node
  */
-export function GeometryEditor(props: GeometryEditorProps) {
+function _GeometryEditor(props: GeometryEditorProps) {
   const { mapProps = {} } = props;
   const { style: mapStyle, onPress: outerOnPress, ...restMapProps } = mapProps;
 
@@ -73,3 +74,8 @@ export function GeometryEditor(props: GeometryEditorProps) {
     </MapboxGL.MapView>
   );
 }
+
+/**
+ * Renderable MobX wrapper for [[_GeometryEditor]]
+ */
+export const GeometryEditor = observer(_GeometryEditor);
