@@ -6,9 +6,9 @@ import React, { useCallback, useContext } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL, { MapViewProps } from '@react-native-mapbox-gl/maps';
 
-import ActivePoints from './ActivePoints';
-import StoreContext from '../state/StoreContext';
-import useEventHandlers from '../hooks/useEventHandlers';
+import { ActivePoints } from './ActivePoints';
+import { StoreContext } from '../state/StoreContext';
+import { useEventHandlers } from '../hooks/useEventHandlers';
 import type { Event } from '../type/events';
 
 /**
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
  * @param props Render properties
  * @return Renderable React node
  */
-function GeometryEditor(props: GeometryEditorProps) {
+export function GeometryEditor(props: GeometryEditorProps) {
   const { mapProps = {} } = props;
   const { style: mapStyle, onPress: outerOnPress, ...restMapProps } = mapProps;
 
@@ -73,5 +73,3 @@ function GeometryEditor(props: GeometryEditorProps) {
     </MapboxGL.MapView>
   );
 }
-
-export default GeometryEditor;

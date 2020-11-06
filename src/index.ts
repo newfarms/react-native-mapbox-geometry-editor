@@ -28,6 +28,6 @@ if (__DEV__) {
   configure(mobxOptions);
 }
 
-import GeometryEditor from './component/GeometryEditor';
+import { GeometryEditor } from './component/GeometryEditor';
 
 export { GeometryEditor };

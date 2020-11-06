@@ -21,7 +21,9 @@ interface EventCallback {
  *
  * @param handlers Event handler functions (non-functions will be filtered-out)
  */
-function useEventHandlers(handlers: Array<EventCallback | undefined | null>) {
+export function useEventHandlers(
+  handlers: Array<EventCallback | undefined | null>
+) {
   const filteredHandlers = filter(handlers, (h): h is EventCallback => {
     return typeof h === 'function';
   });
@@ -43,5 +45,3 @@ function useEventHandlers(handlers: Array<EventCallback | undefined | null>) {
     [filteredHandlers]
   );
 }
-
-export default useEventHandlers;

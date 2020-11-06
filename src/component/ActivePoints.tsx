@@ -5,7 +5,7 @@ import { View, StyleSheet } from 'react-native';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import type { Position } from 'geojson';
 
-import StoreContext from '../state/StoreContext';
+import { StoreContext } from '../state/StoreContext';
 import type { FeatureListModel } from '../state/FeatureListModel';
 import type { PointAnnotationPayload } from '../type/events';
 
@@ -125,6 +125,4 @@ function _ActivePoints(props: ActivePointsProps) {
 /**
  * Renderable MobX wrapper for [[_ActivePoints]]
  */
-const ActivePoints = observer(_ActivePoints);
-
-export default ActivePoints;
+export const ActivePoints = observer(_ActivePoints);

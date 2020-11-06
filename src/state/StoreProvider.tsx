@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import StoreContext from './StoreContext';
+import { StoreContext } from './StoreContext';
 import { FeatureListModel } from './FeatureListModel';
 
 /**
@@ -9,9 +9,7 @@ import { FeatureListModel } from './FeatureListModel';
  *
  * @param props Render properties
  */
-export const StoreProvider = (props: {
-  readonly children?: React.ReactNode;
-}) => {
+export function StoreProvider(props: { readonly children?: React.ReactNode }) {
   const [storeContext] = useState(() => {
     return {
       featureList: new FeatureListModel({}),
@@ -23,4 +21,4 @@ export const StoreProvider = (props: {
       {props.children}
     </StoreContext.Provider>
   );
-};
+}

@@ -8,11 +8,9 @@ import { FeatureListModel } from './FeatureListModel';
  *
  * @access public
  */
-const StoreContext = React.createContext({
+export const StoreContext = React.createContext({
   /**
    * A [[FeatureListModel]] instance storing editable map features
    */
   featureList: new FeatureListModel({}),
 });
-
-export default StoreContext;
