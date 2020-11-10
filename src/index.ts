@@ -29,3 +29,4 @@ if (__DEV__) {
 }
 
 export { GeometryEditor } from './component/GeometryEditor';
+export { GeometryEditorUI } from './component/GeometryEditorUI';

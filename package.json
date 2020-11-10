@@ -71,7 +71,8 @@
     "@react-native-mapbox-gl/maps": "^8.1.0-rc.8",
     "react": "*",
     "react-native": "*",
-    "react-native-get-random-values": "*"
+    "react-native-get-random-values": "*",
+    "react-native-vector-icons": "^7.1.0"
   },
   "jest": {
     "preset": "react-native",
@@ -151,6 +152,7 @@
     "lodash": "^4.17.20",
     "mobx": "^6.0.2",
     "mobx-keystone": "^0.48.0",
-    "mobx-react-lite": "^3.0.1"
+    "mobx-react-lite": "^3.0.1",
+    "react-native-paper": "^4.3.1"
   }
 }

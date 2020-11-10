@@ -12,7 +12,8 @@
     "@react-native-mapbox-gl/maps": "^8.1.0-rc.8",
     "react": "16.11.0",
     "react-native": "0.62.2",
-    "react-native-get-random-values": "^1.5.0"
+    "react-native-get-random-values": "^1.5.0",
+    "react-native-vector-icons": "^7.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.3",
