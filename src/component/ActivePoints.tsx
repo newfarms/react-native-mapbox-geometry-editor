@@ -10,16 +10,6 @@ import type { FeatureListModel } from '../state/FeatureListModel';
 import type { PointAnnotationPayload } from '../type/events';
 
 /**
- * Render properties for [[ActivePoints]]
- */
-interface ActivePointsProps {
-  /**
-   * Whether or not points are draggable
-   */
-  readonly draggable?: boolean;
-}
-
-/**
  * The diameter of point annotations, measured in density-independent pixels
  */
 const ANNOTATION_SIZE = 20;
@@ -96,13 +86,12 @@ function _SinglePoint(props: {
 const SinglePoint = observer(_SinglePoint);
 
 /**
- * Renders a list of active points on a map, where the points are optionally draggable.
- * @param props Render properties
+ * Renders a list of active points on a map, where the points are draggable
+ * depending on the current editing mode.
  * @return Renderable React node
  */
-function _ActivePoints(props: ActivePointsProps) {
-  const { draggable = false } = props;
-  const { featureList: features } = useContext(StoreContext);
+function _ActivePoints() {
+  const { features, controls } = useContext(StoreContext).store;
 
   /**
    * Render all points by mapping the appropriate
@@ -112,12 +101,12 @@ function _ActivePoints(props: ActivePointsProps) {
     (_point: Position, index: number) => (
       <SinglePoint
         features={features}
-        draggable={draggable}
+        draggable={controls.isDragPointEnabled}
         index={index}
         key={index}
       />
     ),
-    [draggable, features]
+    [features, controls.isDragPointEnabled]
   );
   return <>{features.activePositions.map(renderSinglePoint)}</>;
 }

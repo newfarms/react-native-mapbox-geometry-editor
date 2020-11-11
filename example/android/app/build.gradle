@@ -81,6 +81,13 @@ project.ext.react = [
 
 apply from: "../../node_modules/react-native/react.gradle"
 
+// `react-native-vector-icons` integration
+// See https://github.com/oblador/react-native-vector-icons#option-with-gradle-recommended
+project.ext.vectoricons = [
+    iconFontNames: [ 'MaterialCommunityIcons.ttf' ] // Name of the icon sets to be made available
+]
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+
 /**
  * Set this to true to create two separate APKs instead of one:
  *   - An APK that only works on ARM devices

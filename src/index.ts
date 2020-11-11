@@ -29,4 +29,6 @@ if (__DEV__) {
 }
 
 export { GeometryEditor } from './component/GeometryEditor';
+export type { GeometryEditorProps } from './component/GeometryEditor';
 export { GeometryEditorUI } from './component/GeometryEditorUI';
+export type { GeometryEditorUIProps } from './component/GeometryEditorUI';

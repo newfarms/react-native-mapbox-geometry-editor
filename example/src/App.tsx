@@ -28,9 +28,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'green',
   },
+  libraryContainer: {
+    margin: 10,
+    borderRadius: 15,
+    overflow: 'hidden',
+    flex: 1,
+    backgroundColor: 'blue',
+  },
   map: {
     margin: 10,
-    borderRadius: 10,
+    borderRadius: 5,
     overflow: 'hidden',
   },
 });
@@ -48,6 +55,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <GeometryEditorUI
+        style={styles.libraryContainer}
         mapProps={{
           style: styles.map,
           styleURL: 'mapbox://styles/mapbox/dark-v10',

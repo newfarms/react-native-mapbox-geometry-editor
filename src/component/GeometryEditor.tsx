@@ -47,16 +47,16 @@ export function _GeometryEditor(props: GeometryEditorProps) {
   const { mapProps = {} } = props;
   const { style: mapStyle, onPress: outerOnPress, ...restMapProps } = mapProps;
 
-  const { featureList: features } = useContext(StoreContext);
+  const { store } = useContext(StoreContext);
   /**
    * A touch callback for the map that will add a new active point
    */
   const addPoint = useCallback(
     (feature: Event) => {
-      features.addActivePoint(feature.geometry.coordinates);
+      store.handleMapPress(feature);
       return true;
     },
-    [features]
+    [store]
   );
   const onPress = useEventHandlers([addPoint, outerOnPress]);
 
@@ -69,7 +69,7 @@ export function _GeometryEditor(props: GeometryEditorProps) {
       onPress={onPress}
       {...restMapProps}
     >
-      <ActivePoints draggable={true} />
+      <ActivePoints />
       {props.children}
     </MapboxGL.MapView>
   );

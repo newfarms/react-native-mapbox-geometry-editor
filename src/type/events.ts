@@ -30,3 +30,15 @@ export interface PointAnnotationPayload
       id: string;
     }
   > {}
+
+/**
+ * A Mapbox map press event payload
+ */
+export interface MapPressPayload
+  extends Feature<
+    Point,
+    {
+      screenPointX: number;
+      screenPointY: number;
+    }
+  > {}

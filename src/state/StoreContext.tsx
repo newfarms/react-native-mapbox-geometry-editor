@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { FeatureListModel } from './FeatureListModel';
+import { RootModel } from './RootModel';
 
 /**
  * A React context used to give children components access to MobX Keystone stores
@@ -10,7 +10,7 @@ import { FeatureListModel } from './FeatureListModel';
  */
 export const StoreContext = React.createContext({
   /**
-   * A [[FeatureListModel]] instance storing editable map features
+   * A [[RootModel]] instance storing all state
    */
-  featureList: new FeatureListModel({}),
+  store: new RootModel({}),
 });
