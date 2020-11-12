@@ -29,6 +29,9 @@ export class RootModel extends Model({
     // In point drawing mode, create another point feature
     if (this.controls.mode === InteractionMode.DrawPoint) {
       this.features.addActivePoint(e.geometry.coordinates);
+      return true;
     }
+    // Event not handled
+    return false;
   }
 }

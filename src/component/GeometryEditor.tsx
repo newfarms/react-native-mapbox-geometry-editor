@@ -53,8 +53,7 @@ export function _GeometryEditor(props: GeometryEditorProps) {
    */
   const addPoint = useCallback(
     (feature: Event) => {
-      store.handleMapPress(feature);
-      return true;
+      return store.handleMapPress(feature);
     },
     [store]
   );
