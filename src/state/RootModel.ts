@@ -1,8 +1,7 @@
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 
 import { FeatureListModel } from './FeatureListModel';
-import { ControlsModel } from './ControlsModel';
-import { InteractionMode } from './ControlsModel';
+import { ControlsModel, InteractionMode } from './ControlsModel';
 import type { MapPressPayload } from '../type/events';
 
 /**
