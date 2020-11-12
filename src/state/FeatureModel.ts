@@ -1,8 +1,9 @@
 import { computed } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import flatten from 'lodash/flatten';
-import type { Feature, LineString, Point, Polygon, Position } from 'geojson';
+import type { Position } from 'geojson';
 
+import type { EditableFeature } from '../type/geometry';
 import { globalToLocalIndices } from '../util/collections';
 
 /**
@@ -22,7 +23,7 @@ export class FeatureModel extends Model({
   /**
    * The GeoJSON feature
    */
-  geojson: prop<Feature<Point | LineString | Polygon>>(),
+  geojson: prop<EditableFeature>(),
 }) {
   /**
    * Re-position a point in this feature.
