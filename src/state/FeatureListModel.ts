@@ -6,6 +6,7 @@ import type { Position } from 'geojson';
 
 import { globalToLocalIndices } from '../util/collections';
 import { FeatureModel } from './FeatureModel';
+import type { ActivePosition } from './FeatureModel';
 
 /**
  * A collection of editable GeoJSON features
@@ -46,7 +47,7 @@ export class FeatureListModel extends Model({
    * by concatenating the coordinates of all active features.
    */
   @computed
-  get activePositions(): Array<Position> {
+  get activePositions(): Array<ActivePosition> {
     /**
      * Empty arrays will be removed by `flatten`, but their removal
      * does not cause problems [[moveActiveCoordinate]], because [[globalToLocalIndices]]
@@ -65,7 +66,11 @@ export class FeatureListModel extends Model({
   @modelAction
   addActivePoint(position: Position) {
     this.features.push(
-      new FeatureModel({ isActive: true, geojson: point(position) })
+      new FeatureModel({
+        isActive: true,
+        isNew: true,
+        geojson: point(position),
+      })
     );
   }
 }

@@ -31,15 +31,13 @@ export interface GeometryEditorUIProps extends GeometryEditorProps {
  * @return Renderable React node
  */
 export function GeometryEditorUI(props: GeometryEditorUIProps) {
-  const { mapProps, style: containerStyle = {} } = props;
+  const { style: containerStyle = {}, ...restProps } = props;
 
   return (
     <View style={containerStyle}>
       <PaperProvider>
         <StoreProvider>
-          <_GeometryEditor mapProps={mapProps}>
-            {props.children}
-          </_GeometryEditor>
+          <_GeometryEditor {...restProps}>{props.children}</_GeometryEditor>
           <ModeToolbox />
         </StoreProvider>
       </PaperProvider>

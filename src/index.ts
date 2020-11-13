@@ -32,3 +32,7 @@ export { GeometryEditor } from './component/GeometryEditor';
 export type { GeometryEditorProps } from './component/GeometryEditor';
 export { GeometryEditorUI } from './component/GeometryEditorUI';
 export type { GeometryEditorUIProps } from './component/GeometryEditorUI';
+
+export type { EditableFeature } from './type/geometry';
+export { PointDrawStyle } from './type/style';
+export type { StyleGeneratorMap, PointStyle } from './type/style';

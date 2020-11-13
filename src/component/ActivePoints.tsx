@@ -1,35 +1,44 @@
 import { toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
+import type { ViewStyle } from 'react-native';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import type { Position } from 'geojson';
 
 import { StoreContext } from '../state/StoreContext';
+import { StyleContext } from './StyleContext';
 import type { FeatureListModel } from '../state/FeatureListModel';
 import type { PointAnnotationPayload } from '../type/events';
+import type { PointStyle } from '../type/style';
+import { PointDrawStyle } from '../type/style';
 
 /**
- * The diameter of point annotations, measured in density-independent pixels
+ * Convert generic point style parameters to the format expected
+ * by Mapbox's `PointAnnotation`
+ * @param inStyle Point style parameters
+ * @return `PointAnnotation` rendering props
  */
-const ANNOTATION_SIZE = 20;
-
-/**
- * @ignore
- */
-const styles = StyleSheet.create({
-  annotationContainer: {
+function pointStyleToPointAnnotationStyle(inStyle: PointStyle): ViewStyle {
+  const {
+    radius,
+    color,
+    opacity = 1.0,
+    strokeWidth = 0,
+    strokeColor,
+  } = inStyle;
+  return {
     alignItems: 'center',
-    backgroundColor: 'red',
-    borderColor: 'rgba(0.5, 0, 0, 1)',
-    borderRadius: ANNOTATION_SIZE / 2,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: ANNOTATION_SIZE,
+    backgroundColor: color,
+    borderColor: strokeColor,
+    borderRadius: radius / 2,
+    borderWidth: strokeWidth,
+    height: radius,
     justifyContent: 'center',
+    opacity,
     overflow: 'hidden',
-    width: ANNOTATION_SIZE,
-  },
-});
+    width: radius,
+  };
+}
 
 /**
  * A renderer for a point in a list of points
@@ -42,7 +51,7 @@ function _SinglePoint(props: {
    */
   readonly features: FeatureListModel;
   /**
-   * Whether or not the rendered point should be draggable
+   * Whether or not dragging of editable points is permitted
    */
   readonly draggable: boolean;
   /**
@@ -64,6 +73,22 @@ function _SinglePoint(props: {
   );
 
   /**
+   * Choose styles for points based on the current user interaction
+   * context, in combination with data associated with the points
+   */
+  const { styleGenerators } = useContext(StyleContext);
+  let pointStyle = PointDrawStyle.InactivePoint;
+  if (features.activePositions[index].isNew) {
+    // New points can be styled differently depending on the types of features they are part of
+    if (features.activePositions[index].feature.geometry.type === 'Point') {
+      pointStyle = PointDrawStyle.DraftPoint;
+    }
+    // Other cases to be added later as more styles are defined
+  } else if (draggable) {
+    pointStyle = PointDrawStyle.EditPoint;
+  }
+
+  /**
    * Render a map point annotation.
    * `toJS` is needed here because `MapboxGL.PointAnnotation` is not an observer.
    * See https://mobx.js.org/react-integration.html#dont-pass-observables-into-components-that-arent-observer
@@ -71,11 +96,18 @@ function _SinglePoint(props: {
   return (
     <MapboxGL.PointAnnotation
       id={id}
-      coordinate={toJS(features.activePositions[index])}
+      coordinate={toJS(features.activePositions[index].coordinates)}
       draggable={draggable}
       onDragEnd={onDragEndWithIndex as () => void}
     >
-      <View style={styles.annotationContainer} />
+      <View
+        style={pointStyleToPointAnnotationStyle(
+          styleGenerators.point(
+            pointStyle,
+            features.activePositions[index].feature
+          )
+        )}
+      />
     </MapboxGL.PointAnnotation>
   );
 }
@@ -98,7 +130,7 @@ function _ActivePoints() {
    * data to [[SinglePoint]]
    */
   const renderSinglePoint = useCallback(
-    (_point: Position, index: number) => (
+    (_point: unknown, index: number) => (
       <SinglePoint
         features={features}
         draggable={controls.isDragPointEnabled}
