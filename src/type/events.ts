@@ -30,12 +30,3 @@ export interface PointAnnotationPayload
       id: string;
     }
   > {}
-
-/**
- * A callback that accepts a GeoJSON point having a
- * Mapbox ID property, and an index of the point
- * as stored in a list elsewhere in the library
- */
-export interface PointDragCallback {
-  (e: PointAnnotationPayload, index: number): unknown;
-}

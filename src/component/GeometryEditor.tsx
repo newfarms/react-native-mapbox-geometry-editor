@@ -2,15 +2,15 @@
  * Geometry editor map canvas
  * @packageDocumentation
  */
-
-import React from 'react';
+import { observer } from 'mobx-react-lite';
+import React, { useCallback, useContext } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL, { MapViewProps } from '@react-native-mapbox-gl/maps';
 
-import ActivePoints from './ActivePoints';
-
-import useActivePoints from '../hooks/useActivePoints';
-import useEventHandlers from '../hooks/useEventHandlers';
+import { ActivePoints } from './ActivePoints';
+import { StoreContext } from '../state/StoreContext';
+import { useEventHandlers } from '../hooks/useEventHandlers';
+import type { Event } from '../type/events';
 
 /**
  * Render properties for [[GeometryEditor]]
@@ -40,33 +40,42 @@ const styles = StyleSheet.create({
  * and listens to user input from the map and method calls
  * from the application to edit map geometry layers.
  *
- * @param props  Render properties
+ * @param props Render properties
  * @return Renderable React node
  */
-function GeometryEditor(props: GeometryEditorProps) {
+function _GeometryEditor(props: GeometryEditorProps) {
   const { mapProps = {} } = props;
   const { style: mapStyle, onPress: outerOnPress, ...restMapProps } = mapProps;
-  const {
-    activePoints,
-    activePointsOnPress,
-    activePointsOnDragEnd,
-  } = useActivePoints([[3.378421, 6.46571]]);
-  const onPress = useEventHandlers([activePointsOnPress, outerOnPress]);
 
+  const { featureList: features } = useContext(StoreContext);
+  /**
+   * A touch callback for the map that will add a new active point
+   */
+  const addPoint = useCallback(
+    (feature: Event) => {
+      features.addActivePoint(feature.geometry.coordinates);
+      return true;
+    },
+    [features]
+  );
+  const onPress = useEventHandlers([addPoint, outerOnPress]);
+
+  /**
+   * Render both internal and client-provided map layers on the map
+   */
   return (
     <MapboxGL.MapView
       style={[styles.map, mapStyle]}
       onPress={onPress}
       {...restMapProps}
     >
-      <ActivePoints
-        coordinates={activePoints}
-        draggable={true}
-        onDragEnd={activePointsOnDragEnd}
-      />
+      <ActivePoints draggable={true} />
       {props.children}
     </MapboxGL.MapView>
   );
 }
 
-export default GeometryEditor;
+/**
+ * Renderable MobX wrapper for [[_GeometryEditor]]
+ */
+export const GeometryEditor = observer(_GeometryEditor);

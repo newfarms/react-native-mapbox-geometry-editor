@@ -1,26 +1,22 @@
-import React, { useCallback } from 'react';
+import { toJS } from 'mobx';
+import { observer } from 'mobx-react-lite';
+import React, { useCallback, useContext } from 'react';
 import { View, StyleSheet } from 'react-native';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import type { Position } from 'geojson';
 
-import type { PointAnnotationPayload, PointDragCallback } from '../type/events';
+import { StoreContext } from '../state/StoreContext';
+import type { FeatureListModel } from '../state/FeatureListModel';
+import type { PointAnnotationPayload } from '../type/events';
 
 /**
  * Render properties for [[ActivePoints]]
  */
 interface ActivePointsProps {
   /**
-   * The points to render on the map
-   */
-  readonly coordinates: Array<Position>;
-  /**
    * Whether or not points are draggable
    */
   readonly draggable?: boolean;
-  /**
-   * An end of drag callback for each point
-   */
-  readonly onDragEnd?: PointDragCallback;
 }
 
 /**
@@ -48,47 +44,85 @@ const styles = StyleSheet.create({
 /**
  * A renderer for a point in a list of points
  * @param props Point annotation properties
- * @param index Index to use as a unique identifier
  * @return Renderable React node
  */
-const renderSinglePoint = (
-  props: {
-    readonly coordinate: Position;
-    readonly draggable: boolean;
-    readonly onDragEnd: PointDragCallback;
-  },
-  index: number
-) => {
-  const { coordinate, draggable, onDragEnd } = props;
+function _SinglePoint(props: {
+  /**
+   * The store used to get the active point to render
+   */
+  readonly features: FeatureListModel;
+  /**
+   * Whether or not the rendered point should be draggable
+   */
+  readonly draggable: boolean;
+  /**
+   * The index of the active point to render
+   */
+  readonly index: number;
+}) {
+  const { draggable, features, index } = props;
+  // Layer ID for Mapbox
   const id = `pointAnnotation${index}`;
-  const onDragEndWithIndex = (e: PointAnnotationPayload) => onDragEnd(e, index);
+  /**
+   * When the point is dragged, its new coordinates need to be saved to the store
+   */
+  const onDragEndWithIndex = useCallback(
+    (e: PointAnnotationPayload) => {
+      features.moveActiveCoordinate(e.geometry.coordinates, index);
+    },
+    [features, index]
+  );
 
+  /**
+   * Render a map point annotation.
+   * `toJS` is needed here because `MapboxGL.PointAnnotation` is not an observer.
+   * See https://mobx.js.org/react-integration.html#dont-pass-observables-into-components-that-arent-observer
+   */
   return (
     <MapboxGL.PointAnnotation
-      key={id}
       id={id}
-      coordinate={coordinate}
+      coordinate={toJS(features.activePositions[index])}
       draggable={draggable}
       onDragEnd={onDragEndWithIndex as () => void}
     >
       <View style={styles.annotationContainer} />
     </MapboxGL.PointAnnotation>
   );
-};
+}
 
 /**
- * Renders a list of points on a map, where the points are optionally draggable.
+ * Renderable MobX wrapper for [[_SinglePoint]]
+ */
+const SinglePoint = observer(_SinglePoint);
+
+/**
+ * Renders a list of active points on a map, where the points are optionally draggable.
  * @param props Render properties
  * @return Renderable React node
  */
-function ActivePoints(props: ActivePointsProps) {
-  const { coordinates, draggable = false, onDragEnd = () => null } = props;
-  const SinglePoint = useCallback(
-    (point: Position, index) =>
-      renderSinglePoint({ coordinate: point, draggable, onDragEnd }, index),
-    [draggable, onDragEnd]
+function _ActivePoints(props: ActivePointsProps) {
+  const { draggable = false } = props;
+  const { featureList: features } = useContext(StoreContext);
+
+  /**
+   * Render all points by mapping the appropriate
+   * data to [[SinglePoint]]
+   */
+  const renderSinglePoint = useCallback(
+    (_point: Position, index: number) => (
+      <SinglePoint
+        features={features}
+        draggable={draggable}
+        index={index}
+        key={index}
+      />
+    ),
+    [draggable, features]
   );
-  return <>{coordinates.map(SinglePoint)}</>;
+  return <>{features.activePositions.map(renderSinglePoint)}</>;
 }
 
-export default ActivePoints;
+/**
+ * Renderable MobX wrapper for [[_ActivePoints]]
+ */
+export const ActivePoints = observer(_ActivePoints);

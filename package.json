@@ -43,6 +43,7 @@
   },
   "homepage": "https://github.com/newfarms/react-native-mapbox-geometry-editor#readme",
   "devDependencies": {
+    "@babel/plugin-proposal-decorators": "^7.12.1",
     "@commitlint/config-conventional": "^8.3.4",
     "@react-native-community/bob": "^0.16.2",
     "@react-native-community/eslint-config": "^2.0.0",
@@ -69,7 +70,8 @@
   "peerDependencies": {
     "@react-native-mapbox-gl/maps": "^8.1.0-rc.8",
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-get-random-values": "*"
   },
   "jest": {
     "preset": "react-native",
@@ -129,12 +131,26 @@
     "source": "src",
     "output": "lib",
     "targets": [
-      "commonjs",
-      "module",
+      [
+        "commonjs",
+        {
+          "configFile": "./babel.config.js"
+        }
+      ],
+      [
+        "module",
+        {
+          "configFile": "./babel.config.js"
+        }
+      ],
       "typescript"
     ]
   },
   "dependencies": {
-    "lodash": "^4.17.20"
+    "@turf/helpers": "^6.1.4",
+    "lodash": "^4.17.20",
+    "mobx": "^6.0.2",
+    "mobx-keystone": "^0.48.0",
+    "mobx-react-lite": "^3.0.1"
   }
 }

@@ -21,7 +21,9 @@ interface EventCallback {
  *
  * @param handlers Event handler functions (non-functions will be filtered-out)
  */
-function useEventHandlers(handlers: Array<EventCallback | undefined | null>) {
+export function useEventHandlers(
+  handlers: Array<EventCallback | undefined | null>
+) {
   const filteredHandlers = filter(handlers, (h): h is EventCallback => {
     return typeof h === 'function';
   });
@@ -29,6 +31,11 @@ function useEventHandlers(handlers: Array<EventCallback | undefined | null>) {
     (event: Event) =>
       forEach(filteredHandlers, (h) => {
         const result = h(event);
+        /**
+         * Treat event handlers that do not follow the convention of returning
+         * a boolean as though they have returned `true`, signalling that
+         * the event should not be processed by other handlers.
+         */
         if (typeof result === 'boolean') {
           return !result;
         } else {
@@ -38,5 +45,3 @@ function useEventHandlers(handlers: Array<EventCallback | undefined | null>) {
     [filteredHandlers]
   );
 }
-
-export default useEventHandlers;
