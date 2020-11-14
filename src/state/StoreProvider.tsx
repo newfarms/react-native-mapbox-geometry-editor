@@ -1,7 +1,8 @@
+import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
 
 import { StoreContext } from './StoreContext';
-import { FeatureListModel } from './FeatureListModel';
+import { RootModel } from './RootModel';
 
 /**
  * A React context provider used to give children components access
@@ -9,10 +10,10 @@ import { FeatureListModel } from './FeatureListModel';
  *
  * @param props Render properties
  */
-export function StoreProvider(props: { readonly children?: React.ReactNode }) {
+function _StoreProvider(props: { readonly children?: React.ReactNode }) {
   const [storeContext] = useState(() => {
     return {
-      featureList: new FeatureListModel({}),
+      store: new RootModel({}),
     };
   });
 
@@ -22,3 +23,8 @@ export function StoreProvider(props: { readonly children?: React.ReactNode }) {
     </StoreContext.Provider>
   );
 }
+
+/**
+ * Renderable MobX wrapper for [[_StoreProvider]]
+ */
+export const StoreProvider = observer(_StoreProvider);

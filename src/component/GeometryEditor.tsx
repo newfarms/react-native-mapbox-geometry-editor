@@ -15,7 +15,7 @@ import type { Event } from '../type/events';
 /**
  * Render properties for [[GeometryEditor]]
  */
-interface GeometryEditorProps {
+export interface GeometryEditorProps {
   /**
    * Additional properties for the [map](https://github.com/react-native-mapbox-gl/maps/blob/master/docs/MapView.md), including `style`.
    */
@@ -43,20 +43,19 @@ const styles = StyleSheet.create({
  * @param props Render properties
  * @return Renderable React node
  */
-function _GeometryEditor(props: GeometryEditorProps) {
+export function _GeometryEditor(props: GeometryEditorProps) {
   const { mapProps = {} } = props;
   const { style: mapStyle, onPress: outerOnPress, ...restMapProps } = mapProps;
 
-  const { featureList: features } = useContext(StoreContext);
+  const { store } = useContext(StoreContext);
   /**
    * A touch callback for the map that will add a new active point
    */
   const addPoint = useCallback(
     (feature: Event) => {
-      features.addActivePoint(feature.geometry.coordinates);
-      return true;
+      return store.handleMapPress(feature);
     },
-    [features]
+    [store]
   );
   const onPress = useEventHandlers([addPoint, outerOnPress]);
 
@@ -69,7 +68,7 @@ function _GeometryEditor(props: GeometryEditorProps) {
       onPress={onPress}
       {...restMapProps}
     >
-      <ActivePoints draggable={true} />
+      <ActivePoints />
       {props.children}
     </MapboxGL.MapView>
   );
