@@ -76,13 +76,11 @@ export class ControlsModel extends Model({
   @modelAction
   toggleMode(mode: InteractionMode) {
     // Enclose editing sessions in "transactions"
-    if (this.mode !== mode) {
-      if (
-        isGeometryModificationMode(mode) ||
-        isGeometryModificationMode(this.mode)
-      ) {
-        featureListContext.get(this)?.beginOrEndEditingSession();
-      }
+    if (
+      isGeometryModificationMode(mode) ||
+      isGeometryModificationMode(this.mode)
+    ) {
+      featureListContext.get(this)?.beginOrEndEditingSession();
     }
     if (this.mode === mode) {
       this.mode = defaultInteractionMode;
