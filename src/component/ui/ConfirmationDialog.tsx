@@ -44,7 +44,7 @@ function _ConfirmationDialog() {
    */
   return (
     <Portal>
-      <Dialog onDismiss={onDismiss} visible={visible}>
+      <Dialog onDismiss={onDismiss} visible={visible} dismissable={false}>
         <Dialog.Title>Confirmation</Dialog.Title>
         <Dialog.Content>
           <Paragraph>{bodyText}</Paragraph>
