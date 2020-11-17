@@ -6,7 +6,10 @@ We want this community to be friendly and respectful to each other. Please follo
 
 We assume you have set up your [React Native](https://reactnative.dev/) development tools. To run the example app in this repository, you will need [React Native CLI](https://reactnative.dev/docs/environment-setup) tools. (The example is not managed by [Expo](https://expo.io/) tools.)
 
-To get started with the project, run `yarn bootstrap` in the root directory to install the required dependencies for each package:
+You will also need a [Mapbox API access token](https://docs.mapbox.com/help/how-mapbox-works/access-tokens/), and must copy it into `example/mapbox_token.json` (see [example/mapbox_token.json.example](./example/mapbox_token.json.example)).
+If you do not need to run the example app, you can use an arbitrary string instead of a token, which will at least allow the example app to build.
+
+Run `yarn bootstrap` in the root directory to install the required dependencies for each package:
 
 ```sh
 yarn bootstrap
@@ -14,9 +17,7 @@ yarn bootstrap
 
 While developing, you can run the [example app](/example/) to test your changes.
 
-Before you can use the example app, you will need a [Mapbox API access token](https://docs.mapbox.com/help/how-mapbox-works/access-tokens/), and must copy it into `example/mapbox_token.json` (see [example/mapbox_token.json.example](./example/mapbox_token.json.example)).
-
-To start the packager:
+To start the packager for the example app:
 
 ```sh
 yarn example start

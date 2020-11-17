@@ -43,11 +43,14 @@
   },
   "homepage": "https://github.com/newfarms/react-native-mapbox-geometry-editor#readme",
   "devDependencies": {
+    "@babel/plugin-proposal-decorators": "^7.12.1",
     "@commitlint/config-conventional": "^8.3.4",
     "@react-native-community/bob": "^0.16.2",
     "@react-native-community/eslint-config": "^2.0.0",
     "@release-it/conventional-changelog": "^1.1.4",
+    "@types/geojson": "^7946.0.7",
     "@types/jest": "^26.0.0",
+    "@types/lodash": "^4.14.162",
     "@types/react": "^16.9.19",
     "@types/react-native": "0.62.13",
     "commitlint": "^8.3.5",
@@ -67,7 +70,9 @@
   "peerDependencies": {
     "@react-native-mapbox-gl/maps": "^8.1.0-rc.8",
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-get-random-values": "*",
+    "react-native-vector-icons": "^7.1.0"
   },
   "jest": {
     "preset": "react-native",
@@ -127,9 +132,27 @@
     "source": "src",
     "output": "lib",
     "targets": [
-      "commonjs",
-      "module",
+      [
+        "commonjs",
+        {
+          "configFile": "./babel.config.js"
+        }
+      ],
+      [
+        "module",
+        {
+          "configFile": "./babel.config.js"
+        }
+      ],
       "typescript"
     ]
+  },
+  "dependencies": {
+    "@turf/helpers": "^6.1.4",
+    "lodash": "^4.17.20",
+    "mobx": "^6.0.2",
+    "mobx-keystone": "^0.48.0",
+    "mobx-react-lite": "^3.0.1",
+    "react-native-paper": "^4.3.1"
   }
 }
