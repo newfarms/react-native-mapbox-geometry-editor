@@ -22,7 +22,7 @@
   "scripts": {
     "docs": "typedoc --listInvalidSymbolLinks",
     "test": "jest",
-    "typescript": "tsc --noEmit",
+    "typescript": "tsc --noEmit && tsc --project example --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "prepare": "bob build",
     "release": "release-it",
