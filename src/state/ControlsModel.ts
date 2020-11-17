@@ -1,6 +1,8 @@
 import { computed } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 
+import { featureListContext } from './ModelContexts';
+
 /**
  * Possible geometry editing modes
  */
@@ -29,12 +31,26 @@ export enum InteractionMode {
 }
 
 /**
+ * Whether or not the editing mode can involve modifying geometry,
+ * as opposed to allowing metadata changes or permitting no modifications of any kind.
+ * @param mode An editing mode
+ */
+function isGeometryModificationMode(mode: InteractionMode) {
+  return !(
+    mode === InteractionMode.EditMetadata ||
+    mode === InteractionMode.SelectMultiple ||
+    mode === InteractionMode.SelectSingle
+  );
+}
+
+/**
  * The default geometry editing mode
  */
 const defaultInteractionMode = InteractionMode.SelectSingle;
 
 /**
- * State of geometry editing controls
+ * State of geometry editing controls and functions
+ * for applying control actions
  */
 @model('reactNativeMapboxGeometryEditor/ControlsModel')
 export class ControlsModel extends Model({
@@ -59,10 +75,39 @@ export class ControlsModel extends Model({
    */
   @modelAction
   toggleMode(mode: InteractionMode) {
+    // Enclose editing sessions in "transactions"
+    if (
+      isGeometryModificationMode(mode) ||
+      isGeometryModificationMode(this.mode)
+    ) {
+      featureListContext.get(this)?.beginOrEndEditingSession();
+    }
     if (this.mode === mode) {
       this.mode = defaultInteractionMode;
     } else {
       this.mode = mode;
     }
+  }
+
+  /**
+   * Finish a geometry modification session
+   */
+  @modelAction
+  confirmEdits() {
+    if (!isGeometryModificationMode(this.mode)) {
+      console.warn('Called outside of an editing mode.');
+    }
+    if (this.mode !== defaultInteractionMode) {
+      this.mode = defaultInteractionMode;
+      featureListContext.get(this)?.beginOrEndEditingSession();
+    }
+  }
+
+  /**
+   * Undo one geometry modification
+   */
+  @modelAction
+  undo() {
+    featureListContext.get(this)?.undo();
   }
 }

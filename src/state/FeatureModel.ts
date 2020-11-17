@@ -1,9 +1,28 @@
 import { computed } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import flatten from 'lodash/flatten';
-import type { Feature, LineString, Point, Polygon, Position } from 'geojson';
+import type { Position } from 'geojson';
 
+import type { EditableFeature } from '../type/geometry';
 import { globalToLocalIndices } from '../util/collections';
+
+/**
+ * Data associated with an interactive point
+ */
+export interface ActivePosition {
+  /**
+   * The world coordinates of the point
+   */
+  coordinates: Position;
+  /**
+   * Whether the point is newly created
+   */
+  isNew: boolean;
+  /**
+   * The GeoJSON feature to which the point belongs
+   */
+  feature: EditableFeature;
+}
 
 /**
  * An editable GeoJSON feature.
@@ -20,9 +39,13 @@ export class FeatureModel extends Model({
    */
   isActive: prop<boolean>(false, { setterAction: true }),
   /**
+   * Whether the feature is newly created
+   */
+  isNew: prop<boolean>(false, { setterAction: true }),
+  /**
    * The GeoJSON feature
    */
-  geojson: prop<Feature<Point | LineString | Polygon>>(),
+  geojson: prop<EditableFeature>(),
 }) {
   /**
    * Re-position a point in this feature.
@@ -74,16 +97,28 @@ export class FeatureModel extends Model({
    * Otherwise, returns an empty list.
    */
   @computed
-  get activePositions(): Array<Position> {
+  get activePositions(): Array<ActivePosition> {
     if (this.isActive) {
+      const metadata = {
+        isNew: this.isNew,
+        feature: this.geojson,
+      };
+      let coordinates = [];
       if (this.geojson.geometry.type === 'Point') {
-        return [this.geojson.geometry.coordinates];
+        coordinates = [this.geojson.geometry.coordinates];
       } else if (this.geojson.geometry.type === 'LineString') {
-        return this.geojson.geometry.coordinates;
+        coordinates = this.geojson.geometry.coordinates;
       } else if (this.geojson.geometry.type === 'Polygon') {
-        return flatten(this.geojson.geometry.coordinates);
+        coordinates = flatten(this.geojson.geometry.coordinates);
+      } else {
+        throw new Error('Unknown geometry type.');
       }
-      throw new Error('Unknown geometry type.');
+      return coordinates.map((position) => {
+        return {
+          coordinates: position,
+          ...metadata,
+        };
+      });
     } else {
       return [];
     }

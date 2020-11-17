@@ -21,7 +21,14 @@ YellowBox.ignoreWarnings(['Require cycle:']);
  * See https://github.com/uuidjs/uuid#getrandomvalues-not-supported
  */
 import 'react-native-get-random-values';
-import { GeometryEditorUI } from 'react-native-mapbox-geometry-editor';
+import {
+  GeometryEditorUI,
+  PointDrawStyle,
+} from 'react-native-mapbox-geometry-editor';
+import type {
+  EditableFeature,
+  PointStyle,
+} from 'react-native-mapbox-geometry-editor';
 
 const styles = StyleSheet.create({
   container: {
@@ -49,6 +56,36 @@ const styles = StyleSheet.create({
 MapboxGL.setAccessToken(token.accessToken);
 
 /**
+ * Custom rendering styles for geometry displayed on the map
+ */
+const styleGeneratorMap = {
+  point: (style: PointDrawStyle, _feature: EditableFeature): PointStyle => {
+    switch (style) {
+      case PointDrawStyle.EditPoint:
+        return {
+          radius: 40,
+          color: 'red',
+          strokeColor: 'rgba(0.5, 0, 0, 1)',
+        };
+      case PointDrawStyle.DraftPoint:
+        return {
+          radius: 20,
+          color: 'yellow',
+          opacity: 0.5,
+          strokeWidth: 5,
+          strokeColor: 'rgba(0.5, 0.5, 0, 1)',
+        };
+      case PointDrawStyle.InactivePoint:
+        return {
+          radius: 30,
+          color: 'grey',
+          strokeColor: 'rgba(0.5, 0.5, 0.5, 1)',
+        };
+    }
+  },
+};
+
+/**
  * Render a map page with a demonstration of the geometry editor library's functionality
  */
 export default function App() {
@@ -60,6 +97,7 @@ export default function App() {
           style: styles.map,
           styleURL: 'mapbox://styles/mapbox/dark-v10',
         }}
+        styleGenerators={styleGeneratorMap}
       >
         <MapboxGL.Camera
           centerCoordinate={[3.380271, 6.464217]}
