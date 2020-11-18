@@ -7,7 +7,7 @@ import React, { useCallback, useContext } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL, { MapViewProps } from '@react-native-mapbox-gl/maps';
 
-import { ActivePoints } from './ActivePoints';
+import { ActivePoints } from './geometry/ActivePoints';
 import { StoreContext } from '../state/StoreContext';
 import { useEventHandlers } from '../hooks/useEventHandlers';
 import type { Event } from '../type/events';

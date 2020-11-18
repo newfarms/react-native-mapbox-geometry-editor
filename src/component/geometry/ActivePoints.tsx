@@ -5,12 +5,12 @@ import { View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 
-import { StoreContext } from '../state/StoreContext';
-import { StyleContext } from './StyleContext';
-import type { FeatureListModel } from '../state/FeatureListModel';
-import type { PointAnnotationPayload } from '../type/events';
-import type { PointStyle } from '../type/style';
-import { PointDrawStyle } from '../type/style';
+import { StoreContext } from '../../state/StoreContext';
+import { StyleContext } from '../StyleContext';
+import type { FeatureListModel } from '../../state/FeatureListModel';
+import type { PointAnnotationPayload } from '../../type/events';
+import type { PointStyle } from '../../type/style';
+import { PointDrawStyle } from '../../type/style';
 
 /**
  * Convert generic point style parameters to the format expected
