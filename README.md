@@ -15,6 +15,34 @@ Note that there is no need to set up FontAwesome 5 support with `react-native-ve
 The unofficial Mapbox Maps SDK for React Native, `@react-native-mapbox-gl/maps` is a peer dependency.
 To use it, you must have a [Mapbox API access token](https://docs.mapbox.com/help/how-mapbox-works/access-tokens/).
 
+### Import options
+
+#### Importing library builds (recommended)
+
+The library provides builds to suit different transpilation mechanisms:
+
+```js
+// commonjs module system
+import { GeometryEditorUI } from 'react-native-mapbox-geometry-editor/lib/commonjs';
+
+// ES6 module system
+// Useful for tree-shaking
+import { GeometryEditorUI } from 'react-native-mapbox-geometry-editor/lib/module';
+
+// TypeScript
+import { GeometryEditorUI } from 'react-native-mapbox-geometry-editor/lib/typescript';
+```
+
+For more information about the build targets, see https://github.com/callstack/react-native-builder-bob#targets
+
+#### Import library source (not recommended)
+
+```js
+import { GeometryEditorUI } from 'react-native-mapbox-geometry-editor';
+```
+
+The plain import will import the source code of the library, meaning that your code will need to be transpiled under Babel or TypeScript configurations that are compatible with those used to develop the library.
+
 ## Usage
 
 ```js
