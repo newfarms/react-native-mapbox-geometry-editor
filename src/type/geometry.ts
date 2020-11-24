@@ -52,7 +52,7 @@ export enum FeatureLifecycleStage {
   /**
    * Feature with geometry changes to be confirmed
    */
-  DraftShape = 'DRAFT',
+  DraftShape = 'DRAFTSHAPE',
   /**
    * Feature not subject to editing at the moment
    */
