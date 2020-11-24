@@ -1,5 +1,11 @@
+import type {
+  CircleLayerStyle,
+  SymbolLayerStyle,
+} from '@react-native-mapbox-gl/maps';
+
+import { CoordinateRole } from '../type/geometry';
 import type { EditableFeature } from '../type/geometry';
-import { PointDrawStyle, StyleGeneratorMap } from '../type/style';
+import type { DraggablePointStyle, StyleGeneratorMap } from '../type/style';
 
 /**
  * The default diameter of point annotations, measured in density-independent pixels
@@ -7,45 +13,108 @@ import { PointDrawStyle, StyleGeneratorMap } from '../type/style';
 const ANNOTATION_SIZE = 20;
 
 /**
- * The default style generation function for points
- * @param style The name of the style
- * @return Rendering properties corresponding to the style
+ * The default style generation function for draggable points
+ * @param role The role of the point in the underlying geometry feature
+ * @param feature The feature corresponding to the point
+ * @return The style attributes for the input style type and feature combination
  */
-function getDefaultPointStyle(style: PointDrawStyle) {
-  switch (style) {
-    case PointDrawStyle.EditPoint:
+function getDefaultDraggablePointStyle(
+  role: CoordinateRole,
+  _feature: EditableFeature
+): DraggablePointStyle {
+  switch (role) {
+    case CoordinateRole.PointFeature:
       return {
         radius: ANNOTATION_SIZE,
-        color: 'red',
-        strokeColor: 'rgba(0.5, 0, 0, 1)',
+        color: 'chartreuse',
       };
-    case PointDrawStyle.DraftPoint:
+    case CoordinateRole.LineStart:
       return {
         radius: ANNOTATION_SIZE,
-        color: 'yellow',
-        strokeColor: 'rgba(0.5, 0.5, 0, 1)',
+        color: 'aqua',
       };
-    case PointDrawStyle.InactivePoint:
+    case CoordinateRole.LineSecond:
       return {
         radius: ANNOTATION_SIZE,
-        color: 'grey',
-        strokeColor: 'rgba(0.5, 0.5, 0.5, 1)',
+        color: 'aquamarine',
+      };
+    case CoordinateRole.LineInner:
+      return {
+        radius: ANNOTATION_SIZE,
+        color: 'blue',
+      };
+    case CoordinateRole.LineSecondLast:
+      return {
+        radius: ANNOTATION_SIZE,
+        color: 'cornflowerblue',
+      };
+    case CoordinateRole.LineLast:
+      return {
+        radius: ANNOTATION_SIZE,
+        color: 'cyan',
+      };
+    case CoordinateRole.PolygonStart:
+      return {
+        radius: ANNOTATION_SIZE,
+        color: 'crimson',
+      };
+    case CoordinateRole.PolygonInner:
+      return {
+        radius: ANNOTATION_SIZE,
+        color: 'darkred',
+      };
+    case CoordinateRole.PolygonSecondLast:
+      return {
+        radius: ANNOTATION_SIZE,
+        color: 'deeppink',
+      };
+    case CoordinateRole.PolygonHole:
+      return {
+        radius: ANNOTATION_SIZE,
+        color: 'lightcoral',
       };
   }
 }
 
 /**
- * An adapter function allowing [[getDefaultPointStyle]] to be used
- * as a [[PointStyleGenerator]] function
- * @param style The style according to which the point will be drawn
- * @param _feature The feature corresponding to the point (ignored)
- * @return The style attributes for the input style type
+ * The default style generation function for non-draggable point features
+ * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'Point'`
  */
-function defaultPointStyleGenerator(
-  style: PointDrawStyle,
-  _feature: EditableFeature
-) {
-  return getDefaultPointStyle(style);
+function getDefaultPointStyle(): CircleLayerStyle {
+  return {
+    circleRadius: (ANNOTATION_SIZE * 2) / 3,
+    circleColor: 'gold',
+    circlePitchAlignment: 'map',
+  };
+}
+
+/**
+ * The default style generation function for clusters of point features
+ * @return Mapbox style JSON for a cluster feature
+ */
+function getDefaultClusterStyle(): CircleLayerStyle {
+  return {
+    circleRadius: ANNOTATION_SIZE * 2,
+    circleColor: 'silver',
+    circlePitchAlignment: 'map',
+  };
+}
+
+/**
+ * The default style generation function for clusters of point features'
+ * symbol layers.
+ *
+ * Returns a style expression that will render the number of points
+ * in the cluster as text.
+ *
+ * @return Mapbox style JSON for a Mapbox cluster layer's child symbol layer
+ */
+function getDefaultClusterSymbolStyle(): SymbolLayerStyle {
+  return {
+    textField: '{point_count}',
+    textSize: 12,
+    textPitchAlignment: 'map',
+  };
 }
 
 /**
@@ -53,5 +122,8 @@ function defaultPointStyleGenerator(
  * types of objects rendered on the map
  */
 export const defaultStyleGeneratorMap: StyleGeneratorMap = {
-  point: defaultPointStyleGenerator,
+  draggablePoint: getDefaultDraggablePointStyle,
+  point: getDefaultPointStyle,
+  cluster: getDefaultClusterStyle,
+  clusterSymbol: getDefaultClusterSymbolStyle,
 };

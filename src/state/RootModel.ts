@@ -35,7 +35,7 @@ export class RootModel extends Model({
   handleMapPress(e: MapPressPayload) {
     // In point drawing mode, create another point feature
     if (this.controls.mode === InteractionMode.DrawPoint) {
-      this.features.addActivePoint(e.geometry.coordinates);
+      this.features.addDraftPoint(e.geometry.coordinates);
       return true;
     }
     // Event not handled

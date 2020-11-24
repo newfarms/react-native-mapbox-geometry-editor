@@ -3,31 +3,32 @@ import { point } from '@turf/helpers';
 
 import { FeatureListModel } from '../../state/FeatureListModel';
 import { FeatureModel } from '../../state/FeatureModel';
+import { FeatureLifecycleStage } from '../../type/geometry';
 
 /**
- * Test that moving a given active point by index updates the appropriate
- * active point's coordinates.
+ * Test that moving a given point by index updates the appropriate
+ * draggable point's coordinates.
  *
  * The test repeats for different numbers of points in the collection
- * of active points.
+ * of draggable points.
  */
 test.each([[1], [2], [3]])(
-  'moveActiveCoordinate() for each of %i points',
+  'dragPosition() for each of %i points',
   (nPoints) => {
     /**
-     * Setup: Create a collection of active points
+     * Setup: Create a collection of draggable points
      */
     // Coordinates of the points
     const originalCoordinates = range(nPoints).map((val) => [val, val + 1]);
-    // Active point features
+    // Point features
     const featureData = originalCoordinates.map((val) => point(val));
     const featureModelData = featureData.map((val) => {
       return new FeatureModel({
-        isActive: true,
+        stage: FeatureLifecycleStage.EditShape,
         geojson: val,
       });
     });
-    // Collection of active point features
+    // Collection of draggable point features
     const features = new FeatureListModel({ features: featureModelData });
 
     /**
@@ -35,8 +36,8 @@ test.each([[1], [2], [3]])(
      */
     range(nPoints).forEach((index) => {
       const newPosition = [index + 0.5, index + 1.5];
-      features.moveActiveCoordinate(newPosition, index);
-      expect(features.activePositions[index].coordinates).toStrictEqual(
+      features.dragPosition(newPosition, index);
+      expect(features.draggablePositions[index].coordinates).toStrictEqual(
         newPosition
       );
     });

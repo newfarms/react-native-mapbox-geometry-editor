@@ -7,7 +7,9 @@ import React, { useCallback, useContext } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL, { MapViewProps } from '@react-native-mapbox-gl/maps';
 
-import { ActivePoints } from './geometry/ActivePoints';
+import { DraggablePoints } from './geometry/DraggablePoints';
+import { ColdGeometry } from './geometry/ColdGeometry';
+import { HotGeometry } from './geometry/HotGeometry';
 import { StoreContext } from '../state/StoreContext';
 import { useEventHandlers } from '../hooks/useEventHandlers';
 import type { Event } from '../type/events';
@@ -57,7 +59,7 @@ export function _GeometryEditor(props: GeometryEditorProps) {
 
   const { store } = useContext(StoreContext);
   /**
-   * A touch callback for the map that will add a new active point
+   * A touch callback for the map that will add a new point
    */
   const addPoint = useCallback(
     (feature: Event) => {
@@ -77,7 +79,9 @@ export function _GeometryEditor(props: GeometryEditorProps) {
       {...restMapProps}
     >
       <StyleContext.Provider value={{ styleGenerators }}>
-        <ActivePoints />
+        <ColdGeometry />
+        <HotGeometry />
+        <DraggablePoints />
         {props.children}
       </StyleContext.Provider>
     </MapboxGL.MapView>

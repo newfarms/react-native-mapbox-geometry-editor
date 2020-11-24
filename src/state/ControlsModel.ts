@@ -1,14 +1,14 @@
-import { computed } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 
 import { featureListContext } from './ModelContexts';
+import { FeatureLifecycleStage } from '../type/geometry';
 
 /**
  * Possible geometry editing modes
  */
 export enum InteractionMode {
   /**
-   * Reposition active points of the shape being edited
+   * Reposition points of the shape being edited
    */
   DragPoint = 'DRAGPOINT',
   /**
@@ -62,31 +62,51 @@ export class ControlsModel extends Model({
   }),
 }) {
   /**
-   * Whether active points are currently draggable
-   */
-  @computed
-  get isDragPointEnabled() {
-    return this.mode === InteractionMode.DragPoint;
-  }
-
-  /**
    * Set the editing mode to `mode`, or restore the default editing mode
    * if `mode` is the current editing mode
    */
   @modelAction
   toggleMode(mode: InteractionMode) {
     // Enclose editing sessions in "transactions"
-    if (
-      isGeometryModificationMode(mode) ||
-      isGeometryModificationMode(this.mode)
-    ) {
-      featureListContext.get(this)?.beginOrEndEditingSession();
+    const features = featureListContext.get(this);
+    if (isGeometryModificationMode(mode)) {
+      if (this.mode === mode) {
+        features?.endEditingSession();
+      } else if (isGeometryModificationMode(this.mode)) {
+        features?.clearHistory();
+      } else {
+        features?.clearHistory();
+      }
+    } else {
+      if (isGeometryModificationMode(this.mode)) {
+        features?.endEditingSession();
+      }
     }
+
     if (this.mode === mode) {
       this.mode = defaultInteractionMode;
     } else {
       this.mode = mode;
+
+      // TODO
+      // Placeholder code that makes all point features draggable.
+      // To be removed when selection modes are implemented.
+      if (this.mode === InteractionMode.DragPoint) {
+        featureListContext.get(this)?.features?.forEach((val) => {
+          if (val.geojson.geometry.type === 'Point') {
+            val.stage = FeatureLifecycleStage.EditShape;
+          }
+        });
+      }
     }
+  }
+
+  /**
+   * Restore the default editing mode
+   */
+  @modelAction
+  setDefaultMode() {
+    this.toggleMode(this.mode);
   }
 
   /**
@@ -97,10 +117,7 @@ export class ControlsModel extends Model({
     if (!isGeometryModificationMode(this.mode)) {
       console.warn('Called outside of an editing mode.');
     }
-    if (this.mode !== defaultInteractionMode) {
-      this.mode = defaultInteractionMode;
-      featureListContext.get(this)?.beginOrEndEditingSession();
-    }
+    this.setDefaultMode();
   }
 
   /**
