@@ -27,7 +27,7 @@ export class FeatureModel extends Model({
    * operations it can be subject to and made available as an input
    * to data-driven rendering.
    */
-  stage: prop<FeatureLifecycleStage>(FeatureLifecycleStage.NewShape, {
+  stage: prop<FeatureLifecycleStage>(FeatureLifecycleStage.View, {
     setterAction: true,
   }),
   /**

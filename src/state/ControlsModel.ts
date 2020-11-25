@@ -1,5 +1,7 @@
 import { model, Model, modelAction, prop } from 'mobx-keystone';
+import last from 'lodash/last';
 
+import { ConfirmationModel } from './ConfirmationModel';
 import { featureListContext } from './ModelContexts';
 import { FeatureLifecycleStage } from '../type/geometry';
 
@@ -32,12 +34,11 @@ export enum InteractionMode {
 
 /**
  * Whether or not the editing mode can involve modifying geometry,
- * as opposed to allowing metadata changes or permitting no modifications of any kind.
+ * including metadata
  * @param mode An editing mode
  */
 function isGeometryModificationMode(mode: InteractionMode) {
   return !(
-    mode === InteractionMode.EditMetadata ||
     mode === InteractionMode.SelectMultiple ||
     mode === InteractionMode.SelectSingle
   );
@@ -60,6 +61,11 @@ export class ControlsModel extends Model({
   mode: prop<InteractionMode>(defaultInteractionMode, {
     setterAction: true,
   }),
+  /**
+   * A description of any operation that the user
+   * is asked to confirm or cancel
+   */
+  confimation: prop<ConfirmationModel | null>(() => null),
 }) {
   /**
    * Set the editing mode to `mode`, or restore the default editing mode
@@ -67,6 +73,13 @@ export class ControlsModel extends Model({
    */
   @modelAction
   toggleMode(mode: InteractionMode) {
+    if (this.confimation) {
+      console.warn(
+        `Attempt to change editing mode from ${this.mode} to ${mode} while there is an active confirmation request.`
+      );
+      return;
+    }
+
     // Enclose editing sessions in "transactions"
     const features = featureListContext.get(this);
     if (isGeometryModificationMode(mode)) {
@@ -105,26 +118,95 @@ export class ControlsModel extends Model({
    * Restore the default editing mode
    */
   @modelAction
-  setDefaultMode() {
+  private setDefaultMode() {
     this.toggleMode(this.mode);
   }
 
   /**
-   * Finish a geometry modification session
+   * Confirm the current commit or cancel operation
    */
   @modelAction
-  confirmEdits() {
-    if (!isGeometryModificationMode(this.mode)) {
-      console.warn('Called outside of an editing mode.');
+  confirm() {
+    if (this.confimation) {
+      // Cancel operation
+      switch (this.mode) {
+        case InteractionMode.DragPoint:
+          this.rollback();
+          break;
+        case InteractionMode.DrawPoint:
+          featureListContext.get(this)?.features.pop();
+          break;
+        case InteractionMode.EditMetadata:
+          this.rollback();
+          break;
+        case InteractionMode.SelectMultiple:
+        case InteractionMode.SelectSingle:
+          console.warn(`There are no actions to cancel.`);
+          break;
+      }
+      this.confimation = null;
+    } else {
+      // Commit operation
+      switch (this.mode) {
+        case InteractionMode.DragPoint:
+          this.setDefaultMode();
+          break;
+        case InteractionMode.DrawPoint:
+          {
+            const feature = last(featureListContext.get(this)?.features);
+            if (feature) {
+              feature.stage = FeatureLifecycleStage.View;
+            }
+          }
+          break;
+        case InteractionMode.EditMetadata:
+          this.setDefaultMode();
+          break;
+        case InteractionMode.SelectMultiple:
+        case InteractionMode.SelectSingle:
+          console.warn(`There are no actions to confirm.`);
+          break;
+      }
     }
-    this.setDefaultMode();
   }
 
   /**
-   * Undo one geometry modification
+   * Cancel the current commit or cancel operation
    */
   @modelAction
-  undo() {
-    featureListContext.get(this)?.undo();
+  cancel() {
+    if (this.confimation) {
+      this.confimation = null;
+    } else {
+      switch (this.mode) {
+        case InteractionMode.DragPoint:
+          this.confimation = new ConfirmationModel({
+            message: 'Discard position changes?',
+          });
+          break;
+        case InteractionMode.DrawPoint:
+          this.confimation = new ConfirmationModel({
+            message: 'Discard this point and its details?',
+          });
+          break;
+        case InteractionMode.EditMetadata:
+          this.confimation = new ConfirmationModel({
+            message: 'Discard changes to data?',
+          });
+          break;
+        case InteractionMode.SelectMultiple:
+        case InteractionMode.SelectSingle:
+          console.warn(`There are no actions to request confirmation for.`);
+          break;
+      }
+    }
+  }
+
+  /**
+   * Rollback geometry or metadata modifications
+   */
+  @modelAction
+  private rollback() {
+    featureListContext.get(this)?.rollbackEditingSession();
   }
 }

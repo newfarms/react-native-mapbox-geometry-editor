@@ -5,13 +5,11 @@ import { Paragraph, Button, Portal, Dialog } from 'react-native-paper';
 import { StoreContext } from '../../state/StoreContext';
 
 /**
- * A component that renders a confirmation dialog requesting that the user
- * confirm or cancel an operation. The dialog renders depending on whether
- * there is an operation needing confirmation.
+ * A component that renders an interface for editing geometry metadata
  * @return Renderable React node
  */
-function _ConfirmationDialog() {
-  const { controls } = useContext(StoreContext).store;
+function _MetadataEditor() {
+  const { controls, features } = useContext(StoreContext).store;
 
   // Rollback the geometry in case of cancellation
   const onDismiss = useCallback(() => {
@@ -23,21 +21,25 @@ function _ConfirmationDialog() {
     controls.confirm();
   }, [controls]);
 
-  const visible = !!controls.confimation; // Convert to boolean
+  /**
+   * Render the editor when there is metadata to edit
+   */
+  const data = features.draftMetadata;
+  const visible = !!data && !controls.confimation; // Convert to boolean
 
   /**
-   * Conditionally-visible confirmation dialog
+   * Conditionally-visible dialog
    */
   return (
     <Portal>
       <Dialog onDismiss={onDismiss} visible={visible} dismissable={true}>
-        <Dialog.Title>{controls.confimation?.title}</Dialog.Title>
+        <Dialog.Title>Edit details</Dialog.Title>
         <Dialog.Content>
-          <Paragraph>{controls.confimation?.message}</Paragraph>
+          <Paragraph>Placeholder for metadata editor</Paragraph>
         </Dialog.Content>
         <Dialog.Actions>
-          <Button onPress={onConfirm}>Yes</Button>
-          <Button onPress={onDismiss}>No</Button>
+          <Button onPress={onConfirm}>Save</Button>
+          <Button onPress={onDismiss}>Cancel</Button>
         </Dialog.Actions>
       </Dialog>
     </Portal>
@@ -45,6 +47,6 @@ function _ConfirmationDialog() {
 }
 
 /**
- * Renderable MobX wrapper for [[_ConfirmationDialog]]
+ * Renderable MobX wrapper for [[_MetadataEditor]]
  */
-export const ConfirmationDialog = observer(_ConfirmationDialog);
+export const MetadataEditor = observer(_MetadataEditor);

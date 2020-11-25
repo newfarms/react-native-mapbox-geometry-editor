@@ -12,6 +12,7 @@ import type { GeometryEditorProps } from './GeometryEditor';
 import { StoreProvider } from '../state/StoreProvider';
 import { ModeToolbox } from './ui/ModeToolbox';
 import { ConfirmationDialog } from './ui/ConfirmationDialog';
+import { MetadataEditor } from './ui/MetadataEditor';
 
 /**
  * Render properties for [[GeometryEditorUI]]
@@ -40,6 +41,7 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
         <StoreProvider>
           <_GeometryEditor {...restProps}>{props.children}</_GeometryEditor>
           <ModeToolbox />
+          <MetadataEditor />
           <ConfirmationDialog />
         </StoreProvider>
       </PaperProvider>
