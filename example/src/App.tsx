@@ -97,7 +97,7 @@ const styleGeneratorMap: StyleGeneratorMap = {
       '#00ffff',
       'SELECTSINGLE',
       '#00ff00',
-      'DRAFT',
+      'DRAFTSHAPE',
       '#ff0000',
       'VIEW',
       '#ffffff',
