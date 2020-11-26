@@ -1,4 +1,4 @@
-import { computed } from 'mobx';
+import { computed, toJS } from 'mobx';
 import {
   model,
   Model,
@@ -11,13 +11,12 @@ import type { UndoManager } from 'mobx-keystone';
 import { point, featureCollection } from '@turf/helpers';
 import flatten from 'lodash/flatten';
 import filter from 'lodash/filter';
-import type { Position } from 'geojson';
+import type { Position, GeoJsonProperties } from 'geojson';
 
 import { globalToLocalIndices } from '../util/collections';
 import { FeatureModel } from './FeatureModel';
 import type {
   DraggablePosition,
-  EditableFeature,
   RenderFeatureCollection,
 } from '../type/geometry';
 import { FeatureLifecycleStage } from '../type/geometry';
@@ -184,35 +183,57 @@ export class FeatureListModel extends Model({
 
   /**
    * Add a new GeoJSON point feature to the collection of features.
-   * The new point is marked as a draft, because it is assumed to be
-   * added during an editing session.
    *
    * @param position Coordinates for the new point
    */
   @modelAction
-  addDraftPoint(position: Position) {
+  addNewPoint(position: Position) {
     this.features.push(
       new FeatureModel({
-        stage: FeatureLifecycleStage.DraftShape,
+        stage: FeatureLifecycleStage.NewShape,
         geojson: point(position),
       })
     );
   }
 
   /**
-   * Retrieve any features that are ready to be confirmed by the user
+   * Retrieve the feature whose metadata is currently being edited
    */
   @computed
-  get draftFeature(): EditableFeature | undefined {
+  private get draftMetadataFeature(): FeatureModel | undefined {
     const arr = filter(
       this.features,
-      (val) => val.stage === FeatureLifecycleStage.DraftShape
+      (val) =>
+        val.stage === FeatureLifecycleStage.EditMetadata ||
+        val.stage === FeatureLifecycleStage.NewShape
     );
     if (arr.length > 1) {
       console.warn(
-        'There are multiple draft features. Only the first will be returned.'
+        'There are multiple features with draft metadata. Only the first will be returned.'
       );
     }
-    return arr[0]?.geojson;
+    return arr[0];
+  }
+
+  /**
+   * Retrieve any metadata currently being edited
+   */
+  @computed
+  get draftMetadata(): GeoJsonProperties | undefined {
+    return toJS(this.draftMetadataFeature?.geojson.properties);
+  }
+
+  /**
+   * Update any metadata currently being edited
+   *
+   * @param data New metadata
+   */
+  @modelAction
+  setDraftMetadata(data: GeoJsonProperties) {
+    if (this.draftMetadataFeature) {
+      this.draftMetadataFeature.geojson.properties = data;
+    } else {
+      console.warn('There are no features with draft metadata.');
+    }
   }
 }
