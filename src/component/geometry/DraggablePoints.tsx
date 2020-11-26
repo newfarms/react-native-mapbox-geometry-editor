@@ -5,20 +5,20 @@ import { View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 
-import { StoreContext } from '../state/StoreContext';
-import { StyleContext } from './StyleContext';
-import type { FeatureListModel } from '../state/FeatureListModel';
-import type { PointAnnotationPayload } from '../type/events';
-import type { PointStyle } from '../type/style';
-import { PointDrawStyle } from '../type/style';
+import { StoreContext } from '../../state/StoreContext';
+import { StyleContext } from '../StyleContext';
+import type { FeatureListModel } from '../../state/FeatureListModel';
+import type { PointAnnotationPayload } from '../../type/events';
+import type { DraggablePointStyle } from '../../type/style';
 
 /**
- * Convert generic point style parameters to the format expected
- * by Mapbox's `PointAnnotation`
+ * Generate additional style parameters needed to create a circular point annotation
  * @param inStyle Point style parameters
  * @return `PointAnnotation` rendering props
  */
-function pointStyleToPointAnnotationStyle(inStyle: PointStyle): ViewStyle {
+function pointStyleToPointAnnotationStyle(
+  inStyle: DraggablePointStyle
+): ViewStyle {
   const {
     radius,
     color,
@@ -47,19 +47,15 @@ function pointStyleToPointAnnotationStyle(inStyle: PointStyle): ViewStyle {
  */
 function _SinglePoint(props: {
   /**
-   * The store used to get the active point to render
+   * The store used to get the draggable point to render
    */
   readonly features: FeatureListModel;
   /**
-   * Whether or not dragging of editable points is permitted
-   */
-  readonly draggable: boolean;
-  /**
-   * The index of the active point to render
+   * The index of the draggable point to render
    */
   readonly index: number;
 }) {
-  const { draggable, features, index } = props;
+  const { features, index } = props;
   // Layer ID for Mapbox
   const id = `pointAnnotation${index}`;
   /**
@@ -67,7 +63,7 @@ function _SinglePoint(props: {
    */
   const onDragEndWithIndex = useCallback(
     (e: PointAnnotationPayload) => {
-      features.moveActiveCoordinate(e.geometry.coordinates, index);
+      features.dragPosition(e.geometry.coordinates, index);
     },
     [features, index]
   );
@@ -77,16 +73,6 @@ function _SinglePoint(props: {
    * context, in combination with data associated with the points
    */
   const { styleGenerators } = useContext(StyleContext);
-  let pointStyle = PointDrawStyle.InactivePoint;
-  if (features.activePositions[index].isNew) {
-    // New points can be styled differently depending on the types of features they are part of
-    if (features.activePositions[index].feature.geometry.type === 'Point') {
-      pointStyle = PointDrawStyle.DraftPoint;
-    }
-    // Other cases to be added later as more styles are defined
-  } else if (draggable) {
-    pointStyle = PointDrawStyle.EditPoint;
-  }
 
   /**
    * Render a map point annotation.
@@ -96,15 +82,15 @@ function _SinglePoint(props: {
   return (
     <MapboxGL.PointAnnotation
       id={id}
-      coordinate={toJS(features.activePositions[index].coordinates)}
-      draggable={draggable}
+      coordinate={toJS(features.draggablePositions[index].coordinates)}
+      draggable={true}
       onDragEnd={onDragEndWithIndex as () => void}
     >
       <View
         style={pointStyleToPointAnnotationStyle(
-          styleGenerators.point(
-            pointStyle,
-            features.activePositions[index].feature
+          styleGenerators.draggablePoint(
+            features.draggablePositions[index].role,
+            features.draggablePositions[index].feature
           )
         )}
       />
@@ -118,12 +104,11 @@ function _SinglePoint(props: {
 const SinglePoint = observer(_SinglePoint);
 
 /**
- * Renders a list of active points on a map, where the points are draggable
- * depending on the current editing mode.
+ * Renders a list of draggable points on a map
  * @return Renderable React node
  */
-function _ActivePoints() {
-  const { features, controls } = useContext(StoreContext).store;
+function _DraggablePoints() {
+  const { features } = useContext(StoreContext).store;
 
   /**
    * Render all points by mapping the appropriate
@@ -131,19 +116,14 @@ function _ActivePoints() {
    */
   const renderSinglePoint = useCallback(
     (_point: unknown, index: number) => (
-      <SinglePoint
-        features={features}
-        draggable={controls.isDragPointEnabled}
-        index={index}
-        key={index}
-      />
+      <SinglePoint features={features} index={index} key={index} />
     ),
-    [features, controls.isDragPointEnabled]
+    [features]
   );
-  return <>{features.activePositions.map(renderSinglePoint)}</>;
+  return <>{features.draggablePositions.map(renderSinglePoint)}</>;
 }
 
 /**
- * Renderable MobX wrapper for [[_ActivePoints]]
+ * Renderable MobX wrapper for [[_DraggablePoints]]
  */
-export const ActivePoints = observer(_ActivePoints);
+export const DraggablePoints = observer(_DraggablePoints);

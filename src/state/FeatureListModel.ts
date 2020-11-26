@@ -8,15 +8,19 @@ import {
   UndoStore,
 } from 'mobx-keystone';
 import type { UndoManager } from 'mobx-keystone';
-import { point } from '@turf/helpers';
+import { point, featureCollection } from '@turf/helpers';
 import flatten from 'lodash/flatten';
 import filter from 'lodash/filter';
 import type { Position } from 'geojson';
 
 import { globalToLocalIndices } from '../util/collections';
 import { FeatureModel } from './FeatureModel';
-import type { ActivePosition } from './FeatureModel';
-import type { EditableFeature } from '../type/geometry';
+import type {
+  DraggablePosition,
+  EditableFeature,
+  RenderFeatureCollection,
+} from '../type/geometry';
+import { FeatureLifecycleStage } from '../type/geometry';
 
 /**
  * A collection of editable GeoJSON features
@@ -57,41 +61,51 @@ export class FeatureListModel extends Model({
   /**
    * Re-position a point in the list of points currently being edited
    * @param position The new position for the point
-   * @param index The index of the point in the list of points being edited. See [[activePositions]]
+   * @param index The index of the point in the list of points being edited. See [[draggablePositions]]
    */
   @modelAction
-  moveActiveCoordinate(position: Position, index: number) {
+  dragPosition(position: Position, index: number) {
     /**
      * Look up the underlying feature in the list of features,
-     * corresponding to the index into the list of active points
+     * corresponding to the index into the list of draggable points
      */
     const { innerIndex, outerIndex } = globalToLocalIndices(index, (i) => {
       if (i >= this.features.length) {
         return null;
       }
-      return this.features[i].activePositions.length;
+      return this.features[i].draggablePositions.length;
     });
     /**
      * Ask the feature to update the point, given the computed index
      * of the point in that feature.
      */
-    this.features[outerIndex].moveActiveCoordinate(position, innerIndex);
+    this.features[outerIndex].dragPosition(position, innerIndex);
   }
 
   /**
-   * Call this function to reset the undo/redo history at the start and end of
+   * Call this function to reset the undo/redo history at the end of
    * a geometry modification session.
    * Ensures that all geometry is marked as "finished".
    */
   @modelAction
-  beginOrEndEditingSession() {
+  endEditingSession() {
     /**
-     * Confirm all geometry
+     * Finalize all geometry
      * Note that this step is done before clearing the undo/redo history.
      */
     this.features.forEach((val) => {
-      val.isNew = false;
+      val.stage = FeatureLifecycleStage.View;
     });
+    this.undoManager?.clearRedo();
+    this.undoManager?.clearUndo();
+  }
+
+  /**
+   * Call this function to reset the undo/redo history at the start of
+   * a geometry modification session.
+   */
+  @modelAction
+  clearHistory() {
     this.undoManager?.clearRedo();
     this.undoManager?.clearUndo();
   }
@@ -135,32 +149,51 @@ export class FeatureListModel extends Model({
   }
 
   /**
-   * Computes the list of active points (points currently being edited)
-   * by concatenating the coordinates of all active features.
+   * Computes the list of draggable points (points currently being edited)
+   * by concatenating the coordinates of all currently editable features.
    */
   @computed
-  get activePositions(): Array<ActivePosition> {
+  get draggablePositions(): Array<DraggablePosition> {
     /**
      * Empty arrays will be removed by `flatten`, but their removal
-     * does not cause problems [[moveActiveCoordinate]], because [[globalToLocalIndices]]
+     * does not cause problems for [[dragPosition]], because [[globalToLocalIndices]]
      * can handle zero-length sub-collections.
      */
-    return flatten(this.features.map((feature) => feature.activePositions));
+    return flatten(this.features.map((feature) => feature.draggablePositions));
+  }
+
+  /**
+   * Returns any features that should be rendered in the "hot" map layer.
+   */
+  @computed
+  get hotFeatures(): RenderFeatureCollection {
+    return featureCollection(
+      flatten(this.features.map((feature) => feature.hotFeatures))
+    );
+  }
+
+  /**
+   * Returns any features that should be rendered in the "cold" map layer.
+   */
+  @computed
+  get coldFeatures(): RenderFeatureCollection {
+    return featureCollection(
+      flatten(this.features.map((feature) => feature.coldFeatures))
+    );
   }
 
   /**
    * Add a new GeoJSON point feature to the collection of features.
-   * The new point is marked as active, because it is assumed to be
+   * The new point is marked as a draft, because it is assumed to be
    * added during an editing session.
    *
    * @param position Coordinates for the new point
    */
   @modelAction
-  addActivePoint(position: Position) {
+  addDraftPoint(position: Position) {
     this.features.push(
       new FeatureModel({
-        isActive: true,
-        isNew: true,
+        stage: FeatureLifecycleStage.DraftShape,
         geojson: point(position),
       })
     );
@@ -170,8 +203,11 @@ export class FeatureListModel extends Model({
    * Retrieve any features that are ready to be confirmed by the user
    */
   @computed
-  get draftFeature(): EditableFeature | null {
-    const arr = filter(this.features, (val) => val.isNew);
+  get draftFeature(): EditableFeature | undefined {
+    const arr = filter(
+      this.features,
+      (val) => val.stage === FeatureLifecycleStage.DraftShape
+    );
     if (arr.length > 1) {
       console.warn(
         'There are multiple draft features. Only the first will be returned.'

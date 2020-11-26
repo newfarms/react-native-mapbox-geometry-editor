@@ -2,31 +2,17 @@
  * Geometry rendering style type definitions
  * @packageDocumentation
  */
+import type {
+  CircleLayerStyle,
+  SymbolLayerStyle,
+} from '@react-native-mapbox-gl/maps';
 
-import type { EditableFeature } from './geometry';
-
-/**
- * The set of geometry rendering styles for points
- */
-export enum PointDrawStyle {
-  /**
-   * Editable point (selected/editable)
-   */
-  EditPoint = 'EDITPOINT',
-  /**
-   * Draft new point feature
-   */
-  DraftPoint = 'DRAFTPOINT',
-  /**
-   * Non-interactive point feature
-   */
-  InactivePoint = 'INACTIVEPOINT',
-}
+import type { EditableFeature, CoordinateRole } from './geometry';
 
 /**
- * Style attributes for points
+ * Style attributes for draggable points
  */
-export interface PointStyle {
+export interface DraggablePointStyle {
   /**
    * Point circle marker radius (measured in pixels).
    * Does not include the marker's outline.
@@ -48,23 +34,47 @@ export interface PointStyle {
    * Marker outline colour
    */
   strokeColor?: string;
-  /**
-   * Marker outline opacity
-   * Not all renderers currently use this property.
-   */
-  strokeOpacity?: number;
 }
 
 /**
- * A function that will be called to output style properties for point features
+ * A function that will be called to output style properties for draggable points
  */
-export interface PointStyleGenerator {
+export interface DraggablePointStyleGenerator {
   /**
-   * @param style The style according to which the point will be drawn
+   * @param role The role of the point in the underlying geometry feature
    * @param feature The feature corresponding to the point
    * @return The style attributes for the input style type and feature combination
    */
-  (style: PointDrawStyle, feature: EditableFeature): PointStyle;
+  (role: CoordinateRole, feature: EditableFeature): DraggablePointStyle;
+}
+
+/**
+ * A function that will be called to output style properties for point-like features
+ */
+export interface CircleLayerStyleGenerator {
+  /**
+   * Refer to Mapbox's documentation of data-driven styling expressions
+   * for more information on data-driven styling:
+   * https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions/
+   * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'Point'`
+   */
+  (): CircleLayerStyle;
+}
+
+/**
+ * A function that will be called to output style properties for `MapboxGL.SymbolLayer`
+ * layers rendered as child layers of `MapboxGL.CircleLayer` layers representing clusters.
+ *
+ * For instance, the symbol layers can be used to render cluster counts.`
+ */
+export interface ClusterSymbolLayerStyleGenerator {
+  /**
+   * Refer to Mapbox's documentation of data-driven styling expressions
+   * for more information on data-driven styling:
+   * https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions/
+   * @return Mapbox style JSON for a Mapbox cluster layer's child symbol layer
+   */
+  (): SymbolLayerStyle;
 }
 
 /**
@@ -73,7 +83,22 @@ export interface PointStyleGenerator {
  */
 export interface StyleGeneratorMap {
   /**
-   * Style generator for point objects
+   * Style generator for draggable points
    */
-  readonly point: PointStyleGenerator;
+  readonly draggablePoint: DraggablePointStyleGenerator;
+  /**
+   * Style generator for non-draggable point features
+   * These features will be of type [[RenderFeature]]
+   * and will have a geometry of type `'Point'`
+   */
+  readonly point: CircleLayerStyleGenerator;
+  /**
+   * Style generator for clustered point features
+   */
+  readonly cluster: CircleLayerStyleGenerator;
+  /**
+   * Style generator for clustered point features' symbol layers
+   * (Used to render cluster point counts, for example)
+   */
+  readonly clusterSymbol: ClusterSymbolLayerStyleGenerator;
 }
