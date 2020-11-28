@@ -63,6 +63,7 @@ const result = await MapboxGeometryEditor.multiply(3, 7);
 
 ### iOS
 - To drag an editable point, it may be necessary to first tap on the point (press and release) before pressing and holding to drag the point.
+- Editable points may snap back to their original positions while or after being dragged (https://github.com/react-native-mapbox-gl/maps/issues/1117).
 - To draw a new point, it may be necessary to first tap on the map, to switch focus to the map, after having tapped on a geometry object or on a user interface element.
   In other words, two taps on the map may be required to draw a new point.
 
