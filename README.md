@@ -2,6 +2,10 @@
 
 Interactive shape editing on top of the Mapbox Maps SDK for React Native
 
+## Example
+
+Example app setup is described in [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Installation
 
 ```sh
@@ -60,6 +64,10 @@ const result = await MapboxGeometryEditor.multiply(3, 7);
 ```
 
 ## Known issues
+
+### Android
+- Geometry rendering on an Android emulator may exhibit visual problems such as rendering points in grey instead of in their desired colours.
+  Zooming in and out on the map may make colours randomly appear and disappear.
 
 ### iOS
 - To drag an editable point, it may be necessary to first tap on the point (press and release) before pressing and holding to drag the point.

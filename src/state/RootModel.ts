@@ -1,8 +1,8 @@
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 
+import { featureListContext } from './ModelContexts';
 import { FeatureListModel } from './FeatureListModel';
-import { ControlsModel } from './ControlsModel';
-import { InteractionMode } from './ControlsModel';
+import { ControlsModel, InteractionMode } from './ControlsModel';
 import type { MapPressPayload } from '../type/events';
 
 /**
@@ -20,6 +20,13 @@ export class RootModel extends Model({
   features: prop<FeatureListModel>(() => new FeatureListModel({})),
 }) {
   /**
+   * Set up contexts by which child stores can find each other.
+   */
+  onInit() {
+    featureListContext.setComputed(this, () => this.features);
+  }
+
+  /**
    * Executes the appropriate action in response to a map touch event
    *
    * @param e Event payload
@@ -28,7 +35,7 @@ export class RootModel extends Model({
   handleMapPress(e: MapPressPayload) {
     // In point drawing mode, create another point feature
     if (this.controls.mode === InteractionMode.DrawPoint) {
-      this.features.addActivePoint(e.geometry.coordinates);
+      this.features.addNewPoint(e.geometry.coordinates);
       return true;
     }
     // Event not handled

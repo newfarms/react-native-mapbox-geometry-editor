@@ -18,11 +18,11 @@ if (__DEV__) {
    * Emit warnings in development mode for common MobX pitfalls
    */
   configure({
+    ...mobxOptions,
     enforceActions: 'always',
     computedRequiresReaction: true,
     reactionRequiresObservable: true,
     observableRequiresReaction: true,
-    ...mobxOptions,
   });
 } else {
   configure(mobxOptions);
@@ -32,3 +32,16 @@ export { GeometryEditor } from './component/GeometryEditor';
 export type { GeometryEditorProps } from './component/GeometryEditor';
 export { GeometryEditorUI } from './component/GeometryEditorUI';
 export type { GeometryEditorUIProps } from './component/GeometryEditorUI';
+export { defaultStyleGeneratorMap } from './util/defaultStyleGenerators';
+
+export type {
+  EditableFeature,
+  RenderFeature,
+  RenderProperties,
+} from './type/geometry';
+export {
+  CoordinateRole,
+  FeatureLifecycleStage,
+  GeometryRole,
+} from './type/geometry';
+export type { DraggablePointStyle, StyleGeneratorMap } from './type/style';

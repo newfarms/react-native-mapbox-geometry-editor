@@ -35,14 +35,14 @@ function makeModeControl(mode: InteractionMode, icon: string) {
 }
 
 /**
- * Active points dragging editing mode control button
+ * Point dragging editing mode control button
  */
 export const DragPointControl = makeModeControl(
   InteractionMode.DragPoint,
   'circle-edit-outline'
 );
 /**
- * Active points addition editing mode control button
+ * Point addition editing mode control button
  */
 export const DrawPointControl = makeModeControl(
   InteractionMode.DrawPoint,

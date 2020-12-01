@@ -7,10 +7,15 @@ import React, { useCallback, useContext } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL, { MapViewProps } from '@react-native-mapbox-gl/maps';
 
-import { ActivePoints } from './ActivePoints';
+import { DraggablePoints } from './geometry/DraggablePoints';
+import { ColdGeometry } from './geometry/ColdGeometry';
+import { HotGeometry } from './geometry/HotGeometry';
 import { StoreContext } from '../state/StoreContext';
 import { useEventHandlers } from '../hooks/useEventHandlers';
 import type { Event } from '../type/events';
+import type { StyleGeneratorMap } from '../type/style';
+import { defaultStyleGeneratorMap } from '../util/defaultStyleGenerators';
+import { StyleContext } from './StyleContext';
 
 /**
  * Render properties for [[GeometryEditor]]
@@ -20,6 +25,11 @@ export interface GeometryEditorProps {
    * Additional properties for the [map](https://github.com/react-native-mapbox-gl/maps/blob/master/docs/MapView.md), including `style`.
    */
   readonly mapProps?: MapViewProps;
+  /**
+   * Custom styling functions for geometry rendered
+   * on the map
+   */
+  readonly styleGenerators?: StyleGeneratorMap;
   /**
    * Additional child elements to render as children of the map
    */
@@ -44,12 +54,12 @@ const styles = StyleSheet.create({
  * @return Renderable React node
  */
 export function _GeometryEditor(props: GeometryEditorProps) {
-  const { mapProps = {} } = props;
+  const { mapProps = {}, styleGenerators = defaultStyleGeneratorMap } = props;
   const { style: mapStyle, onPress: outerOnPress, ...restMapProps } = mapProps;
 
   const { store } = useContext(StoreContext);
   /**
-   * A touch callback for the map that will add a new active point
+   * A touch callback for the map that will add a new point
    */
   const addPoint = useCallback(
     (feature: Event) => {
@@ -68,8 +78,12 @@ export function _GeometryEditor(props: GeometryEditorProps) {
       onPress={onPress}
       {...restMapProps}
     >
-      <ActivePoints />
-      {props.children}
+      <StyleContext.Provider value={{ styleGenerators }}>
+        <ColdGeometry />
+        <HotGeometry />
+        <DraggablePoints />
+        {props.children}
+      </StyleContext.Provider>
     </MapboxGL.MapView>
   );
 }
