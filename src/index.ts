@@ -33,6 +33,7 @@ export type { GeometryEditorProps } from './component/GeometryEditor';
 export { GeometryEditorUI } from './component/GeometryEditorUI';
 export type { GeometryEditorUIProps } from './component/GeometryEditorUI';
 export { defaultStyleGeneratorMap } from './util/defaultStyleGenerators';
+export { validateMetadata } from './util/metadata';
 
 export type {
   EditableFeature,
@@ -44,4 +45,5 @@ export {
   FeatureLifecycleStage,
   GeometryRole,
 } from './type/geometry';
+export type { MetadataSchema, MetadataValidationResult } from './type/metadata';
 export type { DraggablePointStyle, StyleGeneratorMap } from './type/style';

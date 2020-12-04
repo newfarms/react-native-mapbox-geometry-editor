@@ -17,6 +17,7 @@ import { globalToLocalIndices } from '../util/collections';
 import { FeatureModel } from './FeatureModel';
 import type {
   DraggablePosition,
+  EditableFeature,
   RenderFeatureCollection,
 } from '../type/geometry';
 import { FeatureLifecycleStage } from '../type/geometry';
@@ -216,11 +217,32 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Retrieve any GeoJSON feature whose metadata is currently
+   * to be edited
+   */
+  @computed
+  get draftMetadataGeoJSON(): EditableFeature | undefined {
+    if (this.draftMetadataFeature) {
+      return this.draftMetadataFeature.geojson;
+    }
+    return undefined;
+  }
+
+  /**
    * Retrieve any metadata currently being edited
+   *
+   * See [[draftMetadataGeoJSON]]
    */
   @computed
   get draftMetadata(): GeoJsonProperties | undefined {
-    return toJS(this.draftMetadataFeature?.geojson.properties);
+    if (this.draftMetadataFeature) {
+      if (this.draftMetadataFeature.geojson.properties) {
+        return toJS(this.draftMetadataFeature.geojson.properties);
+      } else {
+        return {};
+      }
+    }
+    return undefined;
   }
 
   /**

@@ -12,7 +12,10 @@ import type { GeometryEditorProps } from './GeometryEditor';
 import { StoreProvider } from '../state/StoreProvider';
 import { ModeToolbox } from './ui/ModeToolbox';
 import { ConfirmationDialog } from './ui/ConfirmationDialog';
+import { MetadataContext } from './ui/MetadataContext';
 import { MetadataEditor } from './ui/MetadataEditor';
+import { defaultMetadataSchemaGenerator } from '../util/metadata';
+import type { MetadataSchemaGenerator } from '../type/metadata';
 
 /**
  * Render properties for [[GeometryEditorUI]]
@@ -23,6 +26,11 @@ export interface GeometryEditorUIProps extends GeometryEditorProps {
    * the map and user interface
    */
   readonly style?: ViewStyle;
+  /**
+   * A function that will generate schemas for geometry metadata editing forms.
+   * It will be passed the geometry to be edited (having any existing metadata)
+   */
+  readonly metadataSchemaGenerator?: MetadataSchemaGenerator;
 }
 
 /**
@@ -33,7 +41,11 @@ export interface GeometryEditorUIProps extends GeometryEditorProps {
  * @return Renderable React node
  */
 export function GeometryEditorUI(props: GeometryEditorUIProps) {
-  const { style: containerStyle = {}, ...restProps } = props;
+  const {
+    style: containerStyle = {},
+    metadataSchemaGenerator = defaultMetadataSchemaGenerator,
+    ...restProps
+  } = props;
 
   return (
     <View style={containerStyle}>
@@ -41,7 +53,9 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
         <StoreProvider>
           <_GeometryEditor {...restProps}>{props.children}</_GeometryEditor>
           <ModeToolbox />
-          <MetadataEditor />
+          <MetadataContext.Provider value={{ metadataSchemaGenerator }}>
+            <MetadataEditor />
+          </MetadataContext.Provider>
           <ConfirmationDialog />
         </StoreProvider>
       </PaperProvider>
