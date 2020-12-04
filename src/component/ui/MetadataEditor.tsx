@@ -23,7 +23,7 @@ function _MetadataEditor() {
    * The editor should be visible when there is metadata to edit
    */
   const data = toJS(features.draftMetadata);
-  const visible = !!data && !controls.confimation; // Convert to boolean
+  const visible = !!data; // Convert to boolean
   let schemaSource: MetadataSchema | null = null;
   if (visible) {
     const feature = toJS(features.draftMetadataGeoJSON);
