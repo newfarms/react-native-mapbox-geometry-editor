@@ -45,5 +45,9 @@ export {
   FeatureLifecycleStage,
   GeometryRole,
 } from './type/geometry';
-export type { MetadataSchema, MetadataValidationResult } from './type/metadata';
+export type {
+  MetadataSchema,
+  MetadataSchemaGenerator,
+  MetadataValidationResult,
+} from './type/metadata';
 export type { DraggablePointStyle, StyleGeneratorMap } from './type/style';
