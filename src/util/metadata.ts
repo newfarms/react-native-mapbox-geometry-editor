@@ -20,10 +20,14 @@ export function defaultMetadataSchemaGenerator(
   _feature: EditableFeature
 ): MetadataSchema | null {
   return [
-    'yup.shape',
-    {
-      comment: [['yup.string'], ['yup.optional']],
-    },
+    ['yup.object'],
+    ['yup.required'],
+    [
+      'yup.shape',
+      {
+        comment: [['yup.string'], ['yup.optional']],
+      },
+    ],
   ];
 }
 

@@ -37,6 +37,12 @@ function _MetadataEditor() {
     }
   }
   const formStarter = makeMetadataFormStarter(schemaSource, data);
+  if (formStarter.schemaErrors) {
+    console.warn(
+      'Metadata schema description parsing errors: ',
+      formStarter.schemaErrors
+    );
+  }
 
   // Rollback the geometry in case of cancellation
   const onDismiss = useCallback(() => {
