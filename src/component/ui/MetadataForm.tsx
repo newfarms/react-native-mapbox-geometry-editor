@@ -285,6 +285,7 @@ export function MetadataFieldList({
       keyExtractor={KeyExtractor}
       ItemSeparatorComponent={Divider}
       ListEmptyComponent={EmptyForm}
+      enableOnAndroid={true}
     />
   );
 }
