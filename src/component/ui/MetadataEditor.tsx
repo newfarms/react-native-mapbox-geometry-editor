@@ -1,6 +1,7 @@
 import React, { useCallback, useContext } from 'react';
 import { toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
+import { StyleSheet } from 'react-native';
 import { Button, Portal, Dialog } from 'react-native-paper';
 import { Formik } from 'formik';
 
@@ -9,6 +10,15 @@ import { MetadataContext } from './MetadataContext';
 import { MetadataFieldList } from './MetadataForm';
 import { makeMetadataFormStarter } from '../../util/metadata';
 import type { MetadataSchema } from '../../type/metadata';
+
+/**
+ * @ignore
+ */
+const styles = StyleSheet.create({
+  dialog: {
+    maxHeight: '75%',
+  },
+});
 
 /**
  * A component that renders an interface for editing geometry metadata
@@ -104,7 +114,12 @@ function _MetadataEditor() {
    */
   return (
     <Portal>
-      <Dialog onDismiss={onDismiss} visible={visible} dismissable={true}>
+      <Dialog
+        onDismiss={onDismiss}
+        visible={visible}
+        dismissable={true}
+        style={styles.dialog}
+      >
         <Dialog.Title>Edit details</Dialog.Title>
         <Formik
           component={dialogContents}
