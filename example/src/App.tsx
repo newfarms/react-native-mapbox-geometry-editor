@@ -28,10 +28,12 @@ import {
   defaultStyleGeneratorMap,
   GeometryEditorUI,
   CoordinateRole,
+  validateMetadata,
 } from 'react-native-mapbox-geometry-editor';
 import type {
   DraggablePointStyle,
   EditableFeature,
+  MetadataSchema,
   StyleGeneratorMap,
 } from 'react-native-mapbox-geometry-editor';
 
@@ -125,6 +127,67 @@ const styleGeneratorMap: StyleGeneratorMap = {
 };
 
 /**
+ * Example enumeration used for a dropdown select
+ * geometry metadata field
+ */
+enum VehicleType {
+  Car = 'CAR',
+  Train = 'TRAIN',
+  Boat = 'BOAT',
+  Bicycle = 'BICYCLE',
+}
+
+/**
+ * Function defining the metadata fields available for editing.
+ * The library will provide a default function if none is provided.
+ * @param _feature Geometry object whose metadata will be edited
+ */
+function metadataSchemaGenerator(_feature?: EditableFeature): MetadataSchema {
+  return [
+    ['yup.object'],
+    ['yup.required'],
+    [
+      'yup.shape',
+      {
+        vehicleType: [
+          ['yup.mixed'],
+          ['yup.required'],
+          ['yup.oneOf', Object.values(VehicleType)],
+        ],
+        color: [['yup.string'], ['yup.required']], // An enumeration may be better, as the user could input arbitrary strings
+        age: [['yup.number'], ['yup.required'], ['yup.positive']],
+        description: [['yup.string'], ['yup.optional']],
+        needsRepair: [['yup.boolean'], ['yup.required']],
+      },
+    ],
+  ];
+}
+
+/**
+ * For development purposes, validate the metadata schema
+ */
+const validationResult = validateMetadata(metadataSchemaGenerator(), {
+  vehicleType: 'BICYCLE',
+  color: 'red',
+  age: 'five',
+  extraProperties: {
+    wheelDiameter: 26,
+  },
+});
+if (validationResult.schemaErrors) {
+  console.warn(
+    'Example metadata schema errors: ',
+    validationResult.schemaErrors
+  );
+}
+if (validationResult.dataErrors) {
+  console.warn(
+    'Example metadata data validation errors: ',
+    validationResult.dataErrors
+  );
+}
+
+/**
  * Render a map page with a demonstration of the geometry editor library's functionality
  */
 export default function App() {
@@ -136,6 +199,7 @@ export default function App() {
           style: styles.map,
           styleURL: 'mapbox://styles/mapbox/dark-v10',
         }}
+        metadataSchemaGenerator={metadataSchemaGenerator}
         styleGenerators={styleGeneratorMap}
       >
         <MapboxGL.Camera
