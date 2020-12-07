@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import {
-  FlatList,
   Platform,
   StyleSheet,
   TextInput as NativeTextInput,
@@ -15,6 +14,7 @@ import {
   TextInput,
   TouchableRipple,
 } from 'react-native-paper';
+import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 /**
  * React Native Paper does not have a dropdown select component
  * https://github.com/callstack/react-native-paper/issues/603
@@ -279,7 +279,7 @@ export function MetadataFieldList({
   formFieldList: MetadataFormStructure;
 }) {
   return (
-    <FlatList
+    <KeyboardAwareFlatList
       data={formFieldList}
       renderItem={ListItem}
       keyExtractor={KeyExtractor}
