@@ -49,12 +49,19 @@ const styles = StyleSheet.create({
  */
 function StringField({
   item,
+  customError,
   customTextInput,
 }: {
   /**
    * The field data (other than Formik-provided data)
    */
   item: FieldDescription;
+  /**
+   * Text to override a Formik error message
+   * Rendered only if there is also a Formik error message that would be
+   * rendered instead.
+   */
+  customError?: string | null;
   /**
    * An alternative component to render for the text input field
    */
@@ -64,6 +71,10 @@ function StringField({
 }) {
   const formik = useFormikContext<MetadataFormValues>(); // Retrieve Formik data
   const showError = !!(formik.touched[item.key] && formik.errors[item.key]);
+  let error = formik.errors[item.key];
+  if (showError && customError) {
+    error = customError;
+  }
   return (
     <>
       <TextInput
@@ -76,7 +87,7 @@ function StringField({
         render={customTextInput}
       />
       <HelperText type="error" padding="none" visible={showError}>
-        {formik.errors[item.key]}
+        {error}
       </HelperText>
     </>
   );
@@ -102,7 +113,25 @@ function NumberField({
    */
   item: FieldDescription;
 }) {
-  return <StringField item={item} customTextInput={NumericTextInput} />;
+  /**
+   * Override the non-human readable error message that Yup produces
+   * when parsing a non-numerical value
+   */
+  const formik = useFormikContext<MetadataFormValues>(); // Retrieve Formik data
+  const value = formik.values[item.key];
+  let customError = null;
+  if (formik.errors[item.key] && typeof value === 'string' && value) {
+    if (Number.isNaN(parseFloat(value))) {
+      customError = `${item.label} must be a number`;
+    }
+  }
+  return (
+    <StringField
+      item={item}
+      customTextInput={NumericTextInput}
+      customError={customError}
+    />
+  );
 }
 
 /**

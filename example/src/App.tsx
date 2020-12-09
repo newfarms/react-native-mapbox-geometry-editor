@@ -160,7 +160,7 @@ function metadataSchemaGenerator(_feature?: EditableFeature): MetadataSchema {
           ['yup.number'],
           ['yup.label', 'Age (years)'],
           ['yup.required', 'How old is it?'],
-          ['yup.positive', 'Nothing can have a negative age'],
+          ['yup.positive', 'Age must be greater than zero'],
         ],
         description: [
           ['yup.string'],
