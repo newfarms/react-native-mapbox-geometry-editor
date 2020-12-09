@@ -63,20 +63,20 @@ function StringField({
     | undefined;
 }) {
   const formik = useFormikContext<MetadataFormValues>(); // Retrieve Formik data
-  const showError = !!(formik.touched[item.name] && formik.errors[item.name]);
+  const showError = !!(formik.touched[item.key] && formik.errors[item.key]);
   return (
     <>
       <TextInput
-        value={formik.values[item.name] as string}
+        value={formik.values[item.key] as string}
         mode="outlined"
-        label={item.name}
+        label={item.label}
         error={showError}
-        onChangeText={formik.handleChange(item.name)}
-        onBlur={formik.handleBlur(item.name)}
+        onChangeText={formik.handleChange(item.key)}
+        onBlur={formik.handleBlur(item.key)}
         render={customTextInput}
       />
       <HelperText type="error" padding="none" visible={!showError}>
-        {formik.errors[item.name]}
+        {formik.errors[item.key]}
       </HelperText>
     </>
   );
@@ -118,7 +118,7 @@ function EnumField({
   item: EnumFieldDescription;
 }) {
   const formik = useFormikContext<MetadataFormValues>(); // Retrieve Formik data
-  const showError = !!(formik.touched[item.name] && formik.errors[item.name]);
+  const showError = !!(formik.touched[item.key] && formik.errors[item.key]);
   // Dropdown select open/closed state
   const [showDropDown, setShowDropDown] = useState(false);
   // Dropdown select options data
@@ -132,11 +132,11 @@ function EnumField({
   return (
     <>
       <DropDown
-        label={item.name}
+        label={item.label}
         mode={'outlined'}
-        value={formik.values[item.name] as string}
+        value={formik.values[item.key] as string}
         setValue={
-          formik.handleChange(item.name) as (_e: React.ReactText) => void
+          formik.handleChange(item.key) as (_e: React.ReactText) => void
         }
         list={optionList}
         visible={showDropDown}
@@ -145,11 +145,11 @@ function EnumField({
         inputProps={{
           right: <TextInput.Icon name={'menu-down'} />,
           error: showError,
-          onBlur: formik.handleBlur(item.name),
+          onBlur: formik.handleBlur(item.key),
         }}
       />
       <HelperText type="error" padding="none" visible={!showError}>
-        {formik.errors[item.name]}
+        {formik.errors[item.key]}
       </HelperText>
     </>
   );
@@ -168,13 +168,13 @@ function BooleanField({
   item: FieldDescription;
 }) {
   const formik = useFormikContext<MetadataFormValues>(); // Retrieve Formik data
-  const showError = !!formik.errors[item.name];
-  const booleanValue = !!formik.values[item.name];
+  const showError = !!formik.errors[item.key];
+  const booleanValue = !!formik.values[item.key];
   /**
    * Invert the field value whenever the switch flips
    */
   const changeValue = useCallback(
-    () => formik.setFieldValue(item.name, !booleanValue),
+    () => formik.setFieldValue(item.key, !booleanValue),
     [formik, item, booleanValue]
   );
 
@@ -190,7 +190,7 @@ function BooleanField({
     switchComponent = (
       <TouchableRipple onPress={changeValue}>
         <View style={styles.switchRow}>
-          <Paragraph>{item.name}</Paragraph>
+          <Paragraph>{item.label}</Paragraph>
           <View pointerEvents="none">
             <Switch value={booleanValue} />
           </View>
@@ -200,7 +200,7 @@ function BooleanField({
   } else {
     switchComponent = (
       <View style={styles.switchRow}>
-        <Paragraph>{item.name}</Paragraph>
+        <Paragraph>{item.label}</Paragraph>
         <Switch value={booleanValue} onValueChange={changeValue} />
       </View>
     );
@@ -212,7 +212,7 @@ function BooleanField({
     <>
       {switchComponent}
       <HelperText type="error" padding="none" visible={!showError}>
-        {formik.errors[item.name]}
+        {formik.errors[item.key]}
       </HelperText>
     </>
   );
@@ -255,7 +255,7 @@ function ListItem({
  * @param item List data element
  */
 function KeyExtractor(item: FieldDescription) {
-  return item.name;
+  return item.key;
 }
 
 /**

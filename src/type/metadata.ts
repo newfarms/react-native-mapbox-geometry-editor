@@ -37,9 +37,13 @@ export interface FieldDescription {
    */
   type: FieldType;
   /**
-   * The field name
+   * The field key
    */
-  name: string;
+  key: string;
+  /**
+   * The field name (label)
+   */
+  label: string;
 }
 
 /**
