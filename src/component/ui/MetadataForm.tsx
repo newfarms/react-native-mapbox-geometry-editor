@@ -75,7 +75,7 @@ function StringField({
         onBlur={formik.handleBlur(item.key)}
         render={customTextInput}
       />
-      <HelperText type="error" padding="none" visible={!showError}>
+      <HelperText type="error" padding="none" visible={showError}>
         {formik.errors[item.key]}
       </HelperText>
     </>
@@ -148,7 +148,7 @@ function EnumField({
           onBlur: formik.handleBlur(item.key),
         }}
       />
-      <HelperText type="error" padding="none" visible={!showError}>
+      <HelperText type="error" padding="none" visible={showError}>
         {formik.errors[item.key]}
       </HelperText>
     </>
@@ -211,7 +211,7 @@ function BooleanField({
   return (
     <>
       {switchComponent}
-      <HelperText type="error" padding="none" visible={!showError}>
+      <HelperText type="error" padding="none" visible={showError}>
         {formik.errors[item.key]}
       </HelperText>
     </>

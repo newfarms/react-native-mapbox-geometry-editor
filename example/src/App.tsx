@@ -155,12 +155,12 @@ function metadataSchemaGenerator(_feature?: EditableFeature): MetadataSchema {
           ['yup.required'],
           ['yup.oneOf', Object.values(VehicleType)],
         ],
-        color: [['yup.string'], ['yup.required']], // An enumeration may be better, as the user could input arbitrary strings
+        color: [['yup.string'], ['yup.required', 'A color is required']], // An enumeration may be better, as the user could input arbitrary strings
         age: [
           ['yup.number'],
           ['yup.label', 'Age (years)'],
-          ['yup.required'],
-          ['yup.positive'],
+          ['yup.required', 'How old is it?'],
+          ['yup.positive', 'Nothing can have a negative age'],
         ],
         description: [
           ['yup.string'],
