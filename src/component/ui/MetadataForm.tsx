@@ -9,17 +9,14 @@ import type { TextInputProps as NativeTextInputProps } from 'react-native';
 import {
   Divider,
   HelperText,
+  List,
   Paragraph,
+  RadioButton,
   Switch,
   TextInput,
   TouchableRipple,
 } from 'react-native-paper';
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
-/**
- * React Native Paper does not have a dropdown select component
- * https://github.com/callstack/react-native-paper/issues/603
- */
-import DropDown from 'react-native-paper-dropdown';
 import { useFormikContext } from 'formik';
 
 import { FieldType } from '../../type/metadata';
@@ -41,6 +38,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
+  hiddenAccordion: { width: 0, height: 0, margin: 0, padding: 0 },
 });
 
 /**
@@ -148,35 +146,69 @@ function EnumField({
 }) {
   const formik = useFormikContext<MetadataFormValues>(); // Retrieve Formik data
   const showError = !!(formik.touched[item.key] && formik.errors[item.key]);
+  const currentValue = formik.values[item.key] as string; // Current field value
   // Dropdown select open/closed state
-  const [showDropDown, setShowDropDown] = useState(false);
-  // Dropdown select options data
-  const optionList = item.options.map((val) => {
-    return {
-      label: val.toLowerCase(),
-      value: val,
-    };
-  });
+  const [expanded, setExpanded] = useState(false);
+  /**
+   * A callback for changing the selected value
+   */
+  const onOptionPress = useCallback(
+    (option) => {
+      formik.setFieldValue(item.key, option);
+      setExpanded(false);
+    },
+    [formik, item, setExpanded]
+  );
+  /**
+   * A callback for toggling `expanded`
+   */
+  const onDropdownPress = useCallback(() => {
+    setExpanded((prev: boolean) => {
+      return !prev;
+    });
+  }, [setExpanded]);
 
+  /**
+   * As React Native Paper does not have a dropdown select component,
+   * we are imitating one using a text field with an accessory button,
+   * followed by a hidden list accordion that expands when the button is pressed.
+   *
+   * We tried []`react-native-paper-dropdown`](https://www.npmjs.com/package/react-native-paper-dropdown),
+   * but it does not seem to be properly implemented, as it does not respect
+   * the device's light/dark theme.
+   * Moreover, it uses a `Menu` component that does not align perfectly with the
+   * dropdown's entry field.
+   * See also https://github.com/callstack/react-native-paper/issues/603
+   * for more discussion of dropdown select menus in React Native Paper.
+   */
   return (
     <>
-      <DropDown
+      <TextInput
+        value={currentValue}
+        mode="outlined"
         label={item.label}
-        mode={'outlined'}
-        value={formik.values[item.key] as string}
-        setValue={
-          formik.handleChange(item.key) as (_e: React.ReactText) => void
-        }
-        list={optionList}
-        visible={showDropDown}
-        showDropDown={() => setShowDropDown(true)}
-        onDismiss={() => setShowDropDown(false)}
-        inputProps={{
-          right: <TextInput.Icon name={'menu-down'} />,
-          error: showError,
-          onBlur: formik.handleBlur(item.key),
-        }}
+        error={showError}
+        editable={false}
+        right={<TextInput.Icon name="menu-down" onPress={onDropdownPress} />}
       />
+      <RadioButton.Group onValueChange={onOptionPress} value={currentValue}>
+        <List.Accordion
+          title={item.label}
+          style={styles.hiddenAccordion}
+          expanded={expanded}
+        >
+          {item.options.map((option) => {
+            return (
+              <List.Item
+                title={option}
+                key={option}
+                left={() => <RadioButton value={option} />}
+                onPress={() => onOptionPress(option)}
+              />
+            );
+          })}
+        </List.Accordion>
+      </RadioButton.Group>
       <HelperText type="error" padding="none" visible={showError}>
         {formik.errors[item.key]}
       </HelperText>

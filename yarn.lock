@@ -8211,11 +8211,6 @@ react-native-keyboard-aware-scroll-view@^0.9.3:
     prop-types "^15.6.2"
     react-native-iphone-x-helper "^1.0.3"
 
-react-native-paper-dropdown@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/react-native-paper-dropdown/-/react-native-paper-dropdown-0.0.5.tgz#d5358519c0e503bd24f742d43306503d9d618150"
-  integrity sha512-KaiRO4YLEJ6+8aEImqYmKzVWv4Rzsqp2XKK6cjK2oJ3bPUHLqVnxl0FMQ2v0WbahjYM7MA9L08f8uLAW2M+Ckw==
-
 react-native-paper@^4.3.1:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/react-native-paper/-/react-native-paper-4.3.1.tgz#2c230a29b077fe0a89c2d192c22f91f300311b27"
