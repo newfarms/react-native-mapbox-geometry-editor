@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   Platform,
   StyleSheet,
@@ -149,6 +149,16 @@ function EnumField({
   const currentValue = formik.values[item.key] as string; // Current field value
   // Dropdown select open/closed state
   const [expanded, setExpanded] = useState(false);
+
+  /**
+   * When the text input (or any component inside of it) is touched,
+   * the text input becomes focused. Consequently, pressing anything else
+   * takes two touches (the first to focus outside the text input).
+   * Take the text input's focus away to eliminate the extra touch.
+   */
+  const inputRef = useRef<any>(null);
+  inputRef.current?.blur();
+
   /**
    * A callback for changing the selected value
    */
@@ -173,7 +183,7 @@ function EnumField({
    * we are imitating one using a text field with an accessory button,
    * followed by a hidden list accordion that expands when the button is pressed.
    *
-   * We tried []`react-native-paper-dropdown`](https://www.npmjs.com/package/react-native-paper-dropdown),
+   * We tried [`react-native-paper-dropdown`](https://www.npmjs.com/package/react-native-paper-dropdown),
    * but it does not seem to be properly implemented, as it does not respect
    * the device's light/dark theme.
    * Moreover, it uses a `Menu` component that does not align perfectly with the
@@ -189,6 +199,7 @@ function EnumField({
         label={item.label}
         error={showError}
         editable={false}
+        ref={inputRef}
         right={<TextInput.Icon name="menu-down" onPress={onDropdownPress} />}
       />
       <RadioButton.Group onValueChange={onOptionPress} value={currentValue}>
