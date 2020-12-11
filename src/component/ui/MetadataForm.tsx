@@ -14,6 +14,7 @@ import {
   RadioButton,
   Switch,
   TextInput,
+  Title,
   TouchableRipple,
 } from 'react-native-paper';
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
@@ -39,6 +40,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   hiddenAccordion: { width: 0, height: 0, margin: 0, padding: 0 },
+  listHeader: {
+    paddingVertical: '5%',
+  },
 });
 
 /**
@@ -339,6 +343,13 @@ function EmptyForm() {
 }
 
 /**
+ * The title to render at the top of the list
+ */
+function ListHeader() {
+  return <Title>Edit details</Title>;
+}
+
+/**
  * Render a list of Formik fields for metadata editing
  * @param props Rendering props
  */
@@ -357,6 +368,8 @@ export function MetadataFieldList({
       keyExtractor={KeyExtractor}
       ItemSeparatorComponent={Divider}
       ListEmptyComponent={EmptyForm}
+      ListHeaderComponent={ListHeader}
+      ListHeaderComponentStyle={styles.listHeader}
       enableOnAndroid={true}
     />
   );

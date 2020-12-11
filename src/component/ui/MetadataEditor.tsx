@@ -120,7 +120,6 @@ function _MetadataEditor() {
         dismissable={true}
         style={styles.dialog}
       >
-        <Dialog.Title>Edit details</Dialog.Title>
         <Formik
           component={dialogContents}
           initialValues={formStarter.formValues}
