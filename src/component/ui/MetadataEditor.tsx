@@ -2,7 +2,7 @@ import React, { useCallback, useContext } from 'react';
 import { toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { StyleSheet } from 'react-native';
-import { Button, Dialog } from 'react-native-paper';
+import { Button, Dialog, Portal } from 'react-native-paper';
 import { Formik } from 'formik';
 
 import { StoreContext } from '../../state/StoreContext';
@@ -113,20 +113,21 @@ function _MetadataEditor() {
    * Conditionally-visible metadata editor dialog
    */
   return (
-    <Dialog
-      onDismiss={onDismiss}
-      visible={visible}
-      dismissable={true}
-      style={styles.dialog}
-    >
-      <Dialog.Title>Edit details</Dialog.Title>
-      <Formik
-        component={dialogContents}
-        initialValues={formStarter.formValues}
-        onSubmit={onConfirm}
-        validationSchema={formStarter.schema}
-      />
-    </Dialog>
+    <Portal>
+      <Dialog
+        onDismiss={onDismiss}
+        visible={visible}
+        dismissable={true}
+        style={styles.dialog}
+      >
+        <Formik
+          component={dialogContents}
+          initialValues={formStarter.formValues}
+          onSubmit={onConfirm}
+          validationSchema={formStarter.schema}
+        />
+      </Dialog>
+    </Portal>
   );
 }
 

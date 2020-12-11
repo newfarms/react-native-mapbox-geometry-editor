@@ -3,7 +3,7 @@
  */
 
 import * as React from 'react';
-import { SafeAreaView, StyleSheet, YellowBox } from 'react-native';
+import { LogBox, SafeAreaView, StyleSheet } from 'react-native';
 
 import MapboxGL from '@react-native-mapbox-gl/maps';
 
@@ -13,11 +13,8 @@ import token from '../mapbox_token.json';
  * Hide warnings about require cycles in React Native Paper,
  * as done in the React Native Paper example,
  * https://github.com/callstack/react-native-paper/blob/212aa73715f157e1a77f8738859a608a543ba04c/example/src/index.tsx#L35
- *
- * Use `LogBox.ignoreLogs()` in React Native >= 0.63
- * (https://reactnative.dev/docs/debugging#console-errors-and-warnings)
  */
-YellowBox.ignoreWarnings(['Require cycle:']);
+LogBox.ignoreLogs(['Require cycle:']);
 
 /**
  * Polyfill for React Native needed by 'react-native-mapbox-geometry-editor'

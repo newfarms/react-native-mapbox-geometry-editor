@@ -72,7 +72,7 @@ export function makeMetadataFormStarter(
   /**
    * Parse the schema description into a schema object
    */
-  let schema: yup.Schema<object | undefined, object> = yup.object().shape({});
+  let schema = yup.object().shape({});
   if (schemaDescription) {
     try {
       schema = transformAll(schemaDescription);

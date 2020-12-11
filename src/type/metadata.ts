@@ -1,5 +1,5 @@
 import type { EditableFeature } from './geometry';
-import type { Schema, ValidationError } from 'yup';
+import type { BaseSchema, ValidationError } from 'yup';
 
 /**
  * A serialized metadata schema to be deserialized into a live schema object.
@@ -148,5 +148,5 @@ export interface MetadataFormStarter {
   /**
    * The live schema object to be used for form validation by Formik.
    */
-  schema: Schema<object | undefined, object>;
+  schema: BaseSchema;
 }
