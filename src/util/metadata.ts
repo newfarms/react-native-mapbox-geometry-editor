@@ -110,10 +110,16 @@ export function makeMetadataFormStarter(
     (prev, value, key) => {
       /**
        * Initialize form field description and placeholder value
+       * Use a custom field label if provided
        */
+      let label = key;
+      if ('label' in value && value.label) {
+        label = value.label;
+      }
       let formElement: FieldDescription | EnumFieldDescription = {
         type: FieldType.String,
-        name: key,
+        key,
+        label,
       };
       let initialValue: string | boolean = '';
 
