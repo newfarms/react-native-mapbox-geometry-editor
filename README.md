@@ -118,6 +118,10 @@ HTML API documentation for the library can be generated using Typedoc as follows
 3. Open `docs/src/index.html` in a web browser
 
 ## Known issues
+- There are inconsistent performance issues with React Native Paper-based dialogs.
+  Presently these issues seem to be observed only on iOS, and only with dialogs
+  that need to manage some local state.
+  A possibly related issue may be https://github.com/callstack/react-native-paper/issues/2157
 
 ### Android
 - Geometry rendering on an Android emulator may exhibit visual problems such as rendering points in grey instead of in their desired colours.
