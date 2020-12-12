@@ -48,3 +48,10 @@ export const DrawPointControl = makeModeControl(
   InteractionMode.DrawPoint,
   'plus-circle'
 );
+/**
+ * Multi-selection editing mode control button
+ */
+export const SelectControl = makeModeControl(
+  InteractionMode.SelectMultiple,
+  'cursor-pointer'
+);
