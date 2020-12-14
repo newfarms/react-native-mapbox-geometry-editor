@@ -3,7 +3,7 @@
  */
 
 import * as React from 'react';
-import { SafeAreaView, StyleSheet, YellowBox } from 'react-native';
+import { LogBox, SafeAreaView, StyleSheet } from 'react-native';
 
 import MapboxGL from '@react-native-mapbox-gl/maps';
 
@@ -13,11 +13,8 @@ import token from '../mapbox_token.json';
  * Hide warnings about require cycles in React Native Paper,
  * as done in the React Native Paper example,
  * https://github.com/callstack/react-native-paper/blob/212aa73715f157e1a77f8738859a608a543ba04c/example/src/index.tsx#L35
- *
- * Use `LogBox.ignoreLogs()` in React Native >= 0.63
- * (https://reactnative.dev/docs/debugging#console-errors-and-warnings)
  */
-YellowBox.ignoreWarnings(['Require cycle:']);
+LogBox.ignoreLogs(['Require cycle:']);
 
 /**
  * Polyfill for React Native needed by 'react-native-mapbox-geometry-editor'
@@ -28,10 +25,12 @@ import {
   defaultStyleGeneratorMap,
   GeometryEditorUI,
   CoordinateRole,
+  validateMetadata,
 } from 'react-native-mapbox-geometry-editor';
 import type {
   DraggablePointStyle,
   EditableFeature,
+  MetadataSchema,
   StyleGeneratorMap,
 } from 'react-native-mapbox-geometry-editor';
 
@@ -125,6 +124,81 @@ const styleGeneratorMap: StyleGeneratorMap = {
 };
 
 /**
+ * Example enumeration used for a dropdown select
+ * geometry metadata field
+ */
+enum VehicleType {
+  Car = 'CAR',
+  Train = 'TRAIN',
+  Boat = 'BOAT',
+  Bicycle = 'BICYCLE',
+}
+
+/**
+ * Function defining the metadata fields available for editing.
+ * The library will provide a default function if none is provided.
+ * @param _feature Geometry object whose metadata will be edited
+ */
+function metadataSchemaGenerator(_feature?: EditableFeature): MetadataSchema {
+  return [
+    ['yup.object'],
+    ['yup.required'],
+    [
+      'yup.shape',
+      {
+        vehicleType: [
+          ['yup.mixed'],
+          ['yup.label', 'Type of vehicle'],
+          ['yup.required'],
+          ['yup.oneOf', Object.values(VehicleType)],
+        ],
+        color: [['yup.string'], ['yup.required', 'A color is required']], // An enumeration may be better, as the user could input arbitrary strings
+        age: [
+          ['yup.number'],
+          ['yup.label', 'Age (years)'],
+          ['yup.required', 'How old is it?'],
+          ['yup.positive', 'Age must be greater than zero'],
+        ],
+        description: [
+          ['yup.string'],
+          ['yup.label', 'Description (optional)'],
+          ['yup.optional'],
+        ],
+        needsRepair: [
+          ['yup.boolean'],
+          ['yup.label', 'Needs repair?'],
+          ['yup.required'],
+        ],
+      },
+    ],
+  ];
+}
+
+/**
+ * For development purposes, validate the metadata schema
+ */
+const validationResult = validateMetadata(metadataSchemaGenerator(), {
+  vehicleType: 'BICYCLE',
+  color: 'red',
+  age: 'five',
+  extraProperties: {
+    wheelDiameter: 26,
+  },
+});
+if (validationResult.schemaErrors) {
+  console.warn(
+    'Example metadata schema errors: ',
+    validationResult.schemaErrors
+  );
+}
+if (validationResult.dataErrors) {
+  console.warn(
+    'Example metadata data validation errors: ',
+    validationResult.dataErrors
+  );
+}
+
+/**
  * Render a map page with a demonstration of the geometry editor library's functionality
  */
 export default function App() {
@@ -136,6 +210,7 @@ export default function App() {
           style: styles.map,
           styleURL: 'mapbox://styles/mapbox/dark-v10',
         }}
+        metadataSchemaGenerator={metadataSchemaGenerator}
         styleGenerators={styleGeneratorMap}
       >
         <MapboxGL.Camera
