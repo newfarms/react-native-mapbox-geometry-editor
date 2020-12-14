@@ -166,7 +166,7 @@ function metadataSchemaGenerator(_feature?: EditableFeature): MetadataSchema {
           ['yup.required'],
           ['yup.oneOf', Object.values(VehicleType)],
         ],
-        color: [['yup.string'], ['yup.required', 'A color is required']], // An enumeration may be better, as the user could input arbitrary strings
+        model: [['yup.string'], ['yup.required', 'A model is required']], // An enumeration may be better, as the user could input arbitrary strings
         age: [
           ['yup.number'],
           ['yup.label', 'Age (years)'],
@@ -193,7 +193,7 @@ function metadataSchemaGenerator(_feature?: EditableFeature): MetadataSchema {
  */
 const validationResult = validateMetadata(metadataSchemaGenerator(), {
   vehicleType: 'BICYCLE',
-  color: 'red',
+  model: 'classic',
   age: 'five',
   extraProperties: {
     wheelDiameter: 26,

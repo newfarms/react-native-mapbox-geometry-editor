@@ -23,7 +23,7 @@ function getDefaultDraggablePointStyle(
   _feature: EditableFeature
 ): DraggablePointStyle {
   let style: DraggablePointStyle = {
-    radius: (ANNOTATION_SIZE * 3) / 2,
+    radius: ANNOTATION_SIZE * 2,
     color: 'red',
     strokeWidth: 3,
   };
@@ -86,6 +86,32 @@ function featureLifecycleStageColor(stage: FeatureLifecycleStage): string {
 }
 
 /**
+ * Stroke widths corresponding to different geometry lifecycle stages
+ * @param stage The lifecycle stage
+ * @return A specific or a default number in pixels, depending on whether `stage` is defined
+ */
+function featureLifecycleStrokeWidth(stage?: FeatureLifecycleStage): number {
+  switch (stage) {
+    case FeatureLifecycleStage.NewShape:
+      return 2;
+    case FeatureLifecycleStage.EditShape:
+      return 3;
+    case FeatureLifecycleStage.EditMetadata:
+      return 2;
+    case FeatureLifecycleStage.SelectMultiple:
+      return 3;
+    case FeatureLifecycleStage.SelectSingle:
+      return 3;
+    case FeatureLifecycleStage.DraftShape:
+      return 2;
+    case FeatureLifecycleStage.View:
+      return 1;
+    default:
+      return 2;
+  }
+}
+
+/**
  * The default colour to use for missing information
  */
 const missingColor = '#000000';
@@ -96,10 +122,28 @@ const missingColor = '#000000';
  */
 function getDefaultPointStyle(): CircleLayerStyle {
   return {
-    circleRadius: ANNOTATION_SIZE,
+    circleRadius: (ANNOTATION_SIZE * 2) / 3,
     circleColor: 'gold',
     circlePitchAlignment: 'map',
-    circleStrokeWidth: 2,
+    circleStrokeWidth: [
+      'match',
+      ['get', 'rnmgeStage'],
+      FeatureLifecycleStage.NewShape,
+      featureLifecycleStrokeWidth(FeatureLifecycleStage.NewShape),
+      FeatureLifecycleStage.EditShape,
+      featureLifecycleStrokeWidth(FeatureLifecycleStage.EditShape),
+      FeatureLifecycleStage.EditMetadata,
+      featureLifecycleStrokeWidth(FeatureLifecycleStage.EditMetadata),
+      FeatureLifecycleStage.SelectMultiple,
+      featureLifecycleStrokeWidth(FeatureLifecycleStage.SelectMultiple),
+      FeatureLifecycleStage.SelectSingle,
+      featureLifecycleStrokeWidth(FeatureLifecycleStage.SelectSingle),
+      FeatureLifecycleStage.DraftShape,
+      featureLifecycleStrokeWidth(FeatureLifecycleStage.DraftShape),
+      FeatureLifecycleStage.View,
+      featureLifecycleStrokeWidth(FeatureLifecycleStage.View),
+      featureLifecycleStrokeWidth(),
+    ],
     // Circle edge colour based on geometry lifecycle stage
     circleStrokeColor: [
       'match',
