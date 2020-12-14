@@ -254,6 +254,7 @@ export class FeatureModel extends Model({
       role = CoordinateRole.PointFeature;
     }
     let copyProperties: RenderProperties = {
+      rnmgeID: this.$modelId,
       rnmgeStage: this.stage,
       rnmgeRole: role,
     };

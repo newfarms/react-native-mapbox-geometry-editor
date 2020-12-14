@@ -1,8 +1,10 @@
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import last from 'lodash/last';
+import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
 
 import { ConfirmationModel } from './ConfirmationModel';
 import { featureListContext } from './ModelContexts';
+import type { MapPressPayload } from '../type/events';
 import { FeatureLifecycleStage } from '../type/geometry';
 
 /**
@@ -79,38 +81,64 @@ export class ControlsModel extends Model({
       );
       return;
     }
-
-    // Enclose editing sessions in "transactions"
     const features = featureListContext.get(this);
-    if (isGeometryModificationMode(mode)) {
-      if (this.mode === mode) {
-        features?.endEditingSession();
-      } else if (isGeometryModificationMode(this.mode)) {
-        features?.clearHistory();
-      } else {
-        features?.clearHistory();
-      }
-    } else {
-      if (isGeometryModificationMode(this.mode)) {
-        features?.endEditingSession();
-      }
+    // Whether this is a deactivation of the current mode
+    const isToggle = this.mode === mode;
+
+    // Execute cleanup actions specific to individual outgoing editing modes
+    switch (this.mode) {
+      case InteractionMode.DragPoint:
+        break;
+      case InteractionMode.DrawPoint:
+        break;
+      case InteractionMode.EditMetadata:
+        break;
+      case InteractionMode.SelectMultiple:
+      case InteractionMode.SelectSingle:
+        // Deselect all features unless they are to be edited
+        if (mode !== InteractionMode.DragPoint) {
+          features?.deselectAll();
+        }
+        break;
     }
 
-    if (this.mode === mode) {
+    // Enclose editing sessions in "transactions"
+    if (isGeometryModificationMode(this.mode)) {
+      features?.endEditingSession();
+    }
+    if (
+      isGeometryModificationMode(mode) &&
+      !isGeometryModificationMode(this.mode)
+    ) {
+      features?.clearHistory();
+    }
+
+    // Change the editing mode
+    if (isToggle) {
       this.mode = defaultInteractionMode;
     } else {
-      this.mode = mode;
-
-      // TODO
-      // Placeholder code that makes all point features draggable.
-      // To be removed when selection modes are implemented.
-      if (this.mode === InteractionMode.DragPoint) {
-        featureListContext.get(this)?.features?.forEach((val) => {
-          if (val.geojson.geometry.type === 'Point') {
-            val.stage = FeatureLifecycleStage.EditShape;
-          }
-        });
+      // Execute actions specific to individual incoming editing modes
+      switch (mode) {
+        case InteractionMode.DragPoint:
+          // Make all selected shapes editable
+          features?.features?.forEach((val) => {
+            if (val.stage === FeatureLifecycleStage.SelectMultiple) {
+              val.stage = FeatureLifecycleStage.EditShape;
+            }
+          });
+          break;
+        case InteractionMode.DrawPoint:
+          break;
+        case InteractionMode.EditMetadata:
+          break;
+        case InteractionMode.SelectMultiple:
+          break;
+        case InteractionMode.SelectSingle:
+          break;
       }
+
+      // Save the new editing mode
+      this.mode = mode;
     }
   }
 
@@ -208,5 +236,59 @@ export class ControlsModel extends Model({
   @modelAction
   private rollback() {
     featureListContext.get(this)?.rollbackEditingSession();
+  }
+
+  /**
+   * Touch event handler for geometry in the cold layer. See [[ColdGeometry]]
+   *
+   * @param e The features that were pressed, and information about the location pressed
+   */
+  @modelAction
+  onPressColdGeometry(e: OnPressEvent) {
+    switch (this.mode) {
+      case InteractionMode.DragPoint:
+        // Ignore
+        break;
+      case InteractionMode.DrawPoint:
+        // Draw a new point at the location
+        featureListContext
+          .get(this)
+          ?.addNewPoint([e.coordinates.longitude, e.coordinates.latitude]);
+        break;
+      case InteractionMode.EditMetadata:
+        // Ignore
+        // This case shouldn't occur unless a metadata editing interface is slow to open
+        break;
+      case InteractionMode.SelectMultiple:
+        if (e.features.length > 0) {
+          // Select all non-cluster features at the location
+          for (let feature of e.features) {
+            const id = feature?.properties?.rnmgeID; // Clusters do not have this property
+            if (id) {
+              featureListContext.get(this)?.toggleMultiSelectFeature(id);
+            }
+          }
+        }
+        break;
+      case InteractionMode.SelectSingle:
+        console.warn(`TODO: Selection mode 2 is not yet implemented.`);
+        break;
+    }
+  }
+
+  /**
+   * Executes the appropriate action in response to a map touch event
+   *
+   * @param e Event payload
+   */
+  @modelAction
+  handleMapPress(e: MapPressPayload) {
+    // In point drawing mode, create another point feature
+    if (this.mode === InteractionMode.DrawPoint) {
+      featureListContext.get(this)?.addNewPoint(e.geometry.coordinates);
+      return true;
+    }
+    // Event not handled
+    return false;
   }
 }

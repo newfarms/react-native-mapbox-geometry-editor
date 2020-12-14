@@ -129,6 +129,12 @@ export enum GeometryRole {
 }
 
 /**
+ * The type of feature IDs
+ * See [[RenderProperties]]
+ */
+export type RnmgeID = string;
+
+/**
  * This interface defines the GeoJSON feature properties made available
  * for data-driven styling.
  *
@@ -140,6 +146,12 @@ export enum GeometryRole {
  * https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions/
  */
 export interface RenderProperties {
+  /**
+   * The identifier of the feature used by the library.
+   * The top-level `id` property of the GeoJSON feature might be used
+   * by the client application, so the library uses a separate property as an ID.
+   */
+  readonly rnmgeID: RnmgeID;
   /**
    * The current editing stage of the feature
    */

@@ -2,7 +2,7 @@ import { model, Model, modelAction, prop } from 'mobx-keystone';
 
 import { featureListContext } from './ModelContexts';
 import { FeatureListModel } from './FeatureListModel';
-import { ControlsModel, InteractionMode } from './ControlsModel';
+import { ControlsModel } from './ControlsModel';
 import type { MapPressPayload } from '../type/events';
 
 /**
@@ -33,12 +33,6 @@ export class RootModel extends Model({
    */
   @modelAction
   handleMapPress(e: MapPressPayload) {
-    // In point drawing mode, create another point feature
-    if (this.controls.mode === InteractionMode.DrawPoint) {
-      this.features.addNewPoint(e.geometry.coordinates);
-      return true;
-    }
-    // Event not handled
-    return false;
+    return this.controls.handleMapPress(e);
   }
 }
