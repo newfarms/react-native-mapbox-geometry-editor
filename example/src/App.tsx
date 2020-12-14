@@ -60,6 +60,39 @@ const styles = StyleSheet.create({
 MapboxGL.setAccessToken(token.accessToken);
 
 /**
+ * Example enumeration used for an option select
+ * geometry metadata field
+ *
+ * Also used for data-driven geometry styling
+ */
+enum VehicleType {
+  Car = 'CAR',
+  Train = 'TRAIN',
+  Boat = 'BOAT',
+  Bicycle = 'BICYCLE',
+}
+
+/**
+ * Default colours for vehicle types
+ * @param stage The vehicle type
+ * @return A specific or a default colour, depending on whether `type` is defined
+ */
+function vehicleTypeColor(type?: VehicleType): string {
+  switch (type) {
+    case VehicleType.Car:
+      return '#ff1493'; // Deep pink
+    case VehicleType.Train:
+      return '#adff2f'; // Green yellow
+    case VehicleType.Boat:
+      return '#0000cd'; // Medium blue
+    case VehicleType.Bicycle:
+      return '#f4a460'; // Sandy brown
+    default:
+      return '#ffffff'; // White
+  }
+}
+
+/**
  * Custom rendering styles for geometry displayed on the map
  */
 const styleGeneratorMap: StyleGeneratorMap = {
@@ -71,8 +104,7 @@ const styleGeneratorMap: StyleGeneratorMap = {
     feature: EditableFeature
   ): DraggablePointStyle => {
     let style = defaultStyleGeneratorMap.draggablePoint(role, feature);
-    style.strokeColor = 'pink';
-    style.strokeWidth = 3;
+    style.color = vehicleTypeColor(feature.properties?.vehicleType);
     return style;
   },
   /**
@@ -81,28 +113,21 @@ const styleGeneratorMap: StyleGeneratorMap = {
   point: () => {
     let style = defaultStyleGeneratorMap.point();
     /**
-     * Data-driven styling by geometry editing lifecycle stage
+     * Data-driven styling by vehicle type
      */
-    style.circleStrokeColor = [
+    style.circleColor = [
       'match',
-      ['get', 'rnmgeStage'],
-      'NEWSHAPE',
-      '#ffff00',
-      'EDITSHAPE',
-      '#ff00ff',
-      'EDITMETADATA',
-      '#0000ff',
-      'SELECTMULTIPLE',
-      '#00ffff',
-      'SELECTSINGLE',
-      '#00ff00',
-      'DRAFTSHAPE',
-      '#ff0000',
-      'VIEW',
-      '#ffffff',
-      '#000000',
+      ['get', 'vehicleType'],
+      VehicleType.Car,
+      vehicleTypeColor(VehicleType.Car),
+      VehicleType.Train,
+      vehicleTypeColor(VehicleType.Train),
+      VehicleType.Boat,
+      vehicleTypeColor(VehicleType.Boat),
+      VehicleType.Bicycle,
+      vehicleTypeColor(VehicleType.Bicycle),
+      vehicleTypeColor(), // Default
     ];
-    style.circleStrokeWidth = 2;
     return style;
   },
   /**
@@ -122,17 +147,6 @@ const styleGeneratorMap: StyleGeneratorMap = {
     return defaultStyleGeneratorMap.clusterSymbol();
   },
 };
-
-/**
- * Example enumeration used for a dropdown select
- * geometry metadata field
- */
-enum VehicleType {
-  Car = 'CAR',
-  Train = 'TRAIN',
-  Boat = 'BOAT',
-  Bicycle = 'BICYCLE',
-}
 
 /**
  * Function defining the metadata fields available for editing.

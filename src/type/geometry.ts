@@ -157,7 +157,7 @@ export interface RenderProperties {
    */
   readonly rnmgeStage: FeatureLifecycleStage;
   /**
-   * For point features, the geometrica role of the point in its
+   * For point features, the geometrical role of the point in its
    * containing feature.
    * For non-point features, it is set to [[GeometryRole.NonPoint]]
    */
