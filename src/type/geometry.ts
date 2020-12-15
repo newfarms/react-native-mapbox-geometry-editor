@@ -129,6 +129,12 @@ export enum GeometryRole {
 }
 
 /**
+ * The type of feature IDs
+ * See [[RenderProperties]]
+ */
+export type RnmgeID = string;
+
+/**
  * This interface defines the GeoJSON feature properties made available
  * for data-driven styling.
  *
@@ -141,11 +147,17 @@ export enum GeometryRole {
  */
 export interface RenderProperties {
   /**
+   * The identifier of the feature used by the library.
+   * The top-level `id` property of the GeoJSON feature might be used
+   * by the client application, so the library uses a separate property as an ID.
+   */
+  readonly rnmgeID: RnmgeID;
+  /**
    * The current editing stage of the feature
    */
   readonly rnmgeStage: FeatureLifecycleStage;
   /**
-   * For point features, the geometrica role of the point in its
+   * For point features, the geometrical role of the point in its
    * containing feature.
    * For non-point features, it is set to [[GeometryRole.NonPoint]]
    */

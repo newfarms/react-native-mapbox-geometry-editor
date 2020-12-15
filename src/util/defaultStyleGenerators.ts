@@ -3,7 +3,7 @@ import type {
   SymbolLayerStyle,
 } from '@react-native-mapbox-gl/maps';
 
-import { CoordinateRole } from '../type/geometry';
+import { CoordinateRole, FeatureLifecycleStage } from '../type/geometry';
 import type { EditableFeature } from '../type/geometry';
 import type { DraggablePointStyle, StyleGeneratorMap } from '../type/style';
 
@@ -22,59 +22,99 @@ function getDefaultDraggablePointStyle(
   role: CoordinateRole,
   _feature: EditableFeature
 ): DraggablePointStyle {
+  let style: DraggablePointStyle = {
+    radius: ANNOTATION_SIZE * 2,
+    color: 'red',
+    strokeWidth: 3,
+  };
   switch (role) {
     case CoordinateRole.PointFeature:
-      return {
-        radius: ANNOTATION_SIZE,
-        color: 'chartreuse',
-      };
+      style.strokeColor = 'aquamarine';
+      break;
     case CoordinateRole.LineStart:
-      return {
-        radius: ANNOTATION_SIZE,
-        color: 'aqua',
-      };
+      style.strokeColor = 'cornflowerblue';
+      break;
     case CoordinateRole.LineSecond:
-      return {
-        radius: ANNOTATION_SIZE,
-        color: 'aquamarine',
-      };
+      style.strokeColor = 'darkturquoise';
+      break;
     case CoordinateRole.LineInner:
-      return {
-        radius: ANNOTATION_SIZE,
-        color: 'blue',
-      };
+      style.strokeColor = 'aquamarine';
+      break;
     case CoordinateRole.LineSecondLast:
-      return {
-        radius: ANNOTATION_SIZE,
-        color: 'cornflowerblue',
-      };
+      style.strokeColor = 'darkkhaki';
+      break;
     case CoordinateRole.LineLast:
-      return {
-        radius: ANNOTATION_SIZE,
-        color: 'cyan',
-      };
+      style.strokeColor = 'darkorange';
+      break;
     case CoordinateRole.PolygonStart:
-      return {
-        radius: ANNOTATION_SIZE,
-        color: 'crimson',
-      };
+      style.strokeColor = 'cornflowerblue';
+      break;
     case CoordinateRole.PolygonInner:
-      return {
-        radius: ANNOTATION_SIZE,
-        color: 'darkred',
-      };
+      style.strokeColor = 'aquamarine';
+      break;
     case CoordinateRole.PolygonSecondLast:
-      return {
-        radius: ANNOTATION_SIZE,
-        color: 'deeppink',
-      };
+      style.strokeColor = 'darkorange';
+      break;
     case CoordinateRole.PolygonHole:
-      return {
-        radius: ANNOTATION_SIZE,
-        color: 'lightcoral',
-      };
+      style.strokeColor = 'darkcyan';
+      break;
+  }
+  return style;
+}
+
+/**
+ * Default colours for geometry lifecycle stages
+ * @param stage The lifecycle stage
+ */
+function featureLifecycleStageColor(stage: FeatureLifecycleStage): string {
+  switch (stage) {
+    case FeatureLifecycleStage.NewShape:
+      return '#ffff00'; // Yellow
+    case FeatureLifecycleStage.EditShape:
+      return '#ff00ff'; // Magenta
+    case FeatureLifecycleStage.EditMetadata:
+      return '#0000ff'; // Blue
+    case FeatureLifecycleStage.SelectMultiple:
+      return '#00ffff'; // Cyan
+    case FeatureLifecycleStage.SelectSingle:
+      return '#00ff00'; // Green
+    case FeatureLifecycleStage.DraftShape:
+      return '#ff0000'; // Red
+    case FeatureLifecycleStage.View:
+      return '#ffffff'; // White
   }
 }
+
+/**
+ * Stroke widths corresponding to different geometry lifecycle stages
+ * @param stage The lifecycle stage
+ * @return A specific or a default number in pixels, depending on whether `stage` is defined
+ */
+function featureLifecycleStrokeWidth(stage?: FeatureLifecycleStage): number {
+  switch (stage) {
+    case FeatureLifecycleStage.NewShape:
+      return 2;
+    case FeatureLifecycleStage.EditShape:
+      return 3;
+    case FeatureLifecycleStage.EditMetadata:
+      return 2;
+    case FeatureLifecycleStage.SelectMultiple:
+      return 3;
+    case FeatureLifecycleStage.SelectSingle:
+      return 3;
+    case FeatureLifecycleStage.DraftShape:
+      return 2;
+    case FeatureLifecycleStage.View:
+      return 1;
+    default:
+      return 2;
+  }
+}
+
+/**
+ * The default colour to use for missing information
+ */
+const missingColor = '#000000';
 
 /**
  * The default style generation function for non-draggable point features
@@ -85,6 +125,45 @@ function getDefaultPointStyle(): CircleLayerStyle {
     circleRadius: (ANNOTATION_SIZE * 2) / 3,
     circleColor: 'gold',
     circlePitchAlignment: 'map',
+    circleStrokeWidth: [
+      'match',
+      ['get', 'rnmgeStage'],
+      FeatureLifecycleStage.NewShape,
+      featureLifecycleStrokeWidth(FeatureLifecycleStage.NewShape),
+      FeatureLifecycleStage.EditShape,
+      featureLifecycleStrokeWidth(FeatureLifecycleStage.EditShape),
+      FeatureLifecycleStage.EditMetadata,
+      featureLifecycleStrokeWidth(FeatureLifecycleStage.EditMetadata),
+      FeatureLifecycleStage.SelectMultiple,
+      featureLifecycleStrokeWidth(FeatureLifecycleStage.SelectMultiple),
+      FeatureLifecycleStage.SelectSingle,
+      featureLifecycleStrokeWidth(FeatureLifecycleStage.SelectSingle),
+      FeatureLifecycleStage.DraftShape,
+      featureLifecycleStrokeWidth(FeatureLifecycleStage.DraftShape),
+      FeatureLifecycleStage.View,
+      featureLifecycleStrokeWidth(FeatureLifecycleStage.View),
+      featureLifecycleStrokeWidth(),
+    ],
+    // Circle edge colour based on geometry lifecycle stage
+    circleStrokeColor: [
+      'match',
+      ['get', 'rnmgeStage'],
+      FeatureLifecycleStage.NewShape,
+      featureLifecycleStageColor(FeatureLifecycleStage.NewShape),
+      FeatureLifecycleStage.EditShape,
+      featureLifecycleStageColor(FeatureLifecycleStage.EditShape),
+      FeatureLifecycleStage.EditMetadata,
+      featureLifecycleStageColor(FeatureLifecycleStage.EditMetadata),
+      FeatureLifecycleStage.SelectMultiple,
+      featureLifecycleStageColor(FeatureLifecycleStage.SelectMultiple),
+      FeatureLifecycleStage.SelectSingle,
+      featureLifecycleStageColor(FeatureLifecycleStage.SelectSingle),
+      FeatureLifecycleStage.DraftShape,
+      featureLifecycleStageColor(FeatureLifecycleStage.DraftShape),
+      FeatureLifecycleStage.View,
+      featureLifecycleStageColor(FeatureLifecycleStage.View),
+      missingColor,
+    ],
   };
 }
 
