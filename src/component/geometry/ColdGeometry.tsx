@@ -1,7 +1,8 @@
 import { toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useContext } from 'react';
+import React, { useCallback, useContext } from 'react';
 import MapboxGL from '@react-native-mapbox-gl/maps';
+import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
 import type { Expression } from '@react-native-mapbox-gl/maps';
 
 import { StoreContext } from '../../state/StoreContext';
@@ -14,7 +15,7 @@ import { StyleContext } from '../StyleContext';
  * @return Renderable React node
  */
 function _ColdGeometry() {
-  const { features } = useContext(StoreContext).store;
+  const { controls, features } = useContext(StoreContext).store;
   const featuresJS = toJS(features.coldFeatures);
 
   const { styleGenerators } = useContext(StyleContext);
@@ -25,6 +26,14 @@ function _ColdGeometry() {
     ['has', 'point_count'],
   ];
 
+  // Delegate touch events to the controller
+  const onPress = useCallback(
+    (e: OnPressEvent) => {
+      controls.onPressColdGeometry(e);
+    },
+    [controls]
+  );
+
   /**
    * Map layers:
    * - Geometry layers
@@ -32,7 +41,12 @@ function _ColdGeometry() {
    * - Symbol layer associated with the clusters layer to render cluster metadata, for example
    */
   return (
-    <MapboxGL.ShapeSource id="cold_geometry" shape={featuresJS} cluster={true}>
+    <MapboxGL.ShapeSource
+      id="cold_geometry"
+      shape={featuresJS}
+      cluster={true}
+      onPress={onPress}
+    >
       <MapboxGL.CircleLayer
         id="cold_points"
         filter={[

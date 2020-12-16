@@ -2,7 +2,11 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Surface } from 'react-native-paper';
 
-import { DragPointControl, DrawPointControl } from './modeControls';
+import {
+  DragPointControl,
+  DrawPointControl,
+  SelectControl,
+} from './modeControls';
 
 /**
  * @ignore
@@ -23,6 +27,7 @@ export function ModeToolbox() {
     <Surface style={styles.toolbox}>
       <DrawPointControl />
       <DragPointControl />
+      <SelectControl />
     </Surface>
   );
 }
