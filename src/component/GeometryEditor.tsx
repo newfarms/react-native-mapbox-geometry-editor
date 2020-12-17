@@ -81,11 +81,20 @@ export function _GeometryEditor(props: GeometryEditorProps) {
   const onPress = useEventHandlers([addPoint, outerOnPress]);
 
   /**
+   * Do not render the component that provides camera hints if the application
+   * has not provided anything to listen to the hints.
+   */
+  let cameraController = null;
+  if (cameraControls) {
+    cameraController = <CameraController {...cameraControls} />;
+  }
+
+  /**
    * Render both internal and client-provided map layers on the map
    */
   return (
     <>
-      <CameraController {...cameraControls} />
+      {cameraController}
       <MapboxGL.MapView
         style={[styles.map, mapStyle]}
         onPress={onPress}
