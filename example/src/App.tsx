@@ -3,6 +3,7 @@
  */
 
 import * as React from 'react';
+import { useMemo, useRef } from 'react';
 import { LogBox, SafeAreaView, StyleSheet } from 'react-native';
 
 import MapboxGL from '@react-native-mapbox-gl/maps';
@@ -28,6 +29,7 @@ import {
   validateMetadata,
 } from 'react-native-mapbox-geometry-editor';
 import type {
+  CameraControls,
   DraggablePointStyle,
   EditableFeature,
   MetadataSchema,
@@ -213,12 +215,40 @@ if (validationResult.dataErrors) {
 }
 
 /**
+ * The time interval over which camera transitions will occur.
+ */
+const cameraMoveTime = 200; // Milliseconds
+
+/**
  * Render a map page with a demonstration of the geometry editor library's functionality
  */
 export default function App() {
+  /**
+   * Receive hints from the geometry editor, about where the camera should be looking,
+   * that are triggered by certain user actions.
+   */
+  const cameraRef = useRef<MapboxGL.Camera>(null);
+  const cameraControls = useMemo(() => {
+    const controls: CameraControls = {
+      fitBounds: (northEastCoordinates, southWestCoordinates, padding) => {
+        cameraRef.current?.fitBounds(
+          northEastCoordinates,
+          southWestCoordinates,
+          padding,
+          cameraMoveTime
+        );
+      },
+      moveTo: (coordinates) => {
+        cameraRef.current?.moveTo(coordinates, cameraMoveTime);
+      },
+    };
+    return controls;
+  }, [cameraRef]);
+
   return (
     <SafeAreaView style={styles.container}>
       <GeometryEditorUI
+        cameraControls={cameraControls}
         style={styles.libraryContainer}
         mapProps={{
           style: styles.map,
@@ -228,6 +258,7 @@ export default function App() {
         styleGenerators={styleGeneratorMap}
       >
         <MapboxGL.Camera
+          ref={cameraRef}
           centerCoordinate={[3.380271, 6.464217]}
           zoomLevel={14}
         />

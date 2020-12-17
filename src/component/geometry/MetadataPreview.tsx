@@ -3,13 +3,11 @@ import React, { useCallback, useContext } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { Button, Caption, Card } from 'react-native-paper';
-import along from '@turf/along';
-import centroid from '@turf/centroid';
-import length from '@turf/length';
 import type { Position } from 'geojson';
 
 import { StoreContext } from '../../state/StoreContext';
 import { minDimensionPercentageToDP } from '../../util/dimensions';
+import { findCenterForAnnotation } from '../../util/geometry';
 import type { RnmgeID } from '../../type/geometry';
 
 /**
@@ -71,24 +69,7 @@ function _MetadataPreview() {
   if (featureData) {
     featureID = featureData.id;
     // Put the tooltip at the "centre" of the feature
-    const featureGeoJSON = featureData.geojson;
-    switch (featureGeoJSON.geometry.type) {
-      case 'Point':
-        coordinates = featureGeoJSON.geometry.coordinates;
-        break;
-      case 'LineString':
-        // Midpoint in terms of path length along a polyline
-        coordinates = along(featureGeoJSON.geometry, length(featureGeoJSON) / 2)
-          .geometry.coordinates;
-        break;
-      case 'Polygon':
-        /**
-         * Note: TurfJS has three different types of "centers" for geometry.
-         * See https://stackoverflow.com/questions/55982479/difference-between-centroid-and-centerofmass-in-turf
-         */
-        coordinates = centroid(featureGeoJSON.geometry).geometry.coordinates;
-        break;
-    }
+    coordinates = findCenterForAnnotation(featureData.geojson);
   }
   // Tooltip close button press handler deselects the feature
   const onDismiss = useCallback(() => {
