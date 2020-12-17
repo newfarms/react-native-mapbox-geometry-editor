@@ -94,11 +94,13 @@ export class ControlsModel extends Model({
       case InteractionMode.EditMetadata:
         break;
       case InteractionMode.SelectMultiple:
-      case InteractionMode.SelectSingle:
         // Deselect all features unless they are to be edited
         if (mode !== InteractionMode.DragPoint) {
           features?.deselectAll();
         }
+        break;
+      case InteractionMode.SelectSingle:
+        features?.deselectAll();
         break;
     }
 
@@ -121,11 +123,7 @@ export class ControlsModel extends Model({
       switch (mode) {
         case InteractionMode.DragPoint:
           // Make all selected shapes editable
-          features?.features?.forEach((val) => {
-            if (val.stage === FeatureLifecycleStage.SelectMultiple) {
-              val.stage = FeatureLifecycleStage.EditShape;
-            }
-          });
+          features?.selectedToEditable();
           break;
         case InteractionMode.DrawPoint:
           break;
@@ -271,7 +269,15 @@ export class ControlsModel extends Model({
         }
         break;
       case InteractionMode.SelectSingle:
-        console.warn(`TODO: Selection mode 2 is not yet implemented.`);
+        if (e.features.length > 0) {
+          // Select the first non-cluster feature at the location
+          for (let feature of e.features) {
+            const id = feature?.properties?.rnmgeID; // Clusters do not have this property
+            if (id) {
+              featureListContext.get(this)?.toggleSingleSelectFeature(id);
+            }
+          }
+        }
         break;
     }
   }
@@ -280,15 +286,25 @@ export class ControlsModel extends Model({
    * Executes the appropriate action in response to a map touch event
    *
    * @param e Event payload
+   * @return A boolean indicating whether or not the event was fully-handled
    */
   @modelAction
   handleMapPress(e: MapPressPayload) {
-    // In point drawing mode, create another point feature
-    if (this.mode === InteractionMode.DrawPoint) {
-      featureListContext.get(this)?.addNewPoint(e.geometry.coordinates);
-      return true;
+    switch (this.mode) {
+      case InteractionMode.DragPoint:
+        return false; // Ignore
+      case InteractionMode.DrawPoint:
+        // Draw a new point
+        featureListContext.get(this)?.addNewPoint(e.geometry.coordinates);
+        return true;
+      case InteractionMode.EditMetadata:
+        return false; // Ignore
+      case InteractionMode.SelectMultiple:
+        return false; // Ignore
+      case InteractionMode.SelectSingle:
+        // Close all metadata preview annotations
+        featureListContext.get(this)?.deselectAll();
+        return true;
     }
-    // Event not handled
-    return false;
   }
 }
