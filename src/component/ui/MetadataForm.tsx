@@ -22,10 +22,10 @@ import { useFormikContext } from 'formik';
 
 import { FieldType } from '../../type/metadata';
 import type {
-  FieldDescription,
+  DisplayableFieldDescription,
   EnumFieldDescription,
-  MetadataFormStructure,
-  MetadataFormValues,
+  MetadataFormFieldList,
+  MetadataFormInitialValues,
 } from '../../type/metadata';
 
 /**
@@ -57,7 +57,7 @@ function StringField({
   /**
    * The field data (other than Formik-provided data)
    */
-  item: FieldDescription;
+  item: DisplayableFieldDescription;
   /**
    * Text to override a Formik error message
    * Rendered only if there is also a Formik error message that would be
@@ -71,7 +71,7 @@ function StringField({
     | ((props: NativeTextInputProps) => React.ReactNode)
     | undefined;
 }) {
-  const formik = useFormikContext<MetadataFormValues>(); // Retrieve Formik data
+  const formik = useFormikContext<MetadataFormInitialValues>(); // Retrieve Formik data
   const showError = !!(formik.touched[item.key] && formik.errors[item.key]);
   let error = formik.errors[item.key];
   if (showError && customError) {
@@ -113,13 +113,13 @@ function NumberField({
   /**
    * The field data (other than Formik-provided data)
    */
-  item: FieldDescription;
+  item: DisplayableFieldDescription;
 }) {
   /**
    * Override the non-human readable error message that Yup produces
    * when parsing a non-numerical value
    */
-  const formik = useFormikContext<MetadataFormValues>(); // Retrieve Formik data
+  const formik = useFormikContext<MetadataFormInitialValues>(); // Retrieve Formik data
   const value = formik.values[item.key];
   let customError = null;
   if (formik.errors[item.key] && typeof value === 'string' && value) {
@@ -148,7 +148,7 @@ function EnumField({
    */
   item: EnumFieldDescription;
 }) {
-  const formik = useFormikContext<MetadataFormValues>(); // Retrieve Formik data
+  const formik = useFormikContext<MetadataFormInitialValues>(); // Retrieve Formik data
   const showError = !!(formik.touched[item.key] && formik.errors[item.key]);
   const currentValue = formik.values[item.key] as string; // Current field value
   // Dropdown select open/closed state
@@ -241,9 +241,9 @@ function BooleanField({
   /**
    * The field data (other than Formik-provided data)
    */
-  item: FieldDescription;
+  item: DisplayableFieldDescription;
 }) {
-  const formik = useFormikContext<MetadataFormValues>(); // Retrieve Formik data
+  const formik = useFormikContext<MetadataFormInitialValues>(); // Retrieve Formik data
   const showError = !!formik.errors[item.key];
   const booleanValue = !!formik.values[item.key];
   /**
@@ -305,7 +305,7 @@ function ListItem({
   /**
    * The field data description (other than Formik-provided data)
    */
-  item: FieldDescription;
+  item: DisplayableFieldDescription;
 }) {
   let field = null;
   switch (item.type) {
@@ -330,7 +330,7 @@ function ListItem({
  * the list of Formik form fields
  * @param item List data element
  */
-function KeyExtractor(item: FieldDescription) {
+function KeyExtractor(item: DisplayableFieldDescription) {
   return item.key;
 }
 
@@ -359,7 +359,7 @@ export function MetadataFieldList({
   /**
    * A list of form field descriptions (excluding Formik field data)
    */
-  formFieldList: MetadataFormStructure;
+  formFieldList: MetadataFormFieldList;
 }) {
   return (
     <KeyboardAwareFlatList

@@ -96,7 +96,7 @@ function _MetadataEditor() {
     }) => (
       <>
         <Dialog.ScrollArea>
-          <MetadataFieldList formFieldList={formStarter.formFieldList} />
+          <MetadataFieldList formFieldList={formStarter.formStructure.fields} />
         </Dialog.ScrollArea>
         <Dialog.Actions>
           <Button onPress={submitForm} disabled={!isValid || isSubmitting}>
