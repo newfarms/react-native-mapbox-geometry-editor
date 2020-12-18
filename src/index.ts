@@ -33,7 +33,7 @@ export type { GeometryEditorProps } from './component/GeometryEditor';
 export { GeometryEditorUI } from './component/GeometryEditorUI';
 export type { GeometryEditorUIProps } from './component/GeometryEditorUI';
 export { defaultStyleGeneratorMap } from './util/defaultStyleGenerators';
-export { validateMetadata } from './util/metadata';
+export { validateMetadata } from './util/metadata/schema';
 
 export type { CameraControls } from './component/CameraController';
 export type {

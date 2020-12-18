@@ -2,8 +2,8 @@ import * as yup from 'yup';
 import { transformAll } from '@demvsystems/yup-ast';
 import reduce from 'lodash/reduce';
 
-import type { EditableFeature } from '../type/geometry';
-import { FieldType } from '../type/metadata';
+import type { EditableFeature } from '../../type/geometry';
+import { FieldType } from '../../type/metadata';
 import type {
   EnumFieldDescription,
   FieldAttributes,
@@ -15,7 +15,7 @@ import type {
   MetadataFormStarterWithErrors,
   MetadataSchema,
   MetadataValidationResult,
-} from '../type/metadata';
+} from '../../type/metadata';
 
 /**
  * The default schema for geometry metadata, used if no schema

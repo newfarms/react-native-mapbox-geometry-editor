@@ -14,7 +14,7 @@ import { ModeToolbox } from './ui/ModeToolbox';
 import { ConfirmationDialog } from './ui/ConfirmationDialog';
 import { MetadataContext } from './ui/MetadataContext';
 import { MetadataEditor } from './ui/MetadataEditor';
-import { defaultMetadataSchemaGenerator } from '../util/metadata';
+import { defaultMetadataSchemaGenerator } from '../util/metadata/schema';
 import type { MetadataSchemaGenerator } from '../type/metadata';
 
 /**

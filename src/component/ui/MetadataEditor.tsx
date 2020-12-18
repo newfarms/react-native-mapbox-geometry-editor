@@ -8,7 +8,7 @@ import { Formik } from 'formik';
 import { StoreContext } from '../../state/StoreContext';
 import { MetadataContext } from './MetadataContext';
 import { MetadataFieldList } from './MetadataForm';
-import { makeMetadataFormStarter } from '../../util/metadata';
+import { makeMetadataFormStarter } from '../../util/metadata/schema';
 import type { MetadataSchema } from '../../type/metadata';
 
 /**
