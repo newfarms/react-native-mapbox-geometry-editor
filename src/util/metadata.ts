@@ -67,17 +67,29 @@ function parseSchemaDescription(
 
 /**
  * Implementation of [[MetadataAttributes]] used to create
- * objects with default attributes.
+ * objects with default attributes, and to validate existing objects
  */
-class MetadataAttributesImpl implements MetadataAttributes {
-  permissions = {
-    create: true,
-    edit: true,
-    view: true,
-  };
-  title = 'Details';
-  showIfEmpty = false;
-}
+const metadataAttributesImpl: yup.SchemaOf<MetadataAttributes> = yup
+  .object()
+  .optional()
+  .shape({
+    permissions: yup
+      .object()
+      .optional()
+      .shape({
+        create: yup.boolean().optional().default(true),
+        edit: yup.boolean().optional().default(true),
+        view: yup.boolean().optional().default(true),
+      })
+      .default({
+        create: true,
+        edit: true,
+        view: true,
+      }),
+    titleFieldKey: yup.string().optional(),
+    title: yup.string().optional().default('Details'),
+    showIfEmpty: yup.boolean().optional().default(true),
+  });
 
 /**
  * Extract information about a schema as a whole.
@@ -101,22 +113,39 @@ function processSchemaRoot<T extends yup.BaseSchema>(
     );
     throw new Error();
   }
-  return new MetadataAttributesImpl();
+  let attributes = metadataAttributesImpl.cast(undefined);
+  try {
+    attributes = metadataAttributesImpl.cast((schema as any)._meta);
+  } catch (err) {
+    schemaErrors.push(`Schema meta attribute is malformed: ${err.toString()}.`);
+  }
+  return attributes as MetadataAttributes;
 }
 
 /**
- * Implementation of [[FieldAttributes]] used to create
- * objects with default attributes.
+ * Implementation of [[MetadataAttributes]] used to create
+ * objects with default attributes, and to validate existing objects
  */
-class FieldAttributesImpl implements FieldAttributes {
-  permissions = {
-    create: true,
-    edit: true,
-    view: true,
-  };
-  inPreview = false;
-  showIfEmpty = false;
-}
+const fieldAttributesImpl: yup.SchemaOf<FieldAttributes> = yup
+  .object()
+  .optional()
+  .shape({
+    permissions: yup
+      .object()
+      .optional()
+      .shape({
+        create: yup.boolean().optional().default(true),
+        edit: yup.boolean().optional().default(true),
+        view: yup.boolean().optional().default(true),
+      })
+      .default({
+        create: true,
+        edit: true,
+        view: true,
+      }),
+    inPreview: yup.boolean().optional().default(false),
+    showIfEmpty: yup.boolean().optional().default(false),
+  });
 
 /**
  * Initialize a field description with meta information
@@ -124,23 +153,33 @@ class FieldAttributesImpl implements FieldAttributes {
  *
  * @param schemaField The schema field
  * @param key The field's key
+ * @param schemaErrors An array of error messages that this function may append to
  */
 function extractFieldMetadata(
   schemaField: any,
-  key: string
+  key: string,
+  schemaErrors: Array<string>
 ): MetadataFormFieldDescription {
   /**
    * Get the custom field label if one is provided
    */
   let label = key;
-  if ('_label' in schemaField && schemaField._label) {
+  if (schemaField._label) {
     label = schemaField._label;
+  }
+  let attributes = fieldAttributesImpl.cast(undefined);
+  try {
+    attributes = fieldAttributesImpl.cast(schemaField._meta);
+  } catch (err) {
+    schemaErrors.push(
+      `Schema field "${key}" meta attribute is malformed: ${err.toString()}.`
+    );
   }
   return {
     type: FieldType.String,
     key,
     label,
-    attributes: new FieldAttributesImpl(),
+    attributes: attributes as FieldAttributes,
   };
 }
 
@@ -327,7 +366,7 @@ function schemaFieldIteratee(
   key: string
 ) {
   // Initialize the output description of the field
-  let formElement = extractFieldMetadata(schemaField, key);
+  let formElement = extractFieldMetadata(schemaField, key, prev.schemaErrors);
 
   /**
    * Refine form field description and value based on the type of field
@@ -483,7 +522,7 @@ export function makeMetadataFormStarter(
   const result: Required<MetadataFormStarterWithErrors> = {
     formValues: {},
     formStructure: {
-      attributes: new MetadataAttributesImpl(),
+      attributes: metadataAttributesImpl.cast(undefined) as MetadataAttributes,
       fields: [],
     },
     schema: yup.object().shape({}),
