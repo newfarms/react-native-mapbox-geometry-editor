@@ -5,9 +5,11 @@ import MapboxGL from '@react-native-mapbox-gl/maps';
 import { Button, Caption, Card } from 'react-native-paper';
 import type { Position } from 'geojson';
 
+import { useMetadata } from '../../hooks/useMetadata';
 import { StoreContext } from '../../state/StoreContext';
 import { minDimensionPercentageToDP } from '../../util/dimensions';
 import { findCenterForAnnotation } from '../../util/geometry';
+import { MetadataInteraction } from '../../type/metadata';
 import type { RnmgeID } from '../../type/geometry';
 
 /**
@@ -59,6 +61,11 @@ function MetadataAnnotationContent({
  */
 function _MetadataPreview() {
   const { features } = useContext(StoreContext).store;
+  // Check metadata display permissions
+  const { canUse, featureExists } = useMetadata(
+    MetadataInteraction.ViewPreview
+  );
+
   const featureData = features.focusedFeature;
   let featureID: RnmgeID = ''; // ID used to blur the feature when closing the tooltip
   let coordinates: Position = [0, 0]; // Tooltip anchor on map
@@ -82,7 +89,7 @@ function _MetadataPreview() {
    * (the point that corresponds to its map coordinates, `coordinate`)
    * near its bottom left corner.
    */
-  if (featureData) {
+  if (featureExists && canUse) {
     return (
       <MapboxGL.MarkerView
         coordinate={coordinates}

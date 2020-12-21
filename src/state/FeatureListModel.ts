@@ -265,23 +265,6 @@ export class FeatureListModel extends Model({
   }
 
   /**
-   * Retrieve any metadata currently being edited
-   *
-   * See [[draftMetadataGeoJSON]]
-   */
-  @computed
-  get draftMetadata(): GeoJsonProperties | undefined {
-    if (this.draftMetadataFeature) {
-      if (this.draftMetadataFeature.geojson.properties) {
-        return toJS(this.draftMetadataFeature.geojson.properties);
-      } else {
-        return {};
-      }
-    }
-    return undefined;
-  }
-
-  /**
    * Update any metadata currently being edited
    *
    * @param data New metadata

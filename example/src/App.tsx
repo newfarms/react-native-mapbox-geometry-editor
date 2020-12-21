@@ -160,6 +160,19 @@ function metadataSchemaGenerator(_feature?: EditableFeature): MetadataSchema {
     ['yup.object'],
     ['yup.required'],
     [
+      'yup.meta',
+      {
+        permissions: {
+          create: true,
+          edit: true,
+          view: true,
+        },
+        titleFieldKey: 'model',
+        title: 'No model',
+        showIfEmpty: false,
+      },
+    ],
+    [
       'yup.shape',
       {
         vehicleType: [
@@ -177,13 +190,30 @@ function metadataSchemaGenerator(_feature?: EditableFeature): MetadataSchema {
         ],
         description: [
           ['yup.string'],
-          ['yup.label', 'Description (optional)'],
+          ['yup.label', 'Description'],
           ['yup.optional'],
         ],
         needsRepair: [
           ['yup.boolean'],
           ['yup.label', 'Needs repair?'],
           ['yup.required'],
+        ],
+        fieldWithPermissions: [
+          ['yup.string'],
+          ['yup.label', 'Restricted comment'],
+          ['yup.optional'],
+          [
+            'yup.meta',
+            {
+              permissions: {
+                create: true,
+                edit: false,
+                view: true,
+              },
+              inPreview: false,
+              showIfEmpty: false,
+            },
+          ],
         ],
       },
     ],

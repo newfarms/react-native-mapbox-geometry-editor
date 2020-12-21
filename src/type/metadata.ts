@@ -66,6 +66,8 @@ export interface FieldAttributes {
     /**
      * Whether the user can see the field
      * If `false`, all other permissions have no effect.
+     * Overridden by [[MetadataAttributes.titleFieldKey]] when obtaining
+     * a title for the object.
      */
     view: boolean;
   };
@@ -155,7 +157,9 @@ export interface MetadataAttributes {
   };
   /**
    * The key of the field that contains the object's "title"
-   * Overrides `title`
+   * Overrides `title`.
+   * This setting also overrides [[FieldAttributes]] permissions that
+   * would not allow the field to be viewed for other purposes.
    */
   titleFieldKey?: string;
   /**
@@ -266,4 +270,27 @@ export interface MetadataFormStarterWithErrors extends MetadataFormStarter {
    * If there are no errors, `schemaErrors` is undefined.
    */
   schemaErrors?: Array<string>;
+}
+
+/**
+ * Types of interactions with metadata, used in permissions
+ * enforcement functions
+ */
+export enum MetadataInteraction {
+  /**
+   * Create metadata for new geometry
+   */
+  Create = 'CREATE',
+  /**
+   * Update metadata of existing geometry
+   */
+  Edit = 'EDIT',
+  /**
+   * View full metadata for existing geometry
+   */
+  ViewDetails = 'VIEW_DETAILS',
+  /**
+   * View an abbreviated version of metadata for existing geometry
+   */
+  ViewPreview = 'VIEW_PREVIEW',
 }

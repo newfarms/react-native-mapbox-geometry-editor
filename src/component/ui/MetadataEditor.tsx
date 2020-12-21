@@ -1,15 +1,13 @@
-import React, { useCallback, useContext } from 'react';
-import { toJS } from 'mobx';
+import React, { useCallback, useContext, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { StyleSheet } from 'react-native';
 import { Button, Dialog, Portal } from 'react-native-paper';
 import { Formik } from 'formik';
 
 import { StoreContext } from '../../state/StoreContext';
-import { MetadataContext } from './MetadataContext';
 import { MetadataFieldList } from './MetadataForm';
-import { makeMetadataFormStarter } from '../../util/metadata/schema';
-import type { MetadataSchema } from '../../type/metadata';
+import { useMetadata } from '../../hooks/useMetadata';
+import { MetadataInteraction } from '../../type/metadata';
 
 /**
  * @ignore
@@ -26,33 +24,20 @@ const styles = StyleSheet.create({
  */
 function _MetadataEditor() {
   const { controls, features } = useContext(StoreContext).store;
-  const { metadataSchemaGenerator } = useContext(MetadataContext);
+  /**
+   * Metadata permissions and pre-processing
+   */
+  const use = MetadataInteraction.Create;
+  const { canUse, data, formStarter, featureExists } = useMetadata(use);
 
   /**
-   * Determine whether the editor should be visible.
-   * The editor should be visible when there is metadata to edit
+   * Immediately move geometry to the next stage if metadata editing is not permitted
    */
-  const data = toJS(features.draftMetadata);
-  const visible = !!data; // Convert to boolean
-  let schemaSource: MetadataSchema | null = null;
-  if (visible) {
-    const feature = toJS(features.draftMetadataGeoJSON);
-    if (feature) {
-      schemaSource = metadataSchemaGenerator(feature);
-    } else {
-      // This should never happen unless there is a bug in the library
-      throw new Error(
-        'There is no feature providing draft metadata for editing.'
-      );
+  useEffect(() => {
+    if (!canUse && featureExists) {
+      controls.confirm();
     }
-  }
-  const formStarter = makeMetadataFormStarter(schemaSource, data);
-  if (formStarter.schemaErrors) {
-    console.warn(
-      'Metadata schema description parsing errors: ',
-      formStarter.schemaErrors
-    );
-  }
+  }, [canUse, featureExists, controls]);
 
   // Rollback the geometry in case of cancellation
   const onDismiss = useCallback(() => {
@@ -96,7 +81,11 @@ function _MetadataEditor() {
     }) => (
       <>
         <Dialog.ScrollArea>
-          <MetadataFieldList formFieldList={formStarter.formStructure.fields} />
+          <MetadataFieldList
+            formFieldList={formStarter.formStructure.fields}
+            use={use}
+            data={data}
+          />
         </Dialog.ScrollArea>
         <Dialog.Actions>
           <Button onPress={submitForm} disabled={!isValid || isSubmitting}>
@@ -106,7 +95,7 @@ function _MetadataEditor() {
         </Dialog.Actions>
       </>
     ),
-    [onDismiss, formStarter]
+    [onDismiss, formStarter, data, use]
   );
 
   /**
@@ -116,7 +105,7 @@ function _MetadataEditor() {
     <Portal>
       <Dialog
         onDismiss={onDismiss}
-        visible={visible}
+        visible={canUse && featureExists}
         dismissable={true}
         style={styles.dialog}
       >

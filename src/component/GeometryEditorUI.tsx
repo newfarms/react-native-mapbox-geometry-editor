@@ -51,12 +51,12 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
     <View style={containerStyle}>
       <PaperProvider>
         <StoreProvider>
-          <_GeometryEditor {...restProps}>{props.children}</_GeometryEditor>
-          <ModeToolbox />
           <MetadataContext.Provider value={{ metadataSchemaGenerator }}>
+            <_GeometryEditor {...restProps}>{props.children}</_GeometryEditor>
+            <ModeToolbox />
             <MetadataEditor />
+            <ConfirmationDialog />
           </MetadataContext.Provider>
-          <ConfirmationDialog />
         </StoreProvider>
       </PaperProvider>
     </View>

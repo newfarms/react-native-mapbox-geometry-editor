@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Platform,
   StyleSheet,
@@ -19,11 +19,14 @@ import {
 } from 'react-native-paper';
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 import { useFormikContext } from 'formik';
+import filter from 'lodash/filter';
 
-import { FieldType } from '../../type/metadata';
+import { canUseField } from '../../util/metadata/display';
+import { FieldType, MetadataInteraction } from '../../type/metadata';
 import type {
   DisplayableFieldDescription,
   EnumFieldDescription,
+  Metadata,
   MetadataFormFieldList,
   MetadataFormInitialValues,
 } from '../../type/metadata';
@@ -355,15 +358,41 @@ function ListHeader() {
  */
 export function MetadataFieldList({
   formFieldList,
+  use,
+  data,
 }: {
   /**
    * A list of form field descriptions (excluding Formik field data)
    */
   formFieldList: MetadataFormFieldList;
+  /**
+   * The purpose for which the fields are being rendered
+   */
+  use: MetadataInteraction;
+  /**
+   * The current metadata object
+   */
+  data?: Metadata | null;
 }) {
+  /**
+   * Cull fields that cannot be displayed
+   */
+  const filteredFieldList = useMemo(
+    () =>
+      filter(formFieldList, (field) => {
+        const { canUse } = canUseField(
+          field.attributes,
+          data?.[field.key],
+          use
+        );
+        return canUse;
+      }),
+    [formFieldList, use, data]
+  );
+
   return (
     <KeyboardAwareFlatList
-      data={formFieldList}
+      data={filteredFieldList}
       renderItem={ListItem}
       keyExtractor={KeyExtractor}
       ItemSeparatorComponent={Divider}
