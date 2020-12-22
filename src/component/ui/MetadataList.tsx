@@ -199,10 +199,10 @@ function ListItem({
       );
       break;
     case FieldType.Number:
-      field = <NumberItem item={item} value={value as number} />;
+      field = <NumberItem item={item} value={value as number | undefined} />;
       break;
     case FieldType.String:
-      field = <StringItem item={item} value={value as string} />;
+      field = <StringItem item={item} value={value as string | undefined} />;
       break;
   }
   return field;
@@ -299,7 +299,7 @@ export function MetadataFieldList({
               }
               break;
             case FieldType.Number:
-              if (typeof value !== 'number') {
+              if (typeof value !== 'number' && typeof value !== 'undefined') {
                 console.warn(
                   `Non-number value encountered under number field ${field.key}`
                 );
@@ -307,7 +307,7 @@ export function MetadataFieldList({
               }
               break;
             case FieldType.String:
-              if (typeof value !== 'string') {
+              if (typeof value !== 'string' && typeof value !== 'undefined') {
                 console.warn(
                   `Non-string value encountered under string field ${field.key}`
                 );

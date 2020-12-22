@@ -302,7 +302,7 @@ function processNumberSchemaField(
     return yup.number().required().validateSync(data[key]).toString();
   } catch (err) {
     dataErrors.push(`Data under key '${key}' could not be parsed as a number.`);
-    return '';
+    return undefined;
   }
 }
 

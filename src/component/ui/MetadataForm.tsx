@@ -83,7 +83,7 @@ function StringField({
   return (
     <>
       <TextInput
-        value={formik.values[item.key] as string}
+        value={formik.values[item.key] as string | undefined}
         mode="outlined"
         label={item.label}
         error={showError}

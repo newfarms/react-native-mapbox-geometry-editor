@@ -48,9 +48,15 @@ function _MetadataEditor() {
   const onConfirm = useCallback(
     (values, formikBag) => {
       // Ensure that form values are typecast to the schema
-      let castValues: object | null | undefined = formStarter.schema.cast(
-        values
-      );
+      let castValues: object | null | undefined = null;
+      try {
+        castValues = formStarter.schema.cast(values);
+      } catch (err) {
+        console.warn(
+          `Failed to cast metadata form values before setting geometry metadata. Values are: ${values}, error is ${err}.`
+        );
+        castValues = null;
+      }
       if (!castValues) {
         console.warn(
           'Failed to cast metadata form values before setting geometry metadata. Values are: ',

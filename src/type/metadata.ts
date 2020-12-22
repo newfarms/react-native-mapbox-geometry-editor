@@ -128,7 +128,7 @@ export interface MetadataSchemaGenerator {
 /**
  * The value of a field in a metadata editing form
  */
-export type MetadataFormFieldValue = string | boolean;
+export type MetadataFormFieldValue = string | boolean | undefined;
 
 /**
  * A data structure holding the initial values for
