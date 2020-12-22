@@ -75,16 +75,16 @@ If the schema description returned by the function is not `null`, it must be an 
 The schema description must contain a top-level object:
 ```TypeScript
 [
-    ['yup.object'],
-    ['yup.required'],
-    [
-      'yup.shape',
-      {
-        // FIELDS
-        fieldKey: [...] // FIELD SCHEMA
-      },
-    ],
-  ]
+  ['yup.object'],
+  ['yup.required'],
+  [
+    'yup.shape',
+    {
+      // FIELDS
+      fieldKey: [...] // FIELD SCHEMA
+    },
+  ],
+]
 ```
 
 The `FIELDS` portion contains the actual fields of the GeoJSON metadata.
@@ -96,6 +96,7 @@ The datatype of a field must be one of the following:
 
 Fields with datatypes not in the above list will not appear in metadata forms, but can still be present in the metadata of objects imported by the library.
 The library will only display and allow editing of fields of the supported types, and will leave other fields hidden and untouched.
+The library will also ignore all properties of metdata objects that are not described in the schema.
 
 The schema description can (and should) contain human-readable text to assist the user:
 - Fields can be given human-readable names using the `'yup.label'` attribute.
@@ -108,6 +109,30 @@ Refer to [the example app](./example/src/App.tsx) for an example of a complex me
 
 The library provides the `validateMetadata()` utility function for validating the syntax of schema descriptions.
 `validateMetadata()` can also test whether a given JavaScript object conforms to the input schema description.
+
+### Advanced usage
+
+Metadata schema descriptions can be given meta information at both the object and field level:
+
+```TypeScript
+[
+  ['yup.object'],
+  ['yup.required'],
+  ['yup.meta', {...}], // Object-level meta information
+  [
+    'yup.shape',
+    {
+      fieldKey: [..., ['yup.meta', {...}], ...] // Field schema with field-level meta information
+    },
+  ],
+]
+```
+
+Meta information controls the circumstances under which metadata objects and metadata object fields can be viewed and edited, for instance.
+
+Object-level meta information is described by the `MetadataAttributes` interface in `src/type/metadata.ts`, whereas field-level meta information is described by the `FieldAttributes` interface in `src/type/metadata.ts`.
+Please read the documentation comments of these interfaces for descriptions of the available options.
+Default values for meta information are provided by the `metadataAttributesImpl` and `fieldAttributesImpl` validators in `src/util/metadata/schema.ts`, so the client applicatio only needs to provide any meta information properties whose values must differ from the defaults.
 
 ## API Documentation
 
@@ -122,6 +147,9 @@ HTML API documentation for the library can be generated using Typedoc as follows
   Presently these issues seem to be observed only on iOS, and only with dialogs
   that need to manage some local state.
   A possibly related issue may be https://github.com/callstack/react-native-paper/issues/2157
+- Enumeration and boolean-typed geometry metadata fields are always given values during metadata creation or editing operations, even if the client application marks the fields as `'yup.optional'` (optional) fields, or marks the fields as non-creatable or non-editable.
+  (Reinterpreting this behaviour as a feature, these fields will always be given valid values.)
+  The library is still able to handle enumeration and boolean-typed fields that have missing or invalid values, however, such as when rendering metadata created outside the library.
 
 ### Android
 - Geometry rendering on an Android emulator may exhibit visual problems such as rendering points in grey instead of in their desired colours.
