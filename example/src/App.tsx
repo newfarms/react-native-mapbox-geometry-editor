@@ -207,7 +207,7 @@ function metadataSchemaGenerator(_feature?: EditableFeature): MetadataSchema {
         ],
         fieldWithPermissions: [
           ['yup.string'],
-          ['yup.label', 'Restricted comment'],
+          ['yup.label', 'Creation-time comment'],
           ['yup.optional'],
           [
             'yup.meta',

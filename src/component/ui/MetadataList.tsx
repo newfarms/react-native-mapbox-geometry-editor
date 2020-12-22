@@ -36,10 +36,20 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   paragraph: {
-    flexDirection: 'row',
     alignSelf: 'flex-end',
   },
 });
+
+/**
+ * The type of data expected by each item component rendered in the list,
+ * excluding the field value.
+ */
+interface ListItemData extends DisplayableFieldDescription {
+  /**
+   * Whether to render the label of the item
+   */
+  includeLabel: boolean;
+}
 
 /**
  * Text to display when a value is missing
@@ -48,28 +58,27 @@ const emptyText = '(empty)';
 
 /**
  * A component that renders a string value
- * @param props Data and rendering options
+ * @param item Data and rendering options
  */
-function StringItem({
-  item,
-  value,
-}: {
-  /**
-   * The field description
-   */
-  item: DisplayableFieldDescription;
-  /**
-   * The data to render
-   */
-  value?: string;
-}) {
+function StringItem(
+  item: ListItemData & {
+    /**
+     * The data to render
+     */
+    value?: string;
+  }
+) {
   let paragraphText = emptyText;
-  if (hasValue(value)) {
-    paragraphText = value as string;
+  if (hasValue(item.value)) {
+    paragraphText = item.value as string;
+  }
+  let label = null;
+  if (item.includeLabel) {
+    label = <List.Item title={item.label} />;
   }
   return (
     <>
-      <List.Item title={item.label} />
+      {label}
       <Paragraph style={styles.paragraph}>{paragraphText}</Paragraph>
     </>
   );
@@ -77,97 +86,95 @@ function StringItem({
 
 /**
  * A component that renders a numeric value
- * @param props Data and rendering options
+ * @param item Data and rendering options
  */
-function NumberItem({
-  item,
-  value,
-}: {
-  /**
-   * The field description
-   */
-  item: DisplayableFieldDescription;
-  /**
-   * The data to render
-   */
-  value?: number;
-}) {
-  let numberText = emptyText;
-  if (hasValue(value)) {
-    numberText = (value as number).toString();
+function NumberItem(
+  item: ListItemData & {
+    /**
+     * The data to render
+     */
+    value?: number;
   }
-  return (
-    <List.Item
-      title={item.label}
-      right={(props: {
-        color: string;
-        style?: { marginRight: number; marginVertical?: number };
-      }) => {
-        const { style: propsStyle, ...propsRest } = props;
-        return (
-          <Text {...propsRest} style={[propsStyle, styles.listItemAddon]}>
-            {numberText}
-          </Text>
-        );
-      }}
-    />
-  );
+) {
+  let numberText = emptyText;
+  if (hasValue(item.value)) {
+    numberText = (item.value as number).toString();
+  }
+  if (item.includeLabel) {
+    return (
+      <List.Item
+        title={item.label}
+        right={(props: {
+          color: string;
+          style?: { marginRight: number; marginVertical?: number };
+        }) => {
+          const { style: propsStyle, ...propsRest } = props;
+          return (
+            <Text {...propsRest} style={[propsStyle, styles.listItemAddon]}>
+              {numberText}
+            </Text>
+          );
+        }}
+      />
+    );
+  } else {
+    return <StringItem {...item} value={numberText} />;
+  }
 }
 
 /**
  * A component that renders an enum value
- * @param props Data and rendering options
+ * @param item Data and rendering options
  */
-function EnumItem({
-  item,
-  value,
-}: {
-  /**
-   * The field description
-   */
-  item: EnumFieldDescription;
-  /**
-   * The data to render
-   * This component does not check if `value` is a member of the enum.
-   */
-  value?: string;
-}) {
-  return <StringItem item={item} value={value} />;
+function EnumItem(
+  item: ListItemData &
+    EnumFieldDescription & {
+      /**
+       * The data to render
+       * This component does not check if `value` is a member of the enum.
+       */
+      value?: string;
+    }
+) {
+  return <StringItem {...item} />;
 }
 
 /**
  * A component that renders a boolean value
- * @param props Data and rendering options
+ * @param item Data and rendering options
  */
-function BooleanItem({
-  item,
-  value,
-}: {
-  /**
-   * The field description
-   */
-  item: DisplayableFieldDescription;
-  /**
-   * The data to render
-   * This component does not check if `value` is a member of the enum.
-   */
-  value?: boolean;
-}) {
-  return (
-    <List.Item
-      title={item.label}
-      right={(props: {
-        color: string;
-        style?: { marginRight: number; marginVertical?: number };
-      }) => {
-        if (hasValue(value)) {
-          return <Switch {...props} disabled={true} value={value} />;
-        } else {
-          return <Text {...props}>{emptyText}</Text>;
-        }
-      }}
-    />
-  );
+function BooleanItem(
+  item: ListItemData & {
+    /**
+     * The data to render
+     */
+    value?: boolean;
+  }
+) {
+  const nonEmpty = hasValue(item.value);
+  if (item.includeLabel) {
+    return (
+      <List.Item
+        title={item.label}
+        right={(props: {
+          color: string;
+          style?: { marginRight: number; marginVertical?: number };
+        }) => {
+          if (nonEmpty) {
+            return <Switch {...props} disabled={true} value={item.value} />;
+          } else {
+            return <Text {...props}>{emptyText}</Text>;
+          }
+        }}
+      />
+    );
+  } else {
+    if (nonEmpty) {
+      return <Switch disabled={true} value={item.value} />;
+    } else {
+      return <Text>{emptyText}</Text>;
+    }
+  }
 }
 
 /**
@@ -180,7 +187,7 @@ function ListItem({
   /**
    * The field data description and value
    */
-  item: DisplayableFieldDescription & {
+  item: ListItemData & {
     value?: unknown;
   };
 }) {
@@ -188,21 +195,21 @@ function ListItem({
   const value = item.value;
   switch (item.type) {
     case FieldType.Boolean:
-      field = <BooleanItem item={item} value={value as boolean} />;
+      field = <BooleanItem {...item} value={value as boolean | undefined} />;
       break;
     case FieldType.Enum:
       field = (
         <EnumItem
-          item={(item as unknown) as EnumFieldDescription}
-          value={value as string}
+          {...(item as ListItemData & EnumFieldDescription)}
+          value={value as string | undefined}
         />
       );
       break;
     case FieldType.Number:
-      field = <NumberItem item={item} value={value as number | undefined} />;
+      field = <NumberItem {...item} value={value as number | undefined} />;
       break;
     case FieldType.String:
-      field = <StringItem item={item} value={value as string | undefined} />;
+      field = <StringItem {...item} value={value as string | undefined} />;
       break;
   }
   return field;
@@ -232,7 +239,8 @@ export function MetadataFieldList({
   formStructure,
   use,
   data,
-  includeTitle,
+  includeTitle = true,
+  includeLabels = true,
 }: {
   /**
    * A description of the metadata
@@ -250,6 +258,10 @@ export function MetadataFieldList({
    * Whether to add the title of the metadata as the list's header
    */
   includeTitle?: boolean;
+  /**
+   * Whether to render field labels
+   */
+  includeLabels?: boolean;
 }) {
   /**
    * Cull fields that cannot be displayed
@@ -299,7 +311,7 @@ export function MetadataFieldList({
               }
               break;
             case FieldType.Number:
-              if (typeof value !== 'number' && typeof value !== 'undefined') {
+              if (typeof value !== 'number') {
                 console.warn(
                   `Non-number value encountered under number field ${field.key}`
                 );
@@ -307,7 +319,7 @@ export function MetadataFieldList({
               }
               break;
             case FieldType.String:
-              if (typeof value !== 'string' && typeof value !== 'undefined') {
+              if (typeof value !== 'string') {
                 console.warn(
                   `Non-string value encountered under string field ${field.key}`
                 );
@@ -323,20 +335,21 @@ export function MetadataFieldList({
          */
         return {
           value: data?.[item.key],
+          includeLabel: includeLabels,
           ...item,
         };
       });
     } else {
       return [];
     }
-  }, [formStructure, use, data]);
+  }, [formStructure, use, data, includeLabels]);
 
   /**
    * Optional list header component
    */
   const ListHeader = useCallback(
     (props) => {
-      if (typeof includeTitle !== 'boolean' || includeTitle) {
+      if (includeTitle) {
         return (
           <Title {...props}>{getTitle(formStructure.attributes, data)}</Title>
         );
@@ -370,7 +383,12 @@ export function MetadataFieldList({
         listBody = (
           <>
             {filteredFieldList.map((item) => {
-              return <ListItem item={item} key={item.key} />;
+              return (
+                <React.Fragment key={item.key}>
+                  <ListItem item={item} />
+                  <Divider />
+                </React.Fragment>
+              );
             })}
           </>
         );

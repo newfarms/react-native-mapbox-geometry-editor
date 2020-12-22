@@ -62,6 +62,7 @@ function MetadataAnnotationContent({
           use={use}
           data={data}
           includeTitle={false}
+          includeLabels={false}
         />
       </Card.Content>
       <Card.Actions>
