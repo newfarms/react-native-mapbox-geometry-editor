@@ -11,6 +11,7 @@ import type {
   MetadataAttributes,
   MetadataFormFieldDescription,
   MetadataFormFieldList,
+  MetadataFormFieldValue,
   MetadataFormInitialValues,
   MetadataFormStarterWithErrors,
   MetadataSchema,
@@ -372,7 +373,7 @@ function schemaFieldIteratee(
    * Refine form field description and value based on the type of field
    */
   try {
-    let initialValue: string | boolean = '';
+    let initialValue: MetadataFormFieldValue = '';
     switch (schemaField.type as FieldType) {
       case FieldType.Boolean: {
         initialValue = processBooleanSchemaField(

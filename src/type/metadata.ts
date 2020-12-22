@@ -126,11 +126,16 @@ export interface MetadataSchemaGenerator {
 }
 
 /**
+ * The value of a field in a metadata editing form
+ */
+export type MetadataFormFieldValue = string | boolean;
+
+/**
  * A data structure holding the initial values for
  * the fields of a metadata editing form
  */
 export interface MetadataFormInitialValues {
-  [name: string]: string | boolean;
+  [name: string]: MetadataFormFieldValue;
 }
 
 /**

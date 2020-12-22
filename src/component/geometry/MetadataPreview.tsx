@@ -2,14 +2,17 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { Button, Caption, Card } from 'react-native-paper';
+import { Button, Card } from 'react-native-paper';
 import type { Position } from 'geojson';
 
 import { useMetadata } from '../../hooks/useMetadata';
 import { StoreContext } from '../../state/StoreContext';
 import { minDimensionPercentageToDP } from '../../util/dimensions';
 import { findCenterForAnnotation } from '../../util/geometry';
+import { getTitle } from '../../util/metadata/display';
+import { MetadataFieldList } from '../ui/MetadataList';
 import { MetadataInteraction } from '../../type/metadata';
+import type { Metadata, MetadataFormStructure } from '../../type/metadata';
 import type { RnmgeID } from '../../type/geometry';
 
 /**
@@ -29,17 +32,37 @@ const styles = StyleSheet.create({
  */
 function MetadataAnnotationContent({
   onDismiss,
+  data,
+  formStructure,
+  use,
 }: {
   /**
    * A touch callback for the close button of the preview
    */
   onDismiss: () => void;
+  /**
+   * The current metadata object
+   */
+  data?: Metadata | null;
+  /**
+   * A description of the metadata
+   */
+  formStructure: MetadataFormStructure;
+  /**
+   * The purpose for which the data is being rendered
+   */
+  use: MetadataInteraction.ViewDetails | MetadataInteraction.ViewPreview;
 }) {
   return (
     <Card elevation={5} style={styles.card}>
-      <Card.Title title="Feature title" />
+      <Card.Title title={getTitle(formStructure.attributes, data)} />
       <Card.Content>
-        <Caption>Preview content</Caption>
+        <MetadataFieldList
+          formStructure={formStructure}
+          use={use}
+          data={data}
+          includeTitle={false}
+        />
       </Card.Content>
       <Card.Actions>
         <Button compact onPress={() => console.log('TODO: Details pressed')}>
@@ -61,10 +84,8 @@ function MetadataAnnotationContent({
  */
 function _MetadataPreview() {
   const { features } = useContext(StoreContext).store;
-  // Check metadata display permissions
-  const { canUse, featureExists } = useMetadata(
-    MetadataInteraction.ViewPreview
-  );
+  const use = MetadataInteraction.ViewPreview;
+  const { canUse, data, formStarter, featureExists } = useMetadata(use);
 
   const featureData = features.focusedFeature;
   let featureID: RnmgeID = ''; // ID used to blur the feature when closing the tooltip
@@ -96,7 +117,12 @@ function _MetadataPreview() {
         anchor={{ x: 0.025, y: 0.975 }}
         id="metadata_preview"
       >
-        <MetadataAnnotationContent onDismiss={onDismiss} />
+        <MetadataAnnotationContent
+          onDismiss={onDismiss}
+          use={use}
+          formStructure={formStarter.formStructure}
+          data={data}
+        />
       </MapboxGL.MarkerView>
     );
   }

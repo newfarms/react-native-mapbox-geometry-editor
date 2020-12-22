@@ -368,7 +368,7 @@ export function MetadataFieldList({
   /**
    * The purpose for which the fields are being rendered
    */
-  use: MetadataInteraction;
+  use: MetadataInteraction.Create | MetadataInteraction.Edit;
   /**
    * The current metadata object
    */
