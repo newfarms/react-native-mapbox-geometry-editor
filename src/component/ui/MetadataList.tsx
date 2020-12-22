@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   paragraph: {
-    alignSelf: 'flex-end',
+    alignSelf: 'center',
   },
 });
 
@@ -170,9 +170,11 @@ function BooleanItem(
     );
   } else {
     if (nonEmpty) {
-      return <Switch disabled={true} value={item.value} />;
+      return (
+        <Switch style={styles.paragraph} disabled={true} value={item.value} />
+      );
     } else {
-      return <Text>{emptyText}</Text>;
+      return <Text style={styles.paragraph}>{emptyText}</Text>;
     }
   }
 }
