@@ -124,7 +124,7 @@ function processSchemaRoot<T extends yup.BaseSchema>(
 }
 
 /**
- * Implementation of [[MetadataAttributes]] used to create
+ * Implementation of [[FieldAttributes]] used to create
  * objects with default attributes, and to validate existing objects
  */
 const fieldAttributesImpl: yup.SchemaOf<FieldAttributes> = yup
