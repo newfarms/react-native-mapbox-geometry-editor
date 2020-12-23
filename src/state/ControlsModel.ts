@@ -59,9 +59,7 @@ export class ControlsModel extends Model({
   /**
    * The currently active editing mode
    */
-  mode: prop<InteractionMode>(defaultInteractionMode, {
-    setterAction: true,
-  }),
+  mode: prop<InteractionMode>(defaultInteractionMode),
   /**
    * A description of any operation that the user
    * is asked to confirm or cancel
