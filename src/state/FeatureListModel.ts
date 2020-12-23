@@ -199,6 +199,47 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Remove all new features
+   */
+  @modelAction
+  discardNewFeatures() {
+    // Search for all features that are not new
+    const arr = filter(
+      this.features,
+      (val) => val.stage !== FeatureLifecycleStage.NewShape
+    );
+    if (arr.length === this.features.length) {
+      console.warn('There are no new features to discard.');
+    } else {
+      if (arr.length < this.features.length - 1) {
+        console.warn('There are multiple new features that will be discarded.');
+      }
+      this.features = arr;
+    }
+  }
+
+  /**
+   * Put all new features into the view state
+   */
+  @modelAction
+  confirmNewFeatures() {
+    const arr = filter(
+      this.features,
+      (val) => val.stage === FeatureLifecycleStage.NewShape
+    );
+    if (arr.length > 0) {
+      if (arr.length > 1) {
+        console.warn('There are multiple new features.');
+      }
+      arr.forEach((feature) => {
+        feature.stage = FeatureLifecycleStage.View;
+      });
+    } else {
+      console.warn('There are no new features to confirm.');
+    }
+  }
+
+  /**
    * Retrieve a non-observable copy of the GeoJSON feature currently
    * single-selected, if one exists.
    */
