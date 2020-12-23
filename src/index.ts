@@ -47,6 +47,9 @@ export {
   GeometryRole,
 } from './type/geometry';
 export type {
+  FieldAttributes,
+  Metadata,
+  MetadataAttributes,
   MetadataSchema,
   MetadataSchemaGenerator,
   MetadataValidationResult,
