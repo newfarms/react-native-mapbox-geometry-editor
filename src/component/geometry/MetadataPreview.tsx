@@ -32,6 +32,7 @@ const styles = StyleSheet.create({
  */
 function MetadataAnnotationContent({
   onDismiss,
+  onMore,
   data,
   formStructure,
   use,
@@ -40,6 +41,10 @@ function MetadataAnnotationContent({
    * A touch callback for the close button of the preview
    */
   onDismiss: () => void;
+  /**
+   * A touch callback for the "open details" button of the preview
+   */
+  onMore: () => void;
   /**
    * The current metadata object
    */
@@ -66,7 +71,7 @@ function MetadataAnnotationContent({
         />
       </Card.Content>
       <Card.Actions>
-        <Button compact onPress={() => console.log('TODO: Details pressed')}>
+        <Button compact onPress={onMore}>
           More
         </Button>
         <Button compact onPress={onDismiss}>
@@ -84,7 +89,7 @@ function MetadataAnnotationContent({
  * @return Renderable React node
  */
 function _MetadataPreview() {
-  const { features } = useContext(StoreContext).store;
+  const { controls, features } = useContext(StoreContext).store;
   const use = MetadataInteraction.ViewPreview;
   const { canUse, data, formStarter, featureExists } = useMetadata(use);
 
@@ -104,6 +109,10 @@ function _MetadataPreview() {
   const onDismiss = useCallback(() => {
     features.toggleSingleSelectFeature(featureID);
   }, [features, featureID]);
+  // Tooltip more button press handler opens a details page
+  const onMore = useCallback(() => {
+    controls.openPage();
+  }, [controls]);
 
   /**
    * Render a preview display for any currently focused feature.
@@ -120,6 +129,7 @@ function _MetadataPreview() {
       >
         <MetadataAnnotationContent
           onDismiss={onDismiss}
+          onMore={onMore}
           use={use}
           formStructure={formStarter.formStructure}
           data={data}

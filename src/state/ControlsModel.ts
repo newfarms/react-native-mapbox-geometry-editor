@@ -65,6 +65,11 @@ export class ControlsModel extends Model({
    * is asked to confirm or cancel
    */
   confimation: prop<ConfirmationModel | null>(() => null),
+  /**
+   * Whether there is a large modal or page open to show something
+   * other than the map.
+   */
+  isPageOpen: prop<boolean>(false),
 }) {
   /**
    * Set the editing mode to `mode`, or restore the default editing mode
@@ -78,6 +83,29 @@ export class ControlsModel extends Model({
       );
       return;
     }
+    /**
+     * The transition between geometry metadata view and edit operations occurs
+     * while a metadata display/edit page remains open.
+     * Other transitions between editing modes either occur when no pages are open,
+     * or are not performed using `toggleMode()`. If they happen regardless,
+     * assume that the client application has mistakenly let the map display instead
+     * of the open page. Therefore, clean up the abandoned page.
+     */
+    if (
+      this.isPageOpen &&
+      !(
+        this.mode === InteractionMode.EditMetadata &&
+        mode === InteractionMode.EditMetadata
+      )
+    ) {
+      console.warn(
+        `Changing editing mode from ${this.mode} to ${mode} while a page is open.`
+      );
+      // Force-close any open pages
+      this.cancel(true);
+      this.isPageOpen = false;
+    }
+
     const features = featureListContext.get(this);
     // Whether this is a deactivation of the current mode
     const isToggle = this.mode === mode;
@@ -147,6 +175,8 @@ export class ControlsModel extends Model({
 
   /**
    * Confirm the current commit or cancel operation
+   * This function is also used as a "Done" button callback
+   * for open pages.
    */
   @modelAction
   confirm() {
@@ -158,9 +188,11 @@ export class ControlsModel extends Model({
           break;
         case InteractionMode.DrawPoint:
           featureListContext.get(this)?.discardNewFeatures();
+          this.isPageOpen = false;
           break;
         case InteractionMode.EditMetadata:
           this.rollback();
+          this.setDefaultMode();
           break;
         case InteractionMode.SelectMultiple:
         case InteractionMode.SelectSingle:
@@ -176,23 +208,34 @@ export class ControlsModel extends Model({
           break;
         case InteractionMode.DrawPoint:
           featureListContext.get(this)?.confirmNewFeatures();
+          this.isPageOpen = false;
           break;
         case InteractionMode.EditMetadata:
           this.setDefaultMode();
           break;
         case InteractionMode.SelectMultiple:
-        case InteractionMode.SelectSingle:
           console.warn(`There are no actions to confirm.`);
+          break;
+        case InteractionMode.SelectSingle:
+          this.isPageOpen = false;
           break;
       }
     }
   }
 
   /**
-   * Cancel the current commit or cancel operation
+   * Cancel the current commit or cancel operation.
+   * This function is also used as a "Close" button callback
+   * for open pages.
+   *
+   * @param force If `true`, skip opening any confirmation dialogs and immediately
+   *              cancel the current operation.
+   * @return Whether the cancellation is complete (`true`), or has yet to be confirmed (`false`).
+   *         If the function returns `false`, it is not safe to close an open page, for example,
+   *         or the user may lose unsaved changes.
    */
   @modelAction
-  cancel() {
+  cancel(force?: boolean): boolean {
     if (this.confimation) {
       this.confimation = null;
     } else {
@@ -213,10 +256,60 @@ export class ControlsModel extends Model({
           });
           break;
         case InteractionMode.SelectMultiple:
+          console.warn('There are no actions to request confirmation for.');
+          break;
         case InteractionMode.SelectSingle:
-          console.warn(`There are no actions to request confirmation for.`);
+          // There is no operation to cancel, but close any open page
+          this.isPageOpen = false;
           break;
       }
+      /**
+       * Force cancellation by confirming the cancel dialog
+       */
+      if (force && this.confimation) {
+        this.confirm();
+      }
+    }
+    return !!this.confimation;
+  }
+
+  /**
+   * Open a page appropriate to the current state
+   */
+  @modelAction
+  openPage() {
+    if (this.confimation) {
+      console.warn(
+        `A page cannot be opened while there is an active confirmation request.`
+      );
+      return;
+    }
+    if (this.isPageOpen) {
+      console.warn(`There is already an open page.`);
+      return;
+    }
+
+    switch (this.mode) {
+      case InteractionMode.DragPoint:
+        console.warn(`The current editing mode, ${this.mode}, has no pages.`);
+        break;
+      case InteractionMode.DrawPoint:
+        // Open metadata creation page
+        this.isPageOpen = true;
+        break;
+      case InteractionMode.EditMetadata:
+        // This case should not occur as a page should already be open for viewing metadata
+        console.warn(
+          `The current editing mode, ${this.mode}, should not need to open a new page.`
+        );
+        break;
+      case InteractionMode.SelectMultiple:
+        console.warn(`TODO: For future use selecting overlapping geometry.`);
+        break;
+      case InteractionMode.SelectSingle:
+        // Open metadata details view
+        this.isPageOpen = true;
+        break;
     }
   }
 
@@ -239,6 +332,9 @@ export class ControlsModel extends Model({
     // Do nothing if there already is a draft point
     if (features && !features.draftMetadataGeoJSON) {
       features.addNewPoint(coordinates);
+      // The metadata creation page must now open
+      console.warn('TODO: Convert metadata creator into a new page.');
+      //this.openPage();
     }
   }
 
@@ -251,7 +347,13 @@ export class ControlsModel extends Model({
   onPressColdGeometry(e: OnPressEvent) {
     if (this.confimation) {
       console.warn(
-        `The map cannot be interacted with while there is an active confirmation request.`
+        `Map geometry cannot be interacted with while there is an active confirmation request.`
+      );
+      return;
+    }
+    if (this.isPageOpen) {
+      console.warn(
+        `The map geometry cannot be interacted with while there is an open page.`
       );
       return;
     }
@@ -304,6 +406,12 @@ export class ControlsModel extends Model({
         `The map cannot be interacted with while there is an active confirmation request.`
       );
       return true;
+    }
+    if (this.isPageOpen) {
+      console.warn(
+        `The map cannot be interacted with while there is an open page.`
+      );
+      return;
     }
 
     switch (this.mode) {

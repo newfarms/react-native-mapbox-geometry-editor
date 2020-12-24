@@ -16,6 +16,7 @@ import { MetadataContext } from './ui/MetadataContext';
 import { MetadataEditor } from './ui/MetadataEditor';
 import { MetadataPreview } from './geometry/MetadataPreview';
 import { defaultMetadataSchemaGenerator } from '../util/metadata/schema';
+import { PageController } from './ui/page/PageController';
 import type { MetadataSchemaGenerator } from '../type/metadata';
 
 /**
@@ -59,6 +60,7 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
             </_GeometryEditor>
             <ModeToolbox />
             <MetadataEditor />
+            <PageController />
             <ConfirmationDialog />
           </MetadataContext.Provider>
         </StoreProvider>
