@@ -160,6 +160,14 @@ function metadataSchemaGenerator(_feature?: EditableFeature): MetadataSchema {
     ['yup.object'],
     ['yup.required'],
     [
+      'yup.meta',
+      {
+        titleFieldKey: 'model',
+        title: 'No model',
+        showIfEmpty: false,
+      },
+    ],
+    [
       'yup.shape',
       {
         vehicleType: [
@@ -167,6 +175,12 @@ function metadataSchemaGenerator(_feature?: EditableFeature): MetadataSchema {
           ['yup.label', 'Type of vehicle'],
           ['yup.required'],
           ['yup.oneOf', Object.values(VehicleType)],
+          [
+            'yup.meta',
+            {
+              inPreview: true,
+            },
+          ],
         ],
         model: [['yup.string'], ['yup.required', 'A model is required']], // An enumeration may be better, as the user could input arbitrary strings
         age: [
@@ -177,13 +191,33 @@ function metadataSchemaGenerator(_feature?: EditableFeature): MetadataSchema {
         ],
         description: [
           ['yup.string'],
-          ['yup.label', 'Description (optional)'],
+          ['yup.label', 'Description'],
           ['yup.optional'],
+          [
+            'yup.meta',
+            {
+              inPreview: true,
+            },
+          ],
         ],
         needsRepair: [
           ['yup.boolean'],
           ['yup.label', 'Needs repair?'],
           ['yup.required'],
+        ],
+        fieldWithPermissions: [
+          ['yup.string'],
+          ['yup.label', 'Creation-time comment'],
+          ['yup.optional'],
+          [
+            'yup.meta',
+            {
+              permissions: {
+                edit: false,
+              },
+              showIfEmpty: true,
+            },
+          ],
         ],
       },
     ],

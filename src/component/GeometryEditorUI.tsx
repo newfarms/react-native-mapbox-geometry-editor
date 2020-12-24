@@ -14,7 +14,8 @@ import { ModeToolbox } from './ui/ModeToolbox';
 import { ConfirmationDialog } from './ui/ConfirmationDialog';
 import { MetadataContext } from './ui/MetadataContext';
 import { MetadataEditor } from './ui/MetadataEditor';
-import { defaultMetadataSchemaGenerator } from '../util/metadata';
+import { MetadataPreview } from './geometry/MetadataPreview';
+import { defaultMetadataSchemaGenerator } from '../util/metadata/schema';
 import type { MetadataSchemaGenerator } from '../type/metadata';
 
 /**
@@ -51,12 +52,15 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
     <View style={containerStyle}>
       <PaperProvider>
         <StoreProvider>
-          <_GeometryEditor {...restProps}>{props.children}</_GeometryEditor>
-          <ModeToolbox />
           <MetadataContext.Provider value={{ metadataSchemaGenerator }}>
+            <_GeometryEditor {...restProps}>
+              <MetadataPreview />
+              {props.children}
+            </_GeometryEditor>
+            <ModeToolbox />
             <MetadataEditor />
+            <ConfirmationDialog />
           </MetadataContext.Provider>
-          <ConfirmationDialog />
         </StoreProvider>
       </PaperProvider>
     </View>

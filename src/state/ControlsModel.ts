@@ -1,11 +1,10 @@
 import { model, Model, modelAction, prop } from 'mobx-keystone';
-import last from 'lodash/last';
 import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
+import type { Position } from 'geojson';
 
 import { ConfirmationModel } from './ConfirmationModel';
 import { featureListContext } from './ModelContexts';
 import type { MapPressPayload } from '../type/events';
-import { FeatureLifecycleStage } from '../type/geometry';
 
 /**
  * Possible geometry editing modes
@@ -160,7 +159,7 @@ export class ControlsModel extends Model({
           this.rollback();
           break;
         case InteractionMode.DrawPoint:
-          featureListContext.get(this)?.features.pop();
+          featureListContext.get(this)?.discardNewFeatures();
           break;
         case InteractionMode.EditMetadata:
           this.rollback();
@@ -178,12 +177,7 @@ export class ControlsModel extends Model({
           this.setDefaultMode();
           break;
         case InteractionMode.DrawPoint:
-          {
-            const feature = last(featureListContext.get(this)?.features);
-            if (feature) {
-              feature.stage = FeatureLifecycleStage.View;
-            }
-          }
+          featureListContext.get(this)?.confirmNewFeatures();
           break;
         case InteractionMode.EditMetadata:
           this.setDefaultMode();
@@ -237,21 +231,38 @@ export class ControlsModel extends Model({
   }
 
   /**
+   * Add a new point feature
+   * @param coordinates The coordinates of the feature
+   */
+  @modelAction
+  private addNewPoint(coordinates: Position) {
+    // Draw a new point at the location
+    const features = featureListContext.get(this);
+    // Do nothing if there already is a draft point
+    if (features && !features.draftMetadataGeoJSON) {
+      features.addNewPoint(coordinates);
+    }
+  }
+
+  /**
    * Touch event handler for geometry in the cold layer. See [[ColdGeometry]]
    *
    * @param e The features that were pressed, and information about the location pressed
    */
   @modelAction
   onPressColdGeometry(e: OnPressEvent) {
+    if (this.confimation) {
+      console.warn(
+        `The map cannot be interacted with while there is an active confirmation request.`
+      );
+      return;
+    }
     switch (this.mode) {
       case InteractionMode.DragPoint:
         // Ignore
         break;
       case InteractionMode.DrawPoint:
-        // Draw a new point at the location
-        featureListContext
-          .get(this)
-          ?.addNewPoint([e.coordinates.longitude, e.coordinates.latitude]);
+        this.addNewPoint([e.coordinates.longitude, e.coordinates.latitude]);
         break;
       case InteractionMode.EditMetadata:
         // Ignore
@@ -290,12 +301,19 @@ export class ControlsModel extends Model({
    */
   @modelAction
   handleMapPress(e: MapPressPayload) {
+    if (this.confimation) {
+      console.warn(
+        `The map cannot be interacted with while there is an active confirmation request.`
+      );
+      return true;
+    }
+
     switch (this.mode) {
       case InteractionMode.DragPoint:
         return false; // Ignore
       case InteractionMode.DrawPoint:
         // Draw a new point
-        featureListContext.get(this)?.addNewPoint(e.geometry.coordinates);
+        this.addNewPoint(e.geometry.coordinates);
         return true;
       case InteractionMode.EditMetadata:
         return false; // Ignore

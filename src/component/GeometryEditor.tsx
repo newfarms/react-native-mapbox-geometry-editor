@@ -10,7 +10,6 @@ import MapboxGL, { MapViewProps } from '@react-native-mapbox-gl/maps';
 import { DraggablePoints } from './geometry/DraggablePoints';
 import { ColdGeometry } from './geometry/ColdGeometry';
 import { HotGeometry } from './geometry/HotGeometry';
-import { MetadataPreview } from './geometry/MetadataPreview';
 import { StoreContext } from '../state/StoreContext';
 import { useEventHandlers } from '../hooks/useEventHandlers';
 import type { Event } from '../type/events';
@@ -104,7 +103,6 @@ export function _GeometryEditor(props: GeometryEditorProps) {
           <ColdGeometry />
           <HotGeometry />
           <DraggablePoints />
-          <MetadataPreview />
           {props.children}
         </StyleContext.Provider>
       </MapboxGL.MapView>
