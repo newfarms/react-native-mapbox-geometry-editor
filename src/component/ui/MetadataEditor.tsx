@@ -110,9 +110,6 @@ function _MetadataEditor() {
     [onDismiss, formStarter, data, use]
   );
 
-  /**
-   * Conditionally-visible metadata editor dialog
-   */
   return (
     <Card style={styles.card}>
       <Formik

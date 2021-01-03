@@ -59,7 +59,7 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
             </_GeometryEditor>
             <ModeToolbox />
             <PageController />
-            <ConfirmationDialog />
+            <ConfirmationDialog visibleIfPageOpen={false} />
           </MetadataContext.Provider>
         </StoreProvider>
       </PaperProvider>

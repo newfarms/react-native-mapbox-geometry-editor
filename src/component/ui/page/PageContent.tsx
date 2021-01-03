@@ -6,6 +6,7 @@ import { Button, Paragraph, Surface } from 'react-native-paper';
 import { StoreContext } from '../../../state/StoreContext';
 import { InteractionMode } from '../../../state/ControlsModel';
 import { MetadataEditor } from '../../ui/MetadataEditor';
+import { ConfirmationPage } from './ConfirmationPage';
 
 /**
  * @ignore
@@ -91,7 +92,7 @@ function _PageContent() {
         break;
     }
   }
-  return content;
+  return <ConfirmationPage>{content}</ConfirmationPage>;
 }
 
 /**
