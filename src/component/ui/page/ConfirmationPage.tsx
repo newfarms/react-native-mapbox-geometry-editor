@@ -15,6 +15,10 @@ const styles = StyleSheet.create({
   surfaceHidden: {
     height: 0,
   },
+  surfaceCentered: {
+    flex: 1,
+    justifyContent: 'center',
+  },
 });
 
 /**
@@ -64,16 +68,18 @@ function _ConfirmationPage({
   let confirmationCard = null;
   if (visible) {
     confirmationCard = (
-      <Card>
-        <Card.Title title={controls.confimation?.title} />
-        <Card.Content>
-          <Paragraph>{controls.confimation?.message}</Paragraph>
-        </Card.Content>
-        <Card.Actions>
-          <Button onPress={onConfirm}>Yes</Button>
-          <Button onPress={onDismiss}>No</Button>
-        </Card.Actions>
-      </Card>
+      <Surface style={styles.surfaceCentered}>
+        <Card>
+          <Card.Title title={controls.confimation?.title} />
+          <Card.Content>
+            <Paragraph>{controls.confimation?.message}</Paragraph>
+          </Card.Content>
+          <Card.Actions>
+            <Button onPress={onConfirm}>Yes</Button>
+            <Button onPress={onDismiss}>No</Button>
+          </Card.Actions>
+        </Card>
+      </Surface>
     );
   }
 
