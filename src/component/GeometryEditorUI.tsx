@@ -13,7 +13,6 @@ import { StoreProvider } from '../state/StoreProvider';
 import { ModeToolbox } from './ui/ModeToolbox';
 import { ConfirmationDialog } from './ui/ConfirmationDialog';
 import { MetadataContext } from './ui/MetadataContext';
-import { MetadataEditor } from './ui/MetadataEditor';
 import { MetadataPreview } from './geometry/MetadataPreview';
 import { defaultMetadataSchemaGenerator } from '../util/metadata/schema';
 import { PageController } from './ui/page/PageController';
@@ -59,7 +58,6 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
               {props.children}
             </_GeometryEditor>
             <ModeToolbox />
-            <MetadataEditor />
             <PageController />
             <ConfirmationDialog />
           </MetadataContext.Provider>

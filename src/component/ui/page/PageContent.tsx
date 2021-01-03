@@ -4,6 +4,8 @@ import { observer } from 'mobx-react-lite';
 import { Button, Paragraph, Surface } from 'react-native-paper';
 
 import { StoreContext } from '../../../state/StoreContext';
+import { InteractionMode } from '../../../state/ControlsModel';
+import { MetadataEditor } from '../../ui/MetadataEditor';
 
 /**
  * @ignore
@@ -15,6 +17,28 @@ const styles = StyleSheet.create({
 });
 
 /**
+ * Fallback content that is displayed when the page is rendered
+ * while [[ControlsModel]] is not in an appropriate state
+ * for the page to be rendered.
+ * @param props Rendering props
+ */
+function DefaultContent({
+  closeCb,
+}: {
+  /**
+   * A callback that will close the page
+   */
+  closeCb: () => void;
+}) {
+  return (
+    <Surface style={styles.surface}>
+      <Paragraph>Return to the map</Paragraph>
+      <Button onPress={closeCb}>Close</Button>
+    </Surface>
+  );
+}
+
+/**
  * A component to be rendered inside a full page display
  * (such as [[PageContainer]]). This component serves as a dispatcher
  * to render content that is appropriate for the current state
@@ -22,9 +46,13 @@ const styles = StyleSheet.create({
  */
 function _PageContent() {
   const { controls } = useContext(StoreContext).store;
+  const isPageOpen = controls.isPageOpen;
 
-  const onPress = useCallback(() => {
-    controls.cancel();
+  /**
+   * Fallback close button callback
+   */
+  const closeCb = useCallback(() => {
+    controls.notifyOfPageClose();
   }, [controls]);
 
   /**
@@ -37,17 +65,33 @@ function _PageContent() {
    * responsible for opening and closing the page.
    */
   useEffect(() => {
-    return () => {
-      controls.cancel(true);
-    };
-  }, [controls]);
+    return closeCb;
+  }, [closeCb]);
 
-  return (
-    <Surface style={styles.surface}>
-      <Paragraph>Test page content</Paragraph>
-      <Button onPress={onPress}>Close</Button>
-    </Surface>
-  );
+  /**
+   * Render content appropriate for the current user interface state
+   */
+  let content = <DefaultContent closeCb={closeCb} />;
+  if (isPageOpen) {
+    switch (controls.mode) {
+      case InteractionMode.DragPoint:
+        break;
+      case InteractionMode.DrawPoint:
+        content = <MetadataEditor />;
+        break;
+      case InteractionMode.EditMetadata:
+        console.warn(
+          'TODO: Convert metadata creator into an editing page too.'
+        );
+        break;
+      case InteractionMode.SelectMultiple:
+        break;
+      case InteractionMode.SelectSingle:
+        console.warn('TODO: Render metadata details');
+        break;
+    }
+  }
+  return content;
 }
 
 /**

@@ -102,8 +102,7 @@ export class ControlsModel extends Model({
         `Changing editing mode from ${this.mode} to ${mode} while a page is open.`
       );
       // Force-close any open pages
-      this.cancel(true);
-      this.isPageOpen = false;
+      this.notifyOfPageClose();
     }
 
     const features = featureListContext.get(this);
@@ -314,6 +313,22 @@ export class ControlsModel extends Model({
   }
 
   /**
+   * Notify the controller that a page has been unexpectedly closed
+   */
+  @modelAction
+  notifyOfPageClose() {
+    /**
+     * Some cleanup routines will call this function before they have
+     * a chance to be notified that the page was already intentionally closed,
+     * so check if the page is already closed.
+     */
+    if (this.isPageOpen) {
+      this.cancel(true);
+      this.isPageOpen = false;
+    }
+  }
+
+  /**
    * Rollback geometry or metadata modifications
    */
   @modelAction
@@ -333,8 +348,7 @@ export class ControlsModel extends Model({
     if (features && !features.draftMetadataGeoJSON) {
       features.addNewPoint(coordinates);
       // The metadata creation page must now open
-      console.warn('TODO: Convert metadata creator into a new page.');
-      //this.openPage();
+      this.openPage();
     }
   }
 

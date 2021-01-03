@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { StyleSheet } from 'react-native';
-import { Button, Dialog, Portal } from 'react-native-paper';
+import { Button, Card } from 'react-native-paper';
 import { Formik } from 'formik';
 
 import { StoreContext } from '../../state/StoreContext';
@@ -13,8 +13,14 @@ import { MetadataInteraction } from '../../type/metadata';
  * @ignore
  */
 const styles = StyleSheet.create({
-  dialog: {
-    maxHeight: '75%',
+  card: {
+    flex: 1,
+  },
+  cardContent: {
+    height: '90%',
+  },
+  cardActions: {
+    height: '10%',
   },
 });
 
@@ -65,8 +71,8 @@ function _MetadataEditor() {
         castValues = null;
       }
       features.setDraftMetadata(castValues);
-      controls.confirm();
       formikBag.setSubmitting(false);
+      controls.confirm();
     },
     [controls, features, formStarter]
   );
@@ -75,7 +81,7 @@ function _MetadataEditor() {
    * The body of the Formik form, which renders a list of form fields
    * and submit or cancel buttons.
    */
-  const dialogContents = useCallback(
+  const formContents = useCallback(
     ({
       isSubmitting,
       isValid,
@@ -86,19 +92,19 @@ function _MetadataEditor() {
       submitForm: () => Promise<unknown>;
     }) => (
       <>
-        <Dialog.ScrollArea>
+        <Card.Content style={styles.cardContent}>
           <MetadataFieldList
             formFieldList={formStarter.formStructure.fields}
             use={use}
             data={data}
           />
-        </Dialog.ScrollArea>
-        <Dialog.Actions>
+        </Card.Content>
+        <Card.Actions style={styles.cardActions}>
           <Button onPress={submitForm} disabled={!isValid || isSubmitting}>
             Save
           </Button>
           <Button onPress={onDismiss}>Cancel</Button>
-        </Dialog.Actions>
+        </Card.Actions>
       </>
     ),
     [onDismiss, formStarter, data, use]
@@ -108,21 +114,14 @@ function _MetadataEditor() {
    * Conditionally-visible metadata editor dialog
    */
   return (
-    <Portal>
-      <Dialog
-        onDismiss={onDismiss}
-        visible={canUse && featureExists}
-        dismissable={true}
-        style={styles.dialog}
-      >
-        <Formik
-          component={dialogContents}
-          initialValues={formStarter.formValues}
-          onSubmit={onConfirm}
-          validationSchema={formStarter.schema}
-        />
-      </Dialog>
-    </Portal>
+    <Card style={styles.card}>
+      <Formik
+        component={formContents}
+        initialValues={formStarter.formValues}
+        onSubmit={onConfirm}
+        validationSchema={formStarter.schema}
+      />
+    </Card>
   );
 }
 

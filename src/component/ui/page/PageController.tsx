@@ -18,6 +18,7 @@ import type { PageControls, PageProps } from '../../../type/ui';
  */
 function _PageController() {
   const { controls } = useContext(StoreContext).store;
+  const isPageOpen = controls.isPageOpen;
 
   /**
    * Create data and callbacks to pass to the page opener
@@ -26,7 +27,9 @@ function _PageController() {
     return {
       pageContent: <PageContent />,
       onDismissRequest: () => controls.cancel(),
-      onDismissed: () => controls.cancel(true),
+      onDismissed: () => {
+        controls.notifyOfPageClose();
+      },
     };
   }, [controls]);
 
@@ -55,7 +58,6 @@ function _PageController() {
   /**
    * Invoke page open/close functions following changes to the state of the user interface
    */
-  const isPageOpen = controls.isPageOpen;
   useEffect(() => {
     if (isPageOpen) {
       pageControls.openPage(pagePropsToPass);
