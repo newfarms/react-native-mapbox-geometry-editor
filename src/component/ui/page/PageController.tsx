@@ -16,7 +16,14 @@ import type { PageControls, PageProps } from '../../../type/ui';
  *
  * @param props Rendering props
  */
-function _PageController() {
+function _PageController({
+  pageControls: pageControlsProps,
+}: {
+  /**
+   * Functions from the client application for opening and closing pages
+   */
+  readonly pageControls?: PageControls;
+}) {
   const { controls } = useContext(StoreContext).store;
   const isPageOpen = controls.isPageOpen;
 
@@ -53,7 +60,7 @@ function _PageController() {
   /**
    * Use the client application's page display functionality when possible
    */
-  const pageControls = defaultPageControls;
+  const pageControls = pageControlsProps || defaultPageControls;
 
   /**
    * Invoke page open/close functions following changes to the state of the user interface

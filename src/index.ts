@@ -55,3 +55,9 @@ export type {
   MetadataValidationResult,
 } from './type/metadata';
 export type { DraggablePointStyle, StyleGeneratorMap } from './type/style';
+export type {
+  PageProps,
+  PageOpener,
+  PageCloser,
+  PageControls,
+} from './type/ui';
