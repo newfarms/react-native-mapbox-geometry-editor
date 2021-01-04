@@ -33,6 +33,8 @@ export interface PageProps {
  * A function that forwards [[PageProps]] to a component that renders a page,
  * and therefore causes the page to be displayed with
  * `props.pageContent` as its contents.
+ *
+ * This function should be idempotent.
  */
 export interface PageOpener {
   /**
@@ -43,6 +45,8 @@ export interface PageOpener {
 
 /**
  * A function that closes a page opened by a [[PageOpener]]
+ *
+ * This function should be idempotent.
  */
 export interface PageCloser {
   (): void;

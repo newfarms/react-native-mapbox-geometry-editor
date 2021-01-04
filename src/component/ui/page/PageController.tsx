@@ -24,7 +24,8 @@ function _PageController({
    */
   readonly pageControls?: PageControls;
 }) {
-  const { controls } = useContext(StoreContext).store;
+  const storeContext = useContext(StoreContext);
+  const { controls } = storeContext.store;
   const isPageOpen = controls.isPageOpen;
 
   /**
@@ -32,13 +33,21 @@ function _PageController({
    */
   const pagePropsToPass: PageProps = useMemo(() => {
     return {
-      pageContent: <PageContent />,
+      /**
+       * [[PageContent]] needs to be supplied with all context it needs to render,
+       * as the client application may render it in a different component rendering tree.
+       */
+      pageContent: (
+        <StoreContext.Provider value={storeContext}>
+          <PageContent />
+        </StoreContext.Provider>
+      ),
       onDismissRequest: () => controls.cancel(),
       onDismissed: () => {
         controls.notifyOfPageClose();
       },
     };
-  }, [controls]);
+  }, [controls, storeContext]);
 
   /**
    * The library's own page display functionality uses `ownPageProps`
