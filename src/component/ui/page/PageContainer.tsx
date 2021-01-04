@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { Modal, SafeAreaView, StyleSheet } from 'react-native';
 
-import type { PageProps } from '../../../type/ui';
+import { PageContent } from './PageContent';
+import type { PageControls } from '../../../type/ui';
 
 /**
  * @ignore
@@ -16,11 +17,7 @@ const styles = StyleSheet.create({
  * A full-page display that serves as a container for content
  * @param props Rendering props
  */
-export function PageContainer({
-  pageContent,
-  onDismissRequest,
-  onDismissed,
-}: PageProps) {
+export function PageContainer({ onDismissRequest, onDismissed }: PageControls) {
   return (
     <Modal
       animationType="slide"
@@ -29,7 +26,9 @@ export function PageContainer({
       presentationStyle="fullScreen"
       statusBarTranslucent={false}
     >
-      <SafeAreaView style={styles.container}>{pageContent()}</SafeAreaView>
+      <SafeAreaView style={styles.container}>
+        <PageContent />
+      </SafeAreaView>
     </Modal>
   );
 }

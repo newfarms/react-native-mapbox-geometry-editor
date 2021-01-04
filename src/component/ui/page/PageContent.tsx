@@ -62,8 +62,7 @@ function _PageContent() {
    * can update its state accordingly and discard any temporary unsaved data.
    *
    * The page should be closed through the user interface controller,
-   * but that rule cannot be enforced when the client application is
-   * responsible for opening and closing the page.
+   * but perhaps there are exceptions to this rule.
    */
   useEffect(() => {
     return closeCb;

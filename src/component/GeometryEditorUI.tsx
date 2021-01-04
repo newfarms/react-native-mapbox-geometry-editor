@@ -17,7 +17,7 @@ import { MetadataPreview } from './geometry/MetadataPreview';
 import { defaultMetadataSchemaGenerator } from '../util/metadata/schema';
 import { PageController } from './ui/page/PageController';
 import type { MetadataSchemaGenerator } from '../type/metadata';
-import type { PageControls } from '../type/ui';
+import type { PageProps } from '../type/ui';
 
 /**
  * Render properties for [[GeometryEditorUI]]
@@ -34,10 +34,11 @@ export interface GeometryEditorUIProps extends GeometryEditorProps {
    */
   readonly metadataSchemaGenerator?: MetadataSchemaGenerator;
   /**
-   * Functions for opening and closing pages in which the geometry library can
-   * display large-format content on top of the map page
+   * Callbacks that notify the client application when the library is displaying
+   * full-page content, and that allow the client application to force
+   * the page to close if necessary.
    */
-  readonly pageControls?: PageControls;
+  readonly pageProps?: PageProps;
 }
 
 /**
@@ -51,7 +52,7 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
   const {
     style: containerStyle = {},
     metadataSchemaGenerator = defaultMetadataSchemaGenerator,
-    pageControls,
+    pageProps,
     ...restProps
   } = props;
 
@@ -65,7 +66,7 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
               {props.children}
             </_GeometryEditor>
             <ModeToolbox />
-            <PageController pageControls={pageControls} />
+            <PageController pageProps={pageProps} />
             <ConfirmationDialog visibleIfPageOpen={false} />
           </MetadataContext.Provider>
         </StoreProvider>

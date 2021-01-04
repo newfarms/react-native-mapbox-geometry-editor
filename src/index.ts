@@ -57,7 +57,7 @@ export type {
 export type { DraggablePointStyle, StyleGeneratorMap } from './type/style';
 export type {
   PageProps,
-  PageOpener,
-  PageCloser,
+  PageOpenCb,
+  PageCloseCb,
   PageControls,
 } from './type/ui';

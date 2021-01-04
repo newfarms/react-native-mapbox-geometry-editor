@@ -1,68 +1,61 @@
 /**
- * Rendering props that a [[PageOpener]] passes to a component that renders a page
+ * Callbacks that a [[PageOpenCb]] receives
  */
-export interface PageProps {
-  /**
-   * The page content
-   */
-  pageContent: () => JSX.Element;
+export interface PageControls {
   /**
    * A function to be called when the user tries to close or navigate
-   * away from the page. `pageContent` will display a close control
-   * to the user. This function provides an alternative mechanism for closing
-   * the page, but should not be used unless the app cannot remove
-   * navigation controls external to those triggered through `pageContent`.
+   * away from the page. The library will display a close control
+   * to the user, but this function provides an alternative mechanism for closing
+   * the page. This function should be connected to any navigation controls, external
+   * to those provided by the library, that the app does not want to disable.
    *
-   * If this function returns `false`, the page can still be closed,
-   * but the user may lose unsaved changes.
+   * If this function returns `false`, the user may lose unsaved changes,
+   * so the library will not close the page.
    *
-   * @return Whether or not the page can be safely closed
+   * @return Whether or not the page will be closed
    */
   onDismissRequest: () => boolean;
   /**
-   * A function to be called when the page has been closed or unfocused.
-   * Call this function to inform the library that the page has been
-   * dropped "without the library's consent". If the page is dropped and this function
-   * is not called, the library should still be able to clean up internal state later,
-   * but the user may lose unsaved changes.
+   * A function to be called to force the library to close its page.
+   * The user may lose unsaved changes.
    */
   onDismissed: () => void;
 }
 
 /**
- * A function that forwards [[PageProps]] to a component that renders a page,
- * and therefore causes the page to be displayed with
- * `props.pageContent` as its contents.
+ * A callback that notifies the client application that the library has opened a
+ * full-screen display.
  *
  * This function should be idempotent.
  */
-export interface PageOpener {
+export interface PageOpenCb {
   /**
-   * @param props Content for the page
+   * @param controls Callbacks for controlling the page
    */
-  (props: PageProps): void;
+  (controls: PageControls): void;
 }
 
 /**
- * A function that closes a page opened by a [[PageOpener]]
+ * A callback that notifies the client application that the library has closed a
+ * full-screen display.
  *
- * This function should be idempotent.
+ * This function should be idempotent. It may be called even when no page was previously
+ * open.
  */
-export interface PageCloser {
+export interface PageCloseCb {
   (): void;
 }
 
 /**
- * Functions for opening and closing pages
+ * Callbacks to notify the client application of page open/close events
  */
-export interface PageControls {
+export interface PageProps {
   /**
-   * A function for opening a page and causing content from this library
-   * to be rendered on the page
+   * A page open event callback
    */
-  openPage: PageOpener;
+  openPage: PageOpenCb;
   /**
-   * A function for closing the page opened by `openPage`
+   * A page close event callback
    */
-  closePage: PageCloser;
+  closePage: PageCloseCb;
 }
