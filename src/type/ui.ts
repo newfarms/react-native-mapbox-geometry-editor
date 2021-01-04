@@ -5,7 +5,7 @@ export interface PageProps {
   /**
    * The page content
    */
-  pageContent: JSX.Element;
+  pageContent: () => JSX.Element;
   /**
    * A function to be called when the user tries to close or navigate
    * away from the page. `pageContent` will display a close control

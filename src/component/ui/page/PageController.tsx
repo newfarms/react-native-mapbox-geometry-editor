@@ -37,7 +37,7 @@ function _PageController({
   const pageContent = useMemo(() => <PageContent />, []);
   const pagePropsToPass: PageProps = useMemo(() => {
     return {
-      pageContent,
+      pageContent: () => pageContent,
       onDismissRequest: () => controls.cancel(),
       onDismissed: () => {
         controls.notifyOfPageClose();

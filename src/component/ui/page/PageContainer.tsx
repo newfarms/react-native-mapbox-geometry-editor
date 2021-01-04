@@ -29,7 +29,7 @@ export function PageContainer({
       presentationStyle="fullScreen"
       statusBarTranslucent={false}
     >
-      <SafeAreaView style={styles.container}>{pageContent}</SafeAreaView>
+      <SafeAreaView style={styles.container}>{pageContent()}</SafeAreaView>
     </Modal>
   );
 }
