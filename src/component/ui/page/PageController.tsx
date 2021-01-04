@@ -24,30 +24,26 @@ function _PageController({
    */
   readonly pageControls?: PageControls;
 }) {
-  const storeContext = useContext(StoreContext);
-  const { controls } = storeContext.store;
+  const { controls } = useContext(StoreContext).store;
   const isPageOpen = controls.isPageOpen;
 
   /**
    * Create data and callbacks to pass to the page opener
+   *
+   * [[PageContent]] needs to be supplied with all context it needs to render,
+   * as the client application may render it in a different component rendering tree.
+   * The easiest way to provide all context is to render it here instead.
    */
+  const pageContent = useMemo(() => <PageContent />, []);
   const pagePropsToPass: PageProps = useMemo(() => {
     return {
-      /**
-       * [[PageContent]] needs to be supplied with all context it needs to render,
-       * as the client application may render it in a different component rendering tree.
-       */
-      pageContent: (
-        <StoreContext.Provider value={storeContext}>
-          <PageContent />
-        </StoreContext.Provider>
-      ),
+      pageContent,
       onDismissRequest: () => controls.cancel(),
       onDismissed: () => {
         controls.notifyOfPageClose();
       },
     };
-  }, [controls, storeContext]);
+  }, [controls, pageContent]);
 
   /**
    * The library's own page display functionality uses `ownPageProps`
