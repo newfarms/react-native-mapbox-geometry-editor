@@ -14,6 +14,10 @@ import { ConfirmationPage } from './ConfirmationPage';
 const styles = StyleSheet.create({
   surface: {
     flex: 1,
+    justifyContent: 'center',
+  },
+  paragraph: {
+    alignSelf: 'center',
   },
 });
 
@@ -33,7 +37,7 @@ function DefaultContent({
 }) {
   return (
     <Surface style={styles.surface}>
-      <Paragraph>Return to the map</Paragraph>
+      <Paragraph style={styles.paragraph}>Return to the map</Paragraph>
       <Button onPress={closeCb}>Close</Button>
     </Surface>
   );
