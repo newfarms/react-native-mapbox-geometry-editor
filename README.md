@@ -143,6 +143,9 @@ HTML API documentation for the library can be generated using Typedoc as follows
 3. Open `docs/src/index.html` in a web browser
 
 ## Known issues
+- In some client applications, while running in development mode, the library will emit the following warning:
+  `"[mobx] Derivation observer_StoreProvider is created/updated without reading any observable value"`
+  Refer to the comments in `src/state/StoreProvider.tsx` for details.
 - There are inconsistent performance issues with React Native Paper-based dialogs.
   Presently these issues seem to be observed only on iOS, and only with dialogs
   that need to manage some local state.
