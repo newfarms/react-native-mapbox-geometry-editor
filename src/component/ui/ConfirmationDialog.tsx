@@ -1,4 +1,4 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { Paragraph, Button, Portal, Dialog } from 'react-native-paper';
@@ -24,18 +24,20 @@ function _ConfirmationDialog({
   const { controls } = useContext(StoreContext);
 
   // Rollback the geometry in case of cancellation
-  const onDismiss = useCallback(
-    action('confirmation_dialog_cancel', () => {
-      controls.cancel();
-    }),
+  const onDismiss = useMemo(
+    () =>
+      action('confirmation_dialog_cancel', () => {
+        controls.cancel();
+      }),
     [controls]
   );
 
   // Commit on confirmation
-  const onConfirm = useCallback(
-    action('confirmation_dialog_confirm', () => {
-      controls.confirm();
-    }),
+  const onConfirm = useMemo(
+    () =>
+      action('confirmation_dialog_confirm', () => {
+        controls.confirm();
+      }),
     [controls]
   );
 

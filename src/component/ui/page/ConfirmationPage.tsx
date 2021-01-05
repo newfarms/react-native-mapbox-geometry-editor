@@ -1,4 +1,4 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { action } from 'mobx';
 import { StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
@@ -45,18 +45,20 @@ function _ConfirmationPage({
   const { controls } = useContext(StoreContext);
 
   // Rollback in case of cancellation
-  const onDismiss = useCallback(
-    action('confirmation_page_cancel', () => {
-      controls.cancel();
-    }),
+  const onDismiss = useMemo(
+    () =>
+      action('confirmation_page_cancel', () => {
+        controls.cancel();
+      }),
     [controls]
   );
 
   // Commit on confirmation
-  const onConfirm = useCallback(
-    action('confirmation_page_confirm', () => {
-      controls.confirm();
-    }),
+  const onConfirm = useMemo(
+    () =>
+      action('confirmation_page_confirm', () => {
+        controls.confirm();
+      }),
     [controls]
   );
 

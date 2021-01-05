@@ -1,6 +1,6 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { Button, Card } from 'react-native-paper';
@@ -107,17 +107,19 @@ function _MetadataPreview() {
     coordinates = findCenterForAnnotation(featureData.geojson);
   }
   // Tooltip close button press handler deselects the feature
-  const onDismiss = useCallback(
-    action('metadata_preview_dismiss', () => {
-      features.toggleSingleSelectFeature(featureID);
-    }),
+  const onDismiss = useMemo(
+    () =>
+      action('metadata_preview_dismiss', () => {
+        features.toggleSingleSelectFeature(featureID);
+      }),
     [features, featureID]
   );
   // Tooltip more button press handler opens a details page
-  const onMore = useCallback(
-    action('metadata_preview_details', () => {
-      controls.openPage();
-    }),
+  const onMore = useMemo(
+    () =>
+      action('metadata_preview_details', () => {
+        controls.openPage();
+      }),
     [controls]
   );
 

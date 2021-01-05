@@ -1,6 +1,6 @@
 import { action, toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
 import type { Expression } from '@react-native-mapbox-gl/maps';
@@ -27,10 +27,11 @@ function _ColdGeometry() {
   ];
 
   // Delegate touch events to the controller
-  const onPress = useCallback(
-    action('cold_geometry_press', (e: OnPressEvent) => {
-      controls.onPressColdGeometry(e);
-    }),
+  const onPress = useMemo(
+    () =>
+      action('cold_geometry_press', (e: OnPressEvent) => {
+        controls.onPressColdGeometry(e);
+      }),
     [controls]
   );
 

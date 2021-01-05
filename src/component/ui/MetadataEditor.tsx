@@ -1,5 +1,5 @@
-import React, { useCallback, useContext, useEffect } from 'react';
-import { action } from 'mobx';
+import React, { useCallback, useContext, useEffect, useMemo } from 'react';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { StyleSheet } from 'react-native';
 import { Button, Card } from 'react-native-paper';
@@ -42,53 +42,54 @@ function _MetadataEditor() {
   /**
    * Immediately move geometry to the next stage if metadata editing is not permitted
    */
-  useEffect(
-    action('metadata_editor_skip_editing', () => {
+  useEffect(() => {
+    runInAction(() => {
       if (!canUse && featureExists) {
         controls.confirm();
       }
-    }),
-    [canUse, featureExists, controls]
-  );
+    });
+  }, [canUse, featureExists, controls]);
 
   // Rollback the geometry in case of cancellation
-  const onDismiss = useCallback(
-    action('metadata_editor_cancel', () => {
-      controls.cancel();
-    }),
+  const onDismiss = useMemo(
+    () =>
+      action('metadata_editor_cancel', () => {
+        controls.cancel();
+      }),
     [controls]
   );
 
   // Commit on confirmation
-  const onConfirm = useCallback(
-    action(
-      'metadata_editor_save',
-      (
-        values: MetadataFormInitialValues,
-        formikBag: FormikHelpers<MetadataFormInitialValues>
-      ) => {
-        // Ensure that form values are typecast to the schema
-        let castValues: object | null | undefined = null;
-        try {
-          castValues = formStarter.schema.cast(values);
-        } catch (err) {
-          console.warn(
-            `Failed to cast metadata form values before setting geometry metadata. Values are: ${values}, error is ${err}.`
-          );
-          castValues = null;
+  const onConfirm = useMemo(
+    () =>
+      action(
+        'metadata_editor_save',
+        (
+          values: MetadataFormInitialValues,
+          formikBag: FormikHelpers<MetadataFormInitialValues>
+        ) => {
+          // Ensure that form values are typecast to the schema
+          let castValues: object | null | undefined = null;
+          try {
+            castValues = formStarter.schema.cast(values);
+          } catch (err) {
+            console.warn(
+              `Failed to cast metadata form values before setting geometry metadata. Values are: ${values}, error is ${err}.`
+            );
+            castValues = null;
+          }
+          if (!castValues) {
+            console.warn(
+              'Failed to cast metadata form values before setting geometry metadata. Values are: ',
+              values
+            );
+            castValues = null;
+          }
+          features.setDraftMetadata(castValues);
+          formikBag.setSubmitting(false);
+          controls.confirm();
         }
-        if (!castValues) {
-          console.warn(
-            'Failed to cast metadata form values before setting geometry metadata. Values are: ',
-            values
-          );
-          castValues = null;
-        }
-        features.setDraftMetadata(castValues);
-        formikBag.setSubmitting(false);
-        controls.confirm();
-      }
-    ),
+      ),
     [controls, features, formStarter]
   );
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
@@ -57,10 +57,11 @@ function _PageContent() {
   /**
    * Fallback close button callback
    */
-  const closeCb = useCallback(
-    action('page_content_closed', () => {
-      controls.notifyOfPageClose();
-    }),
+  const closeCb = useMemo(
+    () =>
+      action('page_content_closed', () => {
+        controls.notifyOfPageClose();
+      }),
     [controls]
   );
 
