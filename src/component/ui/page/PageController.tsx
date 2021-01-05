@@ -23,7 +23,7 @@ function _PageController({
    */
   readonly pageProps?: PageProps;
 }) {
-  const { controls } = useContext(StoreContext).store;
+  const { controls } = useContext(StoreContext);
   const isPageOpen = controls.isPageOpen;
 
   /**

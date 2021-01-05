@@ -12,9 +12,7 @@ import { RootModel } from './RootModel';
  */
 function _StoreProvider(props: { readonly children?: React.ReactNode }) {
   const [storeContext] = useState(() => {
-    return {
-      store: new RootModel({}),
-    };
+    return new RootModel({});
   });
 
   return (

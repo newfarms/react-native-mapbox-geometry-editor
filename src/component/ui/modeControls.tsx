@@ -14,7 +14,7 @@ import { StoreContext } from '../../state/StoreContext';
  */
 function makeModeControl(mode: InteractionMode, icon: string) {
   return observer(() => {
-    const { controls } = useContext(StoreContext).store;
+    const { controls } = useContext(StoreContext);
 
     const onPress = useCallback(
       action('mode_control_press', () => {

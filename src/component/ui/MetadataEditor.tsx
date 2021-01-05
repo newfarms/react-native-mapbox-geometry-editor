@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
  * @return Renderable React node
  */
 function _MetadataEditor() {
-  const { controls, features } = useContext(StoreContext).store;
+  const { controls, features } = useContext(StoreContext);
   /**
    * Metadata permissions and pre-processing
    */

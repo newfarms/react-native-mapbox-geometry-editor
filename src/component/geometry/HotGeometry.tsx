@@ -12,7 +12,7 @@ import { StyleContext } from '../StyleContext';
  * @return Renderable React node
  */
 function _HotGeometry() {
-  const { features } = useContext(StoreContext).store;
+  const { features } = useContext(StoreContext);
   const featuresJS = toJS(features.hotFeatures);
 
   const { styleGenerators } = useContext(StyleContext);

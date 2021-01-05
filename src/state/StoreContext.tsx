@@ -8,9 +8,4 @@ import { RootModel } from './RootModel';
  *
  * @access public
  */
-export const StoreContext = React.createContext({
-  /**
-   * A [[RootModel]] instance storing all state
-   */
-  store: new RootModel({}),
-});
+export const StoreContext = React.createContext(new RootModel({}));

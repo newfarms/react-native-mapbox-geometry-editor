@@ -15,7 +15,7 @@ import { StyleContext } from '../StyleContext';
  * @return Renderable React node
  */
 function _ColdGeometry() {
-  const { controls, features } = useContext(StoreContext).store;
+  const { controls, features } = useContext(StoreContext);
   const featuresJS = toJS(features.coldFeatures);
 
   const { styleGenerators } = useContext(StyleContext);

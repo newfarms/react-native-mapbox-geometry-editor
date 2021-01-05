@@ -108,7 +108,7 @@ const SinglePoint = observer(_SinglePoint);
  * @return Renderable React node
  */
 function _DraggablePoints() {
-  const { features } = useContext(StoreContext).store;
+  const { features } = useContext(StoreContext);
 
   /**
    * Render all points by mapping the appropriate

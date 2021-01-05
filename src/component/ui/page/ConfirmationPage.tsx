@@ -42,7 +42,7 @@ function _ConfirmationPage({
    */
   readonly children?: React.ReactNode;
 }) {
-  const { controls } = useContext(StoreContext).store;
+  const { controls } = useContext(StoreContext);
 
   // Rollback in case of cancellation
   const onDismiss = useCallback(

@@ -51,7 +51,7 @@ function DefaultContent({
  * of the user interface controller.
  */
 function _PageContent() {
-  const { controls } = useContext(StoreContext).store;
+  const { controls } = useContext(StoreContext);
   const isPageOpen = controls.isPageOpen;
 
   /**

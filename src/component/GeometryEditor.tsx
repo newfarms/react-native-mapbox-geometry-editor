@@ -68,7 +68,7 @@ export function _GeometryEditor(props: GeometryEditorProps) {
   } = props;
   const { style: mapStyle, onPress: outerOnPress, ...restMapProps } = mapProps;
 
-  const { store } = useContext(StoreContext);
+  const store = useContext(StoreContext);
   /**
    * A touch callback for the map that will add a new point
    */

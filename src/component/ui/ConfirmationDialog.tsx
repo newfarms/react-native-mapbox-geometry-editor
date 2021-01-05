@@ -21,7 +21,7 @@ function _ConfirmationDialog({
    */
   visibleIfPageOpen: boolean;
 }) {
-  const { controls } = useContext(StoreContext).store;
+  const { controls } = useContext(StoreContext);
 
   // Rollback the geometry in case of cancellation
   const onDismiss = useCallback(

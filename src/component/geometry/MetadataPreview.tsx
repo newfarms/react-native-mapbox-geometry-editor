@@ -90,7 +90,7 @@ function MetadataAnnotationContent({
  * @return Renderable React node
  */
 function _MetadataPreview() {
-  const { controls, features } = useContext(StoreContext).store;
+  const { controls, features } = useContext(StoreContext);
   const use = MetadataInteraction.ViewPreview;
   const { canUse, data, formStarter, featureExists } = useMetadata(use);
 
