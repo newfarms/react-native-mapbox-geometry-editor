@@ -1,3 +1,4 @@
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext } from 'react';
 import { StyleSheet } from 'react-native';
@@ -106,13 +107,19 @@ function _MetadataPreview() {
     coordinates = findCenterForAnnotation(featureData.geojson);
   }
   // Tooltip close button press handler deselects the feature
-  const onDismiss = useCallback(() => {
-    features.toggleSingleSelectFeature(featureID);
-  }, [features, featureID]);
+  const onDismiss = useCallback(
+    action('metadata_preview_dismiss', () => {
+      features.toggleSingleSelectFeature(featureID);
+    }),
+    [features, featureID]
+  );
   // Tooltip more button press handler opens a details page
-  const onMore = useCallback(() => {
-    controls.openPage();
-  }, [controls]);
+  const onMore = useCallback(
+    action('metadata_preview_details', () => {
+      controls.openPage();
+    }),
+    [controls]
+  );
 
   /**
    * Render a preview display for any currently focused feature.

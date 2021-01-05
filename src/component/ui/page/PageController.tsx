@@ -1,3 +1,4 @@
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useContext, useEffect, useMemo } from 'react';
 
@@ -30,10 +31,12 @@ function _PageController({
    */
   const pageControls: PageControls = useMemo(() => {
     return {
-      onDismissRequest: () => controls.cancel(),
-      onDismissed: () => {
+      onDismissRequest: action('page_controller_dismiss_request', () =>
+        controls.cancel()
+      ),
+      onDismissed: action('page_controller_dismissed', () => {
         controls.notifyOfPageClose();
-      },
+      }),
     };
   }, [controls]);
 

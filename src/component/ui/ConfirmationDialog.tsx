@@ -1,4 +1,5 @@
 import React, { useCallback, useContext } from 'react';
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { Paragraph, Button, Portal, Dialog } from 'react-native-paper';
 
@@ -23,14 +24,20 @@ function _ConfirmationDialog({
   const { controls } = useContext(StoreContext).store;
 
   // Rollback the geometry in case of cancellation
-  const onDismiss = useCallback(() => {
-    controls.cancel();
-  }, [controls]);
+  const onDismiss = useCallback(
+    action('confirmation_dialog_cancel', () => {
+      controls.cancel();
+    }),
+    [controls]
+  );
 
   // Commit on confirmation
-  const onConfirm = useCallback(() => {
-    controls.confirm();
-  }, [controls]);
+  const onConfirm = useCallback(
+    action('confirmation_dialog_confirm', () => {
+      controls.confirm();
+    }),
+    [controls]
+  );
 
   const visible =
     !!controls.confimation && controls.isPageOpen === visibleIfPageOpen;

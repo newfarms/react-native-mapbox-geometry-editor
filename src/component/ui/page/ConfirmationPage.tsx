@@ -1,4 +1,5 @@
 import React, { useCallback, useContext } from 'react';
+import { action } from 'mobx';
 import { StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Paragraph, Button, Card, Surface } from 'react-native-paper';
@@ -44,14 +45,20 @@ function _ConfirmationPage({
   const { controls } = useContext(StoreContext).store;
 
   // Rollback in case of cancellation
-  const onDismiss = useCallback(() => {
-    controls.cancel();
-  }, [controls]);
+  const onDismiss = useCallback(
+    action('confirmation_page_cancel', () => {
+      controls.cancel();
+    }),
+    [controls]
+  );
 
   // Commit on confirmation
-  const onConfirm = useCallback(() => {
-    controls.confirm();
-  }, [controls]);
+  const onConfirm = useCallback(
+    action('confirmation_page_confirm', () => {
+      controls.confirm();
+    }),
+    [controls]
+  );
 
   const visible = !!controls.confimation; // Convert to boolean
 

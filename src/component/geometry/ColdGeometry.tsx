@@ -1,4 +1,4 @@
-import { toJS } from 'mobx';
+import { action, toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext } from 'react';
 import MapboxGL from '@react-native-mapbox-gl/maps';
@@ -28,9 +28,9 @@ function _ColdGeometry() {
 
   // Delegate touch events to the controller
   const onPress = useCallback(
-    (e: OnPressEvent) => {
+    action('cold_geometry_press', (e: OnPressEvent) => {
       controls.onPressColdGeometry(e);
-    },
+    }),
     [controls]
   );
 

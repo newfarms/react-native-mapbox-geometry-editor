@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useEffect } from 'react';
 import { StyleSheet } from 'react-native';
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { Button, Paragraph, Surface } from 'react-native-paper';
 
@@ -56,9 +57,12 @@ function _PageContent() {
   /**
    * Fallback close button callback
    */
-  const closeCb = useCallback(() => {
-    controls.notifyOfPageClose();
-  }, [controls]);
+  const closeCb = useCallback(
+    action('page_content_closed', () => {
+      controls.notifyOfPageClose();
+    }),
+    [controls]
+  );
 
   /**
    * This effect is a failsafe mechanism that ensures that the user interface
