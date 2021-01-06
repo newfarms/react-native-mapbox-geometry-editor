@@ -1,9 +1,11 @@
+import { computed } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
 import type { Position } from 'geojson';
 
 import { ConfirmationModel } from './ConfirmationModel';
 import { featureListContext } from './ModelContexts';
+import { MetadataInteraction } from '../type/metadata';
 import type { MapPressPayload } from '../type/events';
 
 /**
@@ -34,12 +36,12 @@ export enum InteractionMode {
 }
 
 /**
- * Whether or not the editing mode can involve modifying geometry,
- * including metadata
+ * Whether or not the editing mode can involve modifying geometry
  * @param mode An editing mode
  */
 function isGeometryModificationMode(mode: InteractionMode) {
   return !(
+    mode === InteractionMode.EditMetadata ||
     mode === InteractionMode.SelectMultiple ||
     mode === InteractionMode.SelectSingle
   );
@@ -72,12 +74,39 @@ export class ControlsModel extends Model({
   isPageOpen: prop<boolean>(false),
 }) {
   /**
+   * Retrieve the [[MetadataInteraction]] corresponding to current user interface state
+   */
+  @computed
+  get metadataInteraction(): MetadataInteraction {
+    switch (this.mode) {
+      case InteractionMode.DragPoint:
+        break;
+      case InteractionMode.DrawPoint:
+        return MetadataInteraction.Create;
+      case InteractionMode.EditMetadata:
+        return MetadataInteraction.Edit;
+      case InteractionMode.SelectMultiple:
+        break;
+      case InteractionMode.SelectSingle:
+        if (this.isPageOpen) {
+          return MetadataInteraction.ViewDetails;
+        } else {
+          return MetadataInteraction.ViewPreview;
+        }
+    }
+    console.warn(
+      `Metadata interactions are irrelevant to the current interaction mode, ${this.mode}`
+    );
+    return MetadataInteraction.ViewPreview;
+  }
+
+  /**
    * Set the editing mode to `mode`, or restore the default editing mode
    * if `mode` is the current editing mode
    */
   @modelAction
   toggleMode(mode: InteractionMode) {
-    if (this.confimation) {
+    if (this.confimation && this.mode !== InteractionMode.EditMetadata) {
       console.warn(
         `Attempt to change editing mode from ${this.mode} to ${mode} while there is an active confirmation request.`
       );
@@ -88,14 +117,16 @@ export class ControlsModel extends Model({
      * while a metadata display/edit page remains open.
      * Other transitions between editing modes either occur when no pages are open,
      * or are not performed using `toggleMode()`. If they happen regardless,
-     * assume that the client application has mistakenly let the map display instead
+     * assume that something has mistakenly let the map display instead
      * of the open page. Therefore, clean up the abandoned page.
      */
     if (
       this.isPageOpen &&
       !(
-        this.mode === InteractionMode.EditMetadata &&
-        mode === InteractionMode.EditMetadata
+        (this.mode === InteractionMode.EditMetadata &&
+          mode === InteractionMode.EditMetadata) ||
+        (this.mode === InteractionMode.SelectSingle &&
+          mode === InteractionMode.EditMetadata)
       )
     ) {
       console.warn(
@@ -116,6 +147,7 @@ export class ControlsModel extends Model({
       case InteractionMode.DrawPoint:
         break;
       case InteractionMode.EditMetadata:
+        features?.draftMetadataToSelected();
         break;
       case InteractionMode.SelectMultiple:
         // Deselect all features unless they are to be edited
@@ -124,7 +156,9 @@ export class ControlsModel extends Model({
         }
         break;
       case InteractionMode.SelectSingle:
-        features?.deselectAll();
+        if (mode !== InteractionMode.EditMetadata) {
+          features?.deselectAll();
+        }
         break;
     }
 
@@ -152,6 +186,7 @@ export class ControlsModel extends Model({
         case InteractionMode.DrawPoint:
           break;
         case InteractionMode.EditMetadata:
+          features?.selectedToEditMetadata();
           break;
         case InteractionMode.SelectMultiple:
           break;
@@ -190,7 +225,6 @@ export class ControlsModel extends Model({
           this.isPageOpen = false;
           break;
         case InteractionMode.EditMetadata:
-          this.rollback();
           this.setDefaultMode();
           break;
         case InteractionMode.SelectMultiple:

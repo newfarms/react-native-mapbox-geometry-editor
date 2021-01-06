@@ -9,7 +9,7 @@ import type { FormikHelpers } from 'formik';
 import { StoreContext } from '../../state/StoreContext';
 import { MetadataFieldList } from './MetadataForm';
 import { useMetadata } from '../../hooks/useMetadata';
-import { MetadataInteraction } from '../../type/metadata';
+import type { MetadataInteraction } from '../../type/metadata';
 import type { MetadataFormInitialValues } from '../../type/metadata';
 
 /**
@@ -36,7 +36,7 @@ function _MetadataEditor() {
   /**
    * Metadata permissions and pre-processing
    */
-  const use = MetadataInteraction.Create;
+  const use = controls.metadataInteraction;
   const { canUse, data, formStarter, featureExists } = useMetadata(use);
 
   /**
@@ -111,7 +111,7 @@ function _MetadataEditor() {
         <Card.Content style={styles.cardContent}>
           <MetadataFieldList
             formFieldList={formStarter.formStructure.fields}
-            use={use}
+            use={use as MetadataInteraction.Create | MetadataInteraction.Edit}
             data={data}
           />
         </Card.Content>

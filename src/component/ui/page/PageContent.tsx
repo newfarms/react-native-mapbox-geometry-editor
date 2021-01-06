@@ -87,12 +87,8 @@ function _PageContent() {
       case InteractionMode.DragPoint:
         break;
       case InteractionMode.DrawPoint:
-        content = <MetadataEditor />;
-        break;
       case InteractionMode.EditMetadata:
-        console.warn(
-          'TODO: Convert metadata creator into an editing page too.'
-        );
+        content = <MetadataEditor />;
         break;
       case InteractionMode.SelectMultiple:
         break;

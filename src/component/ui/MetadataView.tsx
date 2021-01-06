@@ -8,6 +8,7 @@ import { StoreContext } from '../../state/StoreContext';
 import { MetadataFieldList } from './MetadataList';
 import { DefaultContent } from './page/PageContent';
 import { useMetadata } from '../../hooks/useMetadata';
+import { InteractionMode } from '../../state/ControlsModel';
 import { MetadataInteraction } from '../../type/metadata';
 
 /**
@@ -48,8 +49,11 @@ function _MetadataView() {
 
   // Edit button press handler
   const onEdit = useMemo(
-    () => () => console.warn('TODO: Open metadata editing page.'),
-    []
+    () =>
+      action('metadata_view_edit', () => {
+        controls.toggleMode(InteractionMode.EditMetadata);
+      }),
+    [controls]
   );
 
   if (featureExists) {
