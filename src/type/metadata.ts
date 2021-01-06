@@ -1,5 +1,10 @@
 import type { EditableFeature } from './geometry';
-import type { BaseSchema, ValidationError } from 'yup';
+import type { ObjectSchema, ValidationError } from 'yup';
+
+/**
+ * Arbitrary data that the client application may store with geometry
+ */
+export type Metadata = { [name: string]: any };
 
 /**
  * A serialized metadata schema to be deserialized into a live schema object.
@@ -29,13 +34,9 @@ export enum FieldType {
 }
 
 /**
- * A description of a metadata editing form field
+ * A description of a metadata field
  */
 export interface FieldDescription {
-  /**
-   * The type of data the field will edit
-   */
-  type: FieldType;
   /**
    * The field key
    */
@@ -47,11 +48,62 @@ export interface FieldDescription {
 }
 
 /**
- * A description of a metadata editing form field for enum data
+ * Properties controlling how a metadata field is displayed and used
  */
-export interface EnumFieldDescription extends FieldDescription {
+export interface FieldAttributes {
   /**
-   * The type of data the field will edit (restricted to the `FieldType.Enum` type)
+   * Permissions determining how the user can interact with the field
+   */
+  permissions: {
+    /**
+     * Whether the user can create a value when the field is empty
+     */
+    create: boolean;
+    /**
+     * Whether the user can edit the field when it is not empty
+     */
+    edit: boolean;
+    /**
+     * Whether the user can see the field
+     * If `false`, all other permissions have no effect.
+     * Overridden by [[MetadataAttributes.titleFieldKey]] when obtaining
+     * a title for the object.
+     */
+    view: boolean;
+  };
+  /**
+   * Whether the field is part of the shortened display (preview)
+   * of the metadata
+   */
+  inPreview: boolean;
+  /**
+   * Whether the field should be shown even if it has no value
+   * This setting is independent from `permissions.create`, which applies
+   * to editing, not display.
+   */
+  showIfEmpty: boolean;
+}
+
+/**
+ * A metadata field that can be used by the library
+ */
+export interface DisplayableFieldDescription extends FieldDescription {
+  /**
+   * The type of data the field contains
+   */
+  type: FieldType;
+  /**
+   * Properties controlling how the field is displayed and used
+   */
+  attributes: FieldAttributes;
+}
+
+/**
+ * A metadata field that contains enum data
+ */
+export interface EnumFieldDescription extends DisplayableFieldDescription {
+  /**
+   * The type of data is restricted to the `FieldType.Enum` type
    */
   type: FieldType.Enum;
   /**
@@ -65,28 +117,95 @@ export interface EnumFieldDescription extends FieldDescription {
  */
 export interface MetadataSchemaGenerator {
   /**
-   * If the function returns `null`, the metadata editing form will
-   * state that there is no metadata that can be edited.
+   * If the function returns `null`, the metadata creation form will
+   * state that there is no metadata that can be edited, and metadata
+   * previews will not appear when the user inspects geometry.
    * @param feature The geometry feature whose metadata is to be edited
    */
   (feature: EditableFeature): MetadataSchema | null;
 }
 
 /**
+ * The value of a field in a metadata editing form
+ */
+export type MetadataFormFieldValue = string | boolean | undefined;
+
+/**
  * A data structure holding the initial values for
  * the fields of a metadata editing form
  */
-export interface MetadataFormValues {
-  [name: string]: string | boolean;
+export interface MetadataFormInitialValues {
+  [name: string]: MetadataFormFieldValue;
 }
 
 /**
- * A list of metadata editing form field descriptions used to build
- * the body of the form
+ * Properties controlling how an entire metadata object is displayed and used
  */
-export type MetadataFormStructure = Array<
-  FieldDescription | EnumFieldDescription
->;
+export interface MetadataAttributes {
+  /**
+   * Permissions determining how the user can interact with the object
+   */
+  permissions: {
+    /**
+     * Whether the user can create a value when the object is empty
+     */
+    create: boolean;
+    /**
+     * Whether the user can edit a non-empty object
+     */
+    edit: boolean;
+    /**
+     * Whether the user can see the object
+     * If `false`, all other permissions have no effect.
+     */
+    view: boolean;
+  };
+  /**
+   * The key of the field that contains the object's "title"
+   * Overrides `title`.
+   * This setting also overrides [[FieldAttributes]] permissions that
+   * would not allow the field to be viewed for other purposes.
+   */
+  titleFieldKey?: string;
+  /**
+   * The object's "title", if not provided by a field value.
+   * Overridden by `titleFieldKey`
+   */
+  title: string;
+  /**
+   * Whether the object should be shown even if it has no value
+   * This setting is independent from `permissions.create`, which applies
+   * to editing, not display.
+   */
+  showIfEmpty: boolean;
+}
+
+/**
+ * A metadata form field description
+ */
+export type MetadataFormFieldDescription =
+  | DisplayableFieldDescription
+  | EnumFieldDescription;
+
+/**
+ * A list of metadata form field descriptions used to build
+ * the body of a form
+ */
+export type MetadataFormFieldList = Array<MetadataFormFieldDescription>;
+
+/**
+ * A description of a metadata form
+ */
+export interface MetadataFormStructure {
+  /**
+   * Properties controlling how the metadata is displayed and used
+   */
+  attributes: MetadataAttributes;
+  /**
+   * Descriptions of individual fields
+   */
+  fields: MetadataFormFieldList;
+}
 
 /**
  * The result of testing a metadata schema description and any
@@ -114,19 +233,30 @@ export interface MetadataValidationResult {
 
 /**
  * All data from processing a metadata schema description, needed to create
- * a Formik form for metadata editing.
+ * a Formik form for metadata editing, or a form for metadata display
  */
 export interface MetadataFormStarter {
   /**
-   * Initial form field values to be passed to Formik.
+   * Initial form field values, which can be passed to Formik.
    * The values may not pass the form's schema validation, but are type safe,
    * as described in the documentation of the `dataErrors` property.
    */
-  formValues: MetadataFormValues;
+  formValues: MetadataFormInitialValues;
   /**
    * Data needed to construct the form fields
    */
-  formFieldList: MetadataFormStructure;
+  formStructure: MetadataFormStructure;
+  /**
+   * The live schema object to be used for form validation by Formik.
+   */
+  schema: ObjectSchema<Record<string, any>>;
+}
+
+/**
+ * All data from processing a metadata schema description, including errors
+ * encountered during processing
+ */
+export interface MetadataFormStarterWithErrors extends MetadataFormStarter {
   /**
    * Any errors emitted while creating `formValues` from existing geometry metadata.
    * These errors are type errors only, and do not describe non-type constraints
@@ -145,8 +275,27 @@ export interface MetadataFormStarter {
    * If there are no errors, `schemaErrors` is undefined.
    */
   schemaErrors?: Array<string>;
+}
+
+/**
+ * Types of interactions with metadata, used in permissions
+ * enforcement functions
+ */
+export enum MetadataInteraction {
   /**
-   * The live schema object to be used for form validation by Formik.
+   * Create metadata for new geometry
    */
-  schema: BaseSchema;
+  Create = 'CREATE',
+  /**
+   * Update metadata of existing geometry
+   */
+  Edit = 'EDIT',
+  /**
+   * View full metadata for existing geometry
+   */
+  ViewDetails = 'VIEW_DETAILS',
+  /**
+   * View an abbreviated version of metadata for existing geometry
+   */
+  ViewPreview = 'VIEW_PREVIEW',
 }

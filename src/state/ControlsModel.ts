@@ -1,11 +1,10 @@
 import { model, Model, modelAction, prop } from 'mobx-keystone';
-import last from 'lodash/last';
 import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
+import type { Position } from 'geojson';
 
 import { ConfirmationModel } from './ConfirmationModel';
 import { featureListContext } from './ModelContexts';
 import type { MapPressPayload } from '../type/events';
-import { FeatureLifecycleStage } from '../type/geometry';
 
 /**
  * Possible geometry editing modes
@@ -94,11 +93,13 @@ export class ControlsModel extends Model({
       case InteractionMode.EditMetadata:
         break;
       case InteractionMode.SelectMultiple:
-      case InteractionMode.SelectSingle:
         // Deselect all features unless they are to be edited
         if (mode !== InteractionMode.DragPoint) {
           features?.deselectAll();
         }
+        break;
+      case InteractionMode.SelectSingle:
+        features?.deselectAll();
         break;
     }
 
@@ -121,11 +122,7 @@ export class ControlsModel extends Model({
       switch (mode) {
         case InteractionMode.DragPoint:
           // Make all selected shapes editable
-          features?.features?.forEach((val) => {
-            if (val.stage === FeatureLifecycleStage.SelectMultiple) {
-              val.stage = FeatureLifecycleStage.EditShape;
-            }
-          });
+          features?.selectedToEditable();
           break;
         case InteractionMode.DrawPoint:
           break;
@@ -162,7 +159,7 @@ export class ControlsModel extends Model({
           this.rollback();
           break;
         case InteractionMode.DrawPoint:
-          featureListContext.get(this)?.features.pop();
+          featureListContext.get(this)?.discardNewFeatures();
           break;
         case InteractionMode.EditMetadata:
           this.rollback();
@@ -180,12 +177,7 @@ export class ControlsModel extends Model({
           this.setDefaultMode();
           break;
         case InteractionMode.DrawPoint:
-          {
-            const feature = last(featureListContext.get(this)?.features);
-            if (feature) {
-              feature.stage = FeatureLifecycleStage.View;
-            }
-          }
+          featureListContext.get(this)?.confirmNewFeatures();
           break;
         case InteractionMode.EditMetadata:
           this.setDefaultMode();
@@ -239,21 +231,38 @@ export class ControlsModel extends Model({
   }
 
   /**
+   * Add a new point feature
+   * @param coordinates The coordinates of the feature
+   */
+  @modelAction
+  private addNewPoint(coordinates: Position) {
+    // Draw a new point at the location
+    const features = featureListContext.get(this);
+    // Do nothing if there already is a draft point
+    if (features && !features.draftMetadataGeoJSON) {
+      features.addNewPoint(coordinates);
+    }
+  }
+
+  /**
    * Touch event handler for geometry in the cold layer. See [[ColdGeometry]]
    *
    * @param e The features that were pressed, and information about the location pressed
    */
   @modelAction
   onPressColdGeometry(e: OnPressEvent) {
+    if (this.confimation) {
+      console.warn(
+        `The map cannot be interacted with while there is an active confirmation request.`
+      );
+      return;
+    }
     switch (this.mode) {
       case InteractionMode.DragPoint:
         // Ignore
         break;
       case InteractionMode.DrawPoint:
-        // Draw a new point at the location
-        featureListContext
-          .get(this)
-          ?.addNewPoint([e.coordinates.longitude, e.coordinates.latitude]);
+        this.addNewPoint([e.coordinates.longitude, e.coordinates.latitude]);
         break;
       case InteractionMode.EditMetadata:
         // Ignore
@@ -271,7 +280,15 @@ export class ControlsModel extends Model({
         }
         break;
       case InteractionMode.SelectSingle:
-        console.warn(`TODO: Selection mode 2 is not yet implemented.`);
+        if (e.features.length > 0) {
+          // Select the first non-cluster feature at the location
+          for (let feature of e.features) {
+            const id = feature?.properties?.rnmgeID; // Clusters do not have this property
+            if (id) {
+              featureListContext.get(this)?.toggleSingleSelectFeature(id);
+            }
+          }
+        }
         break;
     }
   }
@@ -280,15 +297,32 @@ export class ControlsModel extends Model({
    * Executes the appropriate action in response to a map touch event
    *
    * @param e Event payload
+   * @return A boolean indicating whether or not the event was fully-handled
    */
   @modelAction
   handleMapPress(e: MapPressPayload) {
-    // In point drawing mode, create another point feature
-    if (this.mode === InteractionMode.DrawPoint) {
-      featureListContext.get(this)?.addNewPoint(e.geometry.coordinates);
+    if (this.confimation) {
+      console.warn(
+        `The map cannot be interacted with while there is an active confirmation request.`
+      );
       return true;
     }
-    // Event not handled
-    return false;
+
+    switch (this.mode) {
+      case InteractionMode.DragPoint:
+        return false; // Ignore
+      case InteractionMode.DrawPoint:
+        // Draw a new point
+        this.addNewPoint(e.geometry.coordinates);
+        return true;
+      case InteractionMode.EditMetadata:
+        return false; // Ignore
+      case InteractionMode.SelectMultiple:
+        return false; // Ignore
+      case InteractionMode.SelectSingle:
+        // Close all metadata preview annotations
+        featureListContext.get(this)?.deselectAll();
+        return true;
+    }
   }
 }

@@ -16,6 +16,8 @@ import type { Event } from '../type/events';
 import type { StyleGeneratorMap } from '../type/style';
 import { defaultStyleGeneratorMap } from '../util/defaultStyleGenerators';
 import { StyleContext } from './StyleContext';
+import { CameraController } from './CameraController';
+import type { CameraControls } from './CameraController';
 
 /**
  * Render properties for [[GeometryEditor]]
@@ -30,6 +32,10 @@ export interface GeometryEditorProps {
    * on the map
    */
   readonly styleGenerators?: StyleGeneratorMap;
+  /**
+   * Functions for giving hints to the Mapbox `Camera`
+   */
+  readonly cameraControls?: CameraControls;
   /**
    * Additional child elements to render as children of the map
    */
@@ -54,7 +60,11 @@ const styles = StyleSheet.create({
  * @return Renderable React node
  */
 export function _GeometryEditor(props: GeometryEditorProps) {
-  const { mapProps = {}, styleGenerators = defaultStyleGeneratorMap } = props;
+  const {
+    cameraControls,
+    mapProps = {},
+    styleGenerators = defaultStyleGeneratorMap,
+  } = props;
   const { style: mapStyle, onPress: outerOnPress, ...restMapProps } = mapProps;
 
   const { store } = useContext(StoreContext);
@@ -70,21 +80,33 @@ export function _GeometryEditor(props: GeometryEditorProps) {
   const onPress = useEventHandlers([addPoint, outerOnPress]);
 
   /**
+   * Do not render the component that provides camera hints if the application
+   * has not provided anything to listen to the hints.
+   */
+  let cameraController = null;
+  if (cameraControls) {
+    cameraController = <CameraController {...cameraControls} />;
+  }
+
+  /**
    * Render both internal and client-provided map layers on the map
    */
   return (
-    <MapboxGL.MapView
-      style={[styles.map, mapStyle]}
-      onPress={onPress}
-      {...restMapProps}
-    >
-      <StyleContext.Provider value={{ styleGenerators }}>
-        <ColdGeometry />
-        <HotGeometry />
-        <DraggablePoints />
-        {props.children}
-      </StyleContext.Provider>
-    </MapboxGL.MapView>
+    <>
+      {cameraController}
+      <MapboxGL.MapView
+        style={[styles.map, mapStyle]}
+        onPress={onPress}
+        {...restMapProps}
+      >
+        <StyleContext.Provider value={{ styleGenerators }}>
+          <ColdGeometry />
+          <HotGeometry />
+          <DraggablePoints />
+          {props.children}
+        </StyleContext.Provider>
+      </MapboxGL.MapView>
+    </>
   );
 }
 

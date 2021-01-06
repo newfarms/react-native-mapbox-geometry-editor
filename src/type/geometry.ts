@@ -13,6 +13,11 @@ import type {
 } from 'geojson';
 
 /**
+ * A bounding box for a 2D feature
+ */
+export type BBox2D = [number, number, number, number];
+
+/**
  * Geometry available for editing consists of atomic shapes,
  * not multi-shapes.
  */
