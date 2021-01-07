@@ -66,7 +66,7 @@ export class ControlsModel extends Model({
    * A description of any operation that the user
    * is asked to confirm or cancel
    */
-  confimation: prop<ConfirmationModel | null>(() => null),
+  confirmation: prop<ConfirmationModel | null>(() => null),
   /**
    * Whether there is a large modal or page open to show something
    * other than the map.
@@ -106,7 +106,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   toggleMode(mode: InteractionMode) {
-    if (this.confimation && this.mode !== InteractionMode.EditMetadata) {
+    if (this.confirmation && this.mode !== InteractionMode.EditMetadata) {
       console.warn(
         `Attempt to change editing mode from ${this.mode} to ${mode} while there is an active confirmation request.`
       );
@@ -214,7 +214,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   confirm() {
-    if (this.confimation) {
+    if (this.confirmation) {
       // Cancel operation
       switch (this.mode) {
         case InteractionMode.DragPoint:
@@ -232,7 +232,7 @@ export class ControlsModel extends Model({
           console.warn(`There are no actions to cancel.`);
           break;
       }
-      this.confimation = null;
+      this.confirmation = null;
     } else {
       // Commit operation
       switch (this.mode) {
@@ -269,22 +269,22 @@ export class ControlsModel extends Model({
    */
   @modelAction
   cancel(force?: boolean): boolean {
-    if (this.confimation) {
-      this.confimation = null;
+    if (this.confirmation) {
+      this.confirmation = null;
     } else {
       switch (this.mode) {
         case InteractionMode.DragPoint:
-          this.confimation = new ConfirmationModel({
+          this.confirmation = new ConfirmationModel({
             message: 'Discard position changes?',
           });
           break;
         case InteractionMode.DrawPoint:
-          this.confimation = new ConfirmationModel({
+          this.confirmation = new ConfirmationModel({
             message: 'Discard this point and its details?',
           });
           break;
         case InteractionMode.EditMetadata:
-          this.confimation = new ConfirmationModel({
+          this.confirmation = new ConfirmationModel({
             message: 'Discard changes to data?',
           });
           break;
@@ -299,11 +299,11 @@ export class ControlsModel extends Model({
       /**
        * Force cancellation by confirming the cancel dialog
        */
-      if (force && this.confimation) {
+      if (force && this.confirmation) {
         this.confirm();
       }
     }
-    return !!this.confimation;
+    return !!this.confirmation;
   }
 
   /**
@@ -311,7 +311,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   openPage() {
-    if (this.confimation) {
+    if (this.confirmation) {
       console.warn(
         `A page cannot be opened while there is an active confirmation request.`
       );
@@ -393,7 +393,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   onPressColdGeometry(e: OnPressEvent) {
-    if (this.confimation) {
+    if (this.confirmation) {
       console.warn(
         `Map geometry cannot be interacted with while there is an active confirmation request.`
       );
@@ -449,7 +449,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   handleMapPress(e: MapPressPayload) {
-    if (this.confimation) {
+    if (this.confirmation) {
       console.warn(
         `The map cannot be interacted with while there is an active confirmation request.`
       );

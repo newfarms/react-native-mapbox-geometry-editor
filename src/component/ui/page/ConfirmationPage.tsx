@@ -62,7 +62,7 @@ function _ConfirmationPage({
     [controls]
   );
 
-  const visible = !!controls.confimation; // Convert to boolean
+  const visible = !!controls.confirmation; // Convert to boolean
 
   // There may be more elegant ways to hide a view while keeping it mounted
   let surfaceStyle: { height: number } | { flex: number } =
@@ -79,9 +79,9 @@ function _ConfirmationPage({
     confirmationCard = (
       <Surface style={styles.surfaceCentered}>
         <Card>
-          <Card.Title title={controls.confimation?.title} />
+          <Card.Title title={controls.confirmation?.title} />
           <Card.Content>
-            <Paragraph>{controls.confimation?.message}</Paragraph>
+            <Paragraph>{controls.confirmation?.message}</Paragraph>
           </Card.Content>
           <Card.Actions>
             <Button onPress={onConfirm}>Yes</Button>
