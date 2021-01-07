@@ -13,10 +13,11 @@ import { StoreProvider } from '../state/StoreProvider';
 import { ModeToolbox } from './ui/ModeToolbox';
 import { ConfirmationDialog } from './ui/ConfirmationDialog';
 import { MetadataContext } from './ui/MetadataContext';
-import { MetadataEditor } from './ui/MetadataEditor';
 import { MetadataPreview } from './geometry/MetadataPreview';
 import { defaultMetadataSchemaGenerator } from '../util/metadata/schema';
+import { PageController } from './ui/page/PageController';
 import type { MetadataSchemaGenerator } from '../type/metadata';
+import type { PageProps } from '../type/ui';
 
 /**
  * Render properties for [[GeometryEditorUI]]
@@ -32,6 +33,12 @@ export interface GeometryEditorUIProps extends GeometryEditorProps {
    * It will be passed the geometry to be edited (having any existing metadata)
    */
   readonly metadataSchemaGenerator?: MetadataSchemaGenerator;
+  /**
+   * Callbacks that notify the client application when the library is displaying
+   * full-page content, and that allow the client application to force
+   * the page to close if necessary.
+   */
+  readonly pageProps?: PageProps;
 }
 
 /**
@@ -45,6 +52,7 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
   const {
     style: containerStyle = {},
     metadataSchemaGenerator = defaultMetadataSchemaGenerator,
+    pageProps,
     ...restProps
   } = props;
 
@@ -58,8 +66,8 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
               {props.children}
             </_GeometryEditor>
             <ModeToolbox />
-            <MetadataEditor />
-            <ConfirmationDialog />
+            <PageController pageProps={pageProps} />
+            <ConfirmationDialog visibleIfPageOpen={false} />
           </MetadataContext.Provider>
         </StoreProvider>
       </PaperProvider>

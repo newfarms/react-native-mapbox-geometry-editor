@@ -3,7 +3,8 @@
  * @packageDocumentation
  */
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext } from 'react';
+import { action } from 'mobx';
+import React, { useContext, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL, { MapViewProps } from '@react-native-mapbox-gl/maps';
 
@@ -67,14 +68,15 @@ export function _GeometryEditor(props: GeometryEditorProps) {
   } = props;
   const { style: mapStyle, onPress: outerOnPress, ...restMapProps } = mapProps;
 
-  const { store } = useContext(StoreContext);
+  const store = useContext(StoreContext);
   /**
    * A touch callback for the map that will add a new point
    */
-  const addPoint = useCallback(
-    (feature: Event) => {
-      return store.handleMapPress(feature);
-    },
+  const addPoint = useMemo(
+    () =>
+      action('geometry_editor_map_press', (feature: Event) => {
+        return store.handleMapPress(feature);
+      }),
     [store]
   );
   const onPress = useEventHandlers([addPoint, outerOnPress]);

@@ -1,6 +1,6 @@
-import { toJS } from 'mobx';
+import { action, toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import { View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import MapboxGL from '@react-native-mapbox-gl/maps';
@@ -61,10 +61,11 @@ function _SinglePoint(props: {
   /**
    * When the point is dragged, its new coordinates need to be saved to the store
    */
-  const onDragEndWithIndex = useCallback(
-    (e: PointAnnotationPayload) => {
-      features.dragPosition(e.geometry.coordinates, index);
-    },
+  const onDragEndWithIndex = useMemo(
+    () =>
+      action('draggable_points_drag_end', (e: PointAnnotationPayload) => {
+        features.dragPosition(e.geometry.coordinates, index);
+      }),
     [features, index]
   );
 
@@ -108,7 +109,7 @@ const SinglePoint = observer(_SinglePoint);
  * @return Renderable React node
  */
 function _DraggablePoints() {
-  const { features } = useContext(StoreContext).store;
+  const { features } = useContext(StoreContext);
 
   /**
    * Render all points by mapping the appropriate

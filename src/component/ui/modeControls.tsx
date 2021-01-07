@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext } from 'react';
+import { action } from 'mobx';
+import React, { useContext, useMemo } from 'react';
 import { ToggleButton } from 'react-native-paper';
 
 import { InteractionMode } from '../../state/ControlsModel';
@@ -13,11 +14,15 @@ import { StoreContext } from '../../state/StoreContext';
  */
 function makeModeControl(mode: InteractionMode, icon: string) {
   return observer(() => {
-    const { controls } = useContext(StoreContext).store;
+    const { controls } = useContext(StoreContext);
 
-    const onPress = useCallback(() => {
-      controls.toggleMode(mode);
-    }, [controls]);
+    const onPress = useMemo(
+      () =>
+        action('mode_control_press', () => {
+          controls.toggleMode(mode);
+        }),
+      [controls]
+    );
     let status: 'unchecked' | 'checked' = 'unchecked';
     if (controls.mode === mode) {
       status = 'checked';
