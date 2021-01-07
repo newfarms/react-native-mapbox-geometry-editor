@@ -203,7 +203,7 @@ export class ControlsModel extends Model({
    * Restore the default editing mode
    */
   @modelAction
-  private setDefaultMode() {
+  setDefaultMode() {
     this.toggleMode(this.mode);
   }
 

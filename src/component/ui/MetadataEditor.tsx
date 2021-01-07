@@ -1,16 +1,24 @@
-import React, { useCallback, useContext, useEffect, useMemo } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { StyleSheet } from 'react-native';
 import { Button, Card } from 'react-native-paper';
 import { Formik } from 'formik';
-import type { FormikHelpers } from 'formik';
+import type { FormikProps, FormikHelpers } from 'formik';
 
+import { ConfirmationCard } from './ConfirmationCard';
 import { StoreContext } from '../../state/StoreContext';
 import { MetadataFieldList } from './MetadataForm';
 import { useMetadata } from '../../hooks/useMetadata';
-import type { MetadataInteraction } from '../../type/metadata';
+import { MetadataInteraction } from '../../type/metadata';
 import type { MetadataFormInitialValues } from '../../type/metadata';
+import { InteractionMode } from '../../state/ControlsModel';
 
 /**
  * @ignore
@@ -37,6 +45,16 @@ function _MetadataEditor() {
    * Metadata permissions and pre-processing
    */
   const use = controls.metadataInteraction;
+  let isEditOperation = false;
+  switch (use) {
+    case MetadataInteraction.Create:
+      break;
+    case MetadataInteraction.Edit:
+      isEditOperation = true;
+      break;
+    default:
+      throw new Error(`Inappropriate metadata interaction, ${use}.`);
+  }
   const { canUse, data, formStarter, featureExists } = useMetadata(use);
 
   /**
@@ -50,17 +68,8 @@ function _MetadataEditor() {
     });
   }, [canUse, featureExists, controls]);
 
-  // Rollback the geometry in case of cancellation
-  const onDismiss = useMemo(
-    () =>
-      action('metadata_editor_cancel', () => {
-        controls.cancel();
-      }),
-    [controls]
-  );
-
   // Commit on confirmation
-  const onConfirm = useMemo(
+  const finalOnConfirm = useMemo(
     () =>
       action(
         'metadata_editor_save',
@@ -94,36 +103,108 @@ function _MetadataEditor() {
   );
 
   /**
+   * The user is presented with a two-stage save operation in edit mode
+   */
+  const [isInitialStep, setIsInitialStep] = useState(false);
+
+  /**
+   * Cancel button callback that handles both save operation stages
+   */
+  const onDismiss = useMemo(
+    () =>
+      action('metadata_editor_cancel', (isDirty: boolean) => {
+        if (isEditOperation) {
+          if (isInitialStep) {
+            // Escape from first step of the save operation
+            setIsInitialStep(false);
+          } else if (isDirty) {
+            // The controller will warn the user about unsaved changes
+            controls.cancel();
+          } else {
+            // There are no unsaved changes. Just exit edit mode
+            if (controls.mode !== InteractionMode.EditMetadata) {
+              console.warn(
+                `Inappropriate editing mode, ${controls.mode}. Expected ${InteractionMode.EditMetadata}`
+              );
+            }
+            controls.setDefaultMode();
+          }
+        } else {
+          // The controller will warn the user about unsaved changes
+          controls.cancel();
+        }
+      }),
+    [controls, isEditOperation, isInitialStep, setIsInitialStep]
+  );
+
+  /**
+   * Save button callback that handles both save operation stages
+   */
+  const onConfirm = useCallback(
+    (
+      values: MetadataFormInitialValues,
+      formikBag: FormikHelpers<MetadataFormInitialValues>
+    ) => {
+      if (isEditOperation && !isInitialStep) {
+        formikBag.setSubmitting(false);
+        setIsInitialStep(true);
+      } else {
+        finalOnConfirm(values, formikBag);
+      }
+    },
+    [finalOnConfirm, isEditOperation, isInitialStep, setIsInitialStep]
+  );
+
+  /**
    * The body of the Formik form, which renders a list of form fields
    * and submit or cancel buttons.
+   *
+   * In editing mode, it is also responsible for rendering the confirmation message
+   * for the first stage of the save operation.
    */
   const formContents = useCallback(
     ({
+      dirty,
       isSubmitting,
       isValid,
       submitForm,
-    }: {
-      isSubmitting: boolean;
-      isValid: boolean;
-      submitForm: () => Promise<unknown>;
-    }) => (
-      <>
-        <Card.Content style={styles.cardContent}>
-          <MetadataFieldList
-            formFieldList={formStarter.formStructure.fields}
-            use={use as MetadataInteraction.Create | MetadataInteraction.Edit}
-            data={data}
+    }: FormikProps<MetadataFormInitialValues>) => {
+      const onDismissWrapper = () => onDismiss(dirty);
+      if (isEditOperation && isInitialStep) {
+        return (
+          <ConfirmationCard
+            title={'Confirmation'}
+            message={'Do you wish to save changes?'}
+            onConfirm={submitForm}
+            onDismiss={onDismissWrapper}
           />
-        </Card.Content>
-        <Card.Actions style={styles.cardActions}>
-          <Button onPress={submitForm} disabled={!isValid || isSubmitting}>
-            Save
-          </Button>
-          <Button onPress={onDismiss}>Cancel</Button>
-        </Card.Actions>
-      </>
-    ),
-    [onDismiss, formStarter, data, use]
+        );
+      } else {
+        return (
+          <>
+            <Card.Content style={styles.cardContent}>
+              <MetadataFieldList
+                formFieldList={formStarter.formStructure.fields}
+                use={use}
+                data={data}
+              />
+            </Card.Content>
+            <Card.Actions style={styles.cardActions}>
+              <Button
+                onPress={submitForm}
+                disabled={
+                  !isValid || isSubmitting || (isEditOperation && !dirty)
+                }
+              >
+                Save
+              </Button>
+              <Button onPress={onDismissWrapper}>Cancel</Button>
+            </Card.Actions>
+          </>
+        );
+      }
+    },
+    [onDismiss, formStarter, data, use, isEditOperation, isInitialStep]
   );
 
   return (
