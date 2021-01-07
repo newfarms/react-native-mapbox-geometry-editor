@@ -7,6 +7,7 @@ import { Button, Paragraph, Surface } from 'react-native-paper';
 import { StoreContext } from '../../../state/StoreContext';
 import { InteractionMode } from '../../../state/ControlsModel';
 import { MetadataEditor } from '../../ui/MetadataEditor';
+import { MetadataView } from '../../ui/MetadataView';
 import { ConfirmationPage } from './ConfirmationPage';
 
 /**
@@ -28,7 +29,7 @@ const styles = StyleSheet.create({
  * for the page to be rendered.
  * @param props Rendering props
  */
-function DefaultContent({
+export function DefaultContent({
   closeCb,
 }: {
   /**
@@ -96,7 +97,7 @@ function _PageContent() {
       case InteractionMode.SelectMultiple:
         break;
       case InteractionMode.SelectSingle:
-        console.warn('TODO: Render metadata details');
+        content = <MetadataView />;
         break;
     }
   }
