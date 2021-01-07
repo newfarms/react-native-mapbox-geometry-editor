@@ -173,7 +173,6 @@ function _MetadataEditor() {
       if (isEditOperation && isInitialStep) {
         return (
           <ConfirmationCard
-            title={'Confirmation'}
             message={'Do you wish to save changes?'}
             onConfirm={submitForm}
             onDismiss={onDismissWrapper}

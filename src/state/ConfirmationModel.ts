@@ -1,5 +1,7 @@
 import { model, Model, prop } from 'mobx-keystone';
 
+export const DEFAULT_CONFIRMATION_TITLE = 'Confirmation';
+
 /**
  * State describing a cancel or confirmation dialog
  */
@@ -12,5 +14,5 @@ export class ConfirmationModel extends Model({
   /**
    * The title of the dialog
    */
-  title: prop<string>('Confirmation'),
+  title: prop<string>(DEFAULT_CONFIRMATION_TITLE),
 }) {}

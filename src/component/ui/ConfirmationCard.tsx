@@ -2,6 +2,8 @@ import * as React from 'react';
 import { StyleSheet } from 'react-native';
 import { Paragraph, Button, Card, Surface } from 'react-native-paper';
 
+import { DEFAULT_CONFIRMATION_TITLE } from '../../state/ConfirmationModel';
+
 /**
  * @ignore
  */
@@ -23,13 +25,13 @@ export function ConfirmationCard({
   onDismiss,
   onConfirm,
   message,
-  title,
+  title = DEFAULT_CONFIRMATION_TITLE,
   visible = true,
 }: {
   readonly onDismiss: () => void;
   readonly onConfirm: () => void;
   readonly message: string;
-  readonly title: string;
+  readonly title?: string;
   readonly visible?: boolean;
 }) {
   if (visible) {
