@@ -1,20 +1,29 @@
-import React, { useCallback, useContext, useEffect } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo } from 'react';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { StyleSheet } from 'react-native';
-import { Button, Dialog, Portal } from 'react-native-paper';
+import { Button, Card } from 'react-native-paper';
 import { Formik } from 'formik';
+import type { FormikHelpers } from 'formik';
 
 import { StoreContext } from '../../state/StoreContext';
 import { MetadataFieldList } from './MetadataForm';
 import { useMetadata } from '../../hooks/useMetadata';
 import { MetadataInteraction } from '../../type/metadata';
+import type { MetadataFormInitialValues } from '../../type/metadata';
 
 /**
  * @ignore
  */
 const styles = StyleSheet.create({
-  dialog: {
-    maxHeight: '75%',
+  card: {
+    flex: 1,
+  },
+  cardContent: {
+    height: '90%',
+  },
+  cardActions: {
+    height: '10%',
   },
 });
 
@@ -23,7 +32,7 @@ const styles = StyleSheet.create({
  * @return Renderable React node
  */
 function _MetadataEditor() {
-  const { controls, features } = useContext(StoreContext).store;
+  const { controls, features } = useContext(StoreContext);
   /**
    * Metadata permissions and pre-processing
    */
@@ -34,40 +43,53 @@ function _MetadataEditor() {
    * Immediately move geometry to the next stage if metadata editing is not permitted
    */
   useEffect(() => {
-    if (!canUse && featureExists) {
-      controls.confirm();
-    }
+    runInAction(() => {
+      if (!canUse && featureExists) {
+        controls.confirm();
+      }
+    });
   }, [canUse, featureExists, controls]);
 
   // Rollback the geometry in case of cancellation
-  const onDismiss = useCallback(() => {
-    controls.cancel();
-  }, [controls]);
+  const onDismiss = useMemo(
+    () =>
+      action('metadata_editor_cancel', () => {
+        controls.cancel();
+      }),
+    [controls]
+  );
 
   // Commit on confirmation
-  const onConfirm = useCallback(
-    (values, formikBag) => {
-      // Ensure that form values are typecast to the schema
-      let castValues: object | null | undefined = null;
-      try {
-        castValues = formStarter.schema.cast(values);
-      } catch (err) {
-        console.warn(
-          `Failed to cast metadata form values before setting geometry metadata. Values are: ${values}, error is ${err}.`
-        );
-        castValues = null;
-      }
-      if (!castValues) {
-        console.warn(
-          'Failed to cast metadata form values before setting geometry metadata. Values are: ',
-          values
-        );
-        castValues = null;
-      }
-      features.setDraftMetadata(castValues);
-      controls.confirm();
-      formikBag.setSubmitting(false);
-    },
+  const onConfirm = useMemo(
+    () =>
+      action(
+        'metadata_editor_save',
+        (
+          values: MetadataFormInitialValues,
+          formikBag: FormikHelpers<MetadataFormInitialValues>
+        ) => {
+          // Ensure that form values are typecast to the schema
+          let castValues: object | null | undefined = null;
+          try {
+            castValues = formStarter.schema.cast(values);
+          } catch (err) {
+            console.warn(
+              `Failed to cast metadata form values before setting geometry metadata. Values are: ${values}, error is ${err}.`
+            );
+            castValues = null;
+          }
+          if (!castValues) {
+            console.warn(
+              'Failed to cast metadata form values before setting geometry metadata. Values are: ',
+              values
+            );
+            castValues = null;
+          }
+          features.setDraftMetadata(castValues);
+          formikBag.setSubmitting(false);
+          controls.confirm();
+        }
+      ),
     [controls, features, formStarter]
   );
 
@@ -75,7 +97,7 @@ function _MetadataEditor() {
    * The body of the Formik form, which renders a list of form fields
    * and submit or cancel buttons.
    */
-  const dialogContents = useCallback(
+  const formContents = useCallback(
     ({
       isSubmitting,
       isValid,
@@ -86,43 +108,33 @@ function _MetadataEditor() {
       submitForm: () => Promise<unknown>;
     }) => (
       <>
-        <Dialog.ScrollArea>
+        <Card.Content style={styles.cardContent}>
           <MetadataFieldList
             formFieldList={formStarter.formStructure.fields}
             use={use}
             data={data}
           />
-        </Dialog.ScrollArea>
-        <Dialog.Actions>
+        </Card.Content>
+        <Card.Actions style={styles.cardActions}>
           <Button onPress={submitForm} disabled={!isValid || isSubmitting}>
             Save
           </Button>
           <Button onPress={onDismiss}>Cancel</Button>
-        </Dialog.Actions>
+        </Card.Actions>
       </>
     ),
     [onDismiss, formStarter, data, use]
   );
 
-  /**
-   * Conditionally-visible metadata editor dialog
-   */
   return (
-    <Portal>
-      <Dialog
-        onDismiss={onDismiss}
-        visible={canUse && featureExists}
-        dismissable={true}
-        style={styles.dialog}
-      >
-        <Formik
-          component={dialogContents}
-          initialValues={formStarter.formValues}
-          onSubmit={onConfirm}
-          validationSchema={formStarter.schema}
-        />
-      </Dialog>
-    </Portal>
+    <Card style={styles.card}>
+      <Formik
+        component={formContents}
+        initialValues={formStarter.formValues}
+        onSubmit={onConfirm}
+        validationSchema={formStarter.schema}
+      />
+    </Card>
   );
 }
 

@@ -57,7 +57,7 @@ function _CameraController({
   moveTo,
   children,
 }: CameraControls & { readonly children?: React.ReactNode }) {
-  const { features } = useContext(StoreContext).store;
+  const { features } = useContext(StoreContext);
 
   /**
    * Construct camera parameters for viewing any currently focused feature

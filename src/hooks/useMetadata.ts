@@ -52,7 +52,7 @@ export function useMetadata(
   featureExists: boolean;
 } {
   // Input data sources
-  const { features } = useContext(StoreContext).store;
+  const { features } = useContext(StoreContext);
   const { metadataSchemaGenerator } = useContext(MetadataContext);
 
   /**

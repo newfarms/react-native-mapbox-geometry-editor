@@ -1,4 +1,5 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { Paragraph, Button, Portal, Dialog } from 'react-native-paper';
 
@@ -8,22 +9,40 @@ import { StoreContext } from '../../state/StoreContext';
  * A component that renders a confirmation dialog requesting that the user
  * confirm or cancel an operation. The dialog renders depending on whether
  * there is an operation needing confirmation.
+ * @param props Render properties
  * @return Renderable React node
  */
-function _ConfirmationDialog() {
-  const { controls } = useContext(StoreContext).store;
+function _ConfirmationDialog({
+  visibleIfPageOpen,
+}: {
+  /**
+   * Whether the dialog should be visible only when there is an open page (true),
+   * or only when there is no open page (false).
+   */
+  visibleIfPageOpen: boolean;
+}) {
+  const { controls } = useContext(StoreContext);
 
   // Rollback the geometry in case of cancellation
-  const onDismiss = useCallback(() => {
-    controls.cancel();
-  }, [controls]);
+  const onDismiss = useMemo(
+    () =>
+      action('confirmation_dialog_cancel', () => {
+        controls.cancel();
+      }),
+    [controls]
+  );
 
   // Commit on confirmation
-  const onConfirm = useCallback(() => {
-    controls.confirm();
-  }, [controls]);
+  const onConfirm = useMemo(
+    () =>
+      action('confirmation_dialog_confirm', () => {
+        controls.confirm();
+      }),
+    [controls]
+  );
 
-  const visible = !!controls.confimation; // Convert to boolean
+  const visible =
+    !!controls.confimation && controls.isPageOpen === visibleIfPageOpen;
 
   /**
    * Conditionally-visible confirmation dialog
