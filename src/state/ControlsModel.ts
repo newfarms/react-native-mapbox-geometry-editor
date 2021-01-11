@@ -1,9 +1,9 @@
-import { computed } from 'mobx';
+import { computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
-import type { Position } from 'geojson';
+import type { Position, GeoJsonProperties } from 'geojson';
 
-import { ConfirmationModel } from './ConfirmationModel';
+import { ConfirmationModel, ConfirmationReason } from './ConfirmationModel';
 import { featureListContext } from './ModelContexts';
 import { MetadataInteraction } from '../type/metadata';
 import type { MapPressPayload } from '../type/events';
@@ -72,6 +72,12 @@ export class ControlsModel extends Model({
    * other than the map.
    */
   isPageOpen: prop<boolean>(false),
+  /**
+   * Geometry metadata that has not yet been saved
+   */
+  dirtyMetadata: prop<GeoJsonProperties>(() => null, {
+    setterAction: true,
+  }),
 }) {
   /**
    * Retrieve the [[MetadataInteraction]] corresponding to current user interface state
@@ -173,6 +179,16 @@ export class ControlsModel extends Model({
       features?.clearHistory();
     }
 
+    /**
+     * Discard dirty state
+     */
+    if (this.dirtyMetadata) {
+      console.warn(
+        `Dirty metadata encountered while changing from mode ${this.mode} to mode ${mode}.`
+      );
+    }
+    this.dirtyMetadata = null;
+
     // Change the editing mode
     if (isToggle) {
       this.mode = defaultInteractionMode;
@@ -203,8 +219,23 @@ export class ControlsModel extends Model({
    * Restore the default editing mode
    */
   @modelAction
-  setDefaultMode() {
+  private setDefaultMode() {
     this.toggleMode(this.mode);
+  }
+
+  /**
+   * Save a copy of `dirtyMetadata` to the [[FeatureListModel]]
+   */
+  @modelAction
+  private saveMetadata() {
+    /**
+     * The `toJS` call ensures that the object is copied instead of
+     * passed by reference.
+     * See also https://mobx-keystone.js.org/references for how to
+     * properly pass by reference if desired.
+     */
+    featureListContext.get(this)?.setDraftMetadata(toJS(this.dirtyMetadata));
+    this.dirtyMetadata = null;
   }
 
   /**
@@ -214,17 +245,42 @@ export class ControlsModel extends Model({
    */
   @modelAction
   confirm() {
+    this._confirm(false);
+  }
+
+  /**
+   * An internal version of [[confirm]] that accepts more arguments
+   *
+   * @param force If `true`, skip opening any confirmation dialogs and immediately
+   *              confirm the current operation.
+   */
+  @modelAction
+  private _confirm(force?: boolean) {
     if (this.confirmation) {
-      // Cancel operation
+      // This is a state change to a confirmation dialog
       switch (this.mode) {
         case InteractionMode.DragPoint:
           this.rollback();
           break;
         case InteractionMode.DrawPoint:
           featureListContext.get(this)?.discardNewFeatures();
+          this.dirtyMetadata = null;
           this.isPageOpen = false;
           break;
         case InteractionMode.EditMetadata:
+          switch (this.confirmation.reason) {
+            case ConfirmationReason.Basic:
+              console.warn(
+                `Unexpected confirmation reason, ${this.confirmation.reason}, for editing mode ${this.mode}.`
+              );
+              break;
+            case ConfirmationReason.Commit:
+              this.saveMetadata();
+              break;
+            case ConfirmationReason.Discard:
+              break;
+          }
+          this.dirtyMetadata = null;
           this.setDefaultMode();
           break;
         case InteractionMode.SelectMultiple:
@@ -234,17 +290,28 @@ export class ControlsModel extends Model({
       }
       this.confirmation = null;
     } else {
-      // Commit operation
+      // This is a state change in the absence of a confirmation dialog
       switch (this.mode) {
         case InteractionMode.DragPoint:
           this.setDefaultMode();
           break;
         case InteractionMode.DrawPoint:
-          featureListContext.get(this)?.confirmNewFeatures();
-          this.isPageOpen = false;
+          {
+            const features = featureListContext.get(this);
+            this.saveMetadata();
+            features?.confirmNewFeatures();
+            this.isPageOpen = false;
+          }
           break;
         case InteractionMode.EditMetadata:
-          this.setDefaultMode();
+          if (!force && this.dirtyMetadata) {
+            this.confirmation = new ConfirmationModel({
+              message: 'Do you wish to save changes?',
+              reason: ConfirmationReason.Commit,
+            });
+          } else {
+            this.setDefaultMode();
+          }
           break;
         case InteractionMode.SelectMultiple:
           console.warn(`There are no actions to confirm.`);
@@ -270,6 +337,7 @@ export class ControlsModel extends Model({
   @modelAction
   cancel(force?: boolean): boolean {
     if (this.confirmation) {
+      // Dismiss confirmation dialog
       this.confirmation = null;
     } else {
       switch (this.mode) {
@@ -284,9 +352,14 @@ export class ControlsModel extends Model({
           });
           break;
         case InteractionMode.EditMetadata:
-          this.confirmation = new ConfirmationModel({
-            message: 'Discard changes to data?',
-          });
+          if (this.dirtyMetadata) {
+            this.confirmation = new ConfirmationModel({
+              message: 'Discard changes to data?',
+              reason: ConfirmationReason.Discard,
+            });
+          } else {
+            this.setDefaultMode();
+          }
           break;
         case InteractionMode.SelectMultiple:
           console.warn('There are no actions to request confirmation for.');
@@ -300,7 +373,7 @@ export class ControlsModel extends Model({
        * Force cancellation by confirming the cancel dialog
        */
       if (force && this.confirmation) {
-        this.confirm();
+        this._confirm(true);
       }
     }
     return !!this.confirmation;

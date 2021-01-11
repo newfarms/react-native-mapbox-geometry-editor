@@ -28,10 +28,25 @@ export function ConfirmationCard({
   title = DEFAULT_CONFIRMATION_TITLE,
   visible = true,
 }: {
+  /**
+   * A callback for the dismiss button
+   */
   readonly onDismiss: () => void;
+  /**
+   * A callback for the confirm button
+   */
   readonly onConfirm: () => void;
+  /**
+   * The main content of the view
+   */
   readonly message: string;
+  /**
+   * The title of the view
+   */
   readonly title?: string;
+  /**
+   * Whether or not to render the view
+   */
   readonly visible?: boolean;
 }) {
   if (visible) {
