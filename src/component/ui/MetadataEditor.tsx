@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { StyleSheet } from 'react-native';
 import { Button, Card } from 'react-native-paper';
 import { Formik } from 'formik';
-import type { FormikHelpers } from 'formik';
+import type { FormikProps, FormikHelpers } from 'formik';
 
 import { StoreContext } from '../../state/StoreContext';
 import { MetadataFieldList } from './MetadataForm';
@@ -32,11 +32,21 @@ const styles = StyleSheet.create({
  * @return Renderable React node
  */
 function _MetadataEditor() {
-  const { controls, features } = useContext(StoreContext);
+  const { controls } = useContext(StoreContext);
   /**
    * Metadata permissions and pre-processing
    */
-  const use = MetadataInteraction.Create;
+  const use = controls.metadataInteraction;
+  let isEditOperation = false;
+  switch (use) {
+    case MetadataInteraction.Create:
+      break;
+    case MetadataInteraction.Edit:
+      isEditOperation = true;
+      break;
+    default:
+      throw new Error(`Inappropriate metadata interaction, ${use}.`);
+  }
   const { canUse, data, formStarter, featureExists } = useMetadata(use);
 
   /**
@@ -49,15 +59,6 @@ function _MetadataEditor() {
       }
     });
   }, [canUse, featureExists, controls]);
-
-  // Rollback the geometry in case of cancellation
-  const onDismiss = useMemo(
-    () =>
-      action('metadata_editor_cancel', () => {
-        controls.cancel();
-      }),
-    [controls]
-  );
 
   // Commit on confirmation
   const onConfirm = useMemo(
@@ -85,12 +86,42 @@ function _MetadataEditor() {
             );
             castValues = null;
           }
-          features.setDraftMetadata(castValues);
           formikBag.setSubmitting(false);
+          controls.dirtyMetadata = castValues;
           controls.confirm();
         }
       ),
-    [controls, features, formStarter]
+    [controls, formStarter]
+  );
+
+  /**
+   * Cancel button callback
+   */
+  const onDismiss = useMemo(
+    () =>
+      action('metadata_editor_cancel', () => {
+        controls.cancel();
+      }),
+    [controls]
+  );
+
+  /**
+   * Function to notify the controller of dirty form state
+   */
+  const setDirty = useMemo(
+    () =>
+      action('metadata_editor_dirty', (dirty: boolean) => {
+        if (dirty) {
+          /**
+           * Notify the controller that there is dirty state.
+           * The controller will warn the user about unsaved changes.
+           */
+          controls.dirtyMetadata = {};
+        } else {
+          controls.dirtyMetadata = null;
+        }
+      }),
+    [controls]
   );
 
   /**
@@ -99,31 +130,34 @@ function _MetadataEditor() {
    */
   const formContents = useCallback(
     ({
+      dirty,
       isSubmitting,
       isValid,
       submitForm,
-    }: {
-      isSubmitting: boolean;
-      isValid: boolean;
-      submitForm: () => Promise<unknown>;
-    }) => (
-      <>
-        <Card.Content style={styles.cardContent}>
-          <MetadataFieldList
-            formFieldList={formStarter.formStructure.fields}
-            use={use}
-            data={data}
-          />
-        </Card.Content>
-        <Card.Actions style={styles.cardActions}>
-          <Button onPress={submitForm} disabled={!isValid || isSubmitting}>
-            Save
-          </Button>
-          <Button onPress={onDismiss}>Cancel</Button>
-        </Card.Actions>
-      </>
-    ),
-    [onDismiss, formStarter, data, use]
+    }: FormikProps<MetadataFormInitialValues>) => {
+      setDirty(dirty);
+      return (
+        <>
+          <Card.Content style={styles.cardContent}>
+            <MetadataFieldList
+              formFieldList={formStarter.formStructure.fields}
+              use={use}
+              data={data}
+            />
+          </Card.Content>
+          <Card.Actions style={styles.cardActions}>
+            <Button
+              onPress={submitForm}
+              disabled={!isValid || isSubmitting || (isEditOperation && !dirty)}
+            >
+              Save
+            </Button>
+            <Button onPress={onDismiss}>Cancel</Button>
+          </Card.Actions>
+        </>
+      );
+    },
+    [onDismiss, formStarter, data, use, isEditOperation, setDirty]
   );
 
   return (

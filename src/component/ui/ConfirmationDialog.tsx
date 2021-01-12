@@ -42,7 +42,7 @@ function _ConfirmationDialog({
   );
 
   const visible =
-    !!controls.confimation && controls.isPageOpen === visibleIfPageOpen;
+    !!controls.confirmation && controls.isPageOpen === visibleIfPageOpen;
 
   /**
    * Conditionally-visible confirmation dialog
@@ -50,9 +50,9 @@ function _ConfirmationDialog({
   return (
     <Portal>
       <Dialog onDismiss={onDismiss} visible={visible} dismissable={true}>
-        <Dialog.Title>{controls.confimation?.title}</Dialog.Title>
+        <Dialog.Title>{controls.confirmation?.title}</Dialog.Title>
         <Dialog.Content>
-          <Paragraph>{controls.confimation?.message}</Paragraph>
+          <Paragraph>{controls.confirmation?.message}</Paragraph>
         </Dialog.Content>
         <Dialog.Actions>
           <Button onPress={onConfirm}>Yes</Button>
