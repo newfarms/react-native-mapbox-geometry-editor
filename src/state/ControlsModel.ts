@@ -73,11 +73,17 @@ export class ControlsModel extends Model({
    */
   isPageOpen: prop<boolean>(false),
   /**
-   * Geometry metadata that has not yet been saved
+   * Geometry metadata that has not yet been saved.
+   * When this property is not `null`, the controller will warn about unsaved changes.
    */
   dirtyMetadata: prop<GeoJsonProperties>(() => null, {
     setterAction: true,
   }),
+  /**
+   * Geometry metadata to be saved.
+   * This property is for internal use only.
+   */
+  pendingMetadata: prop<GeoJsonProperties>(() => null),
 }) {
   /**
    * Retrieve the [[MetadataInteraction]] corresponding to current user interface state
@@ -187,7 +193,12 @@ export class ControlsModel extends Model({
         `Dirty metadata encountered while changing from mode ${this.mode} to mode ${mode}.`
       );
     }
-    this.dirtyMetadata = null;
+    if (this.pendingMetadata) {
+      console.warn(
+        `Pending metadata encountered while changing from mode ${this.mode} to mode ${mode}.`
+      );
+    }
+    this.clearMetadata();
 
     // Change the editing mode
     if (isToggle) {
@@ -224,17 +235,33 @@ export class ControlsModel extends Model({
   }
 
   /**
-   * Save a copy of `dirtyMetadata` to the [[FeatureListModel]]
+   * Save a copy of `pendingMetadata` to the [[FeatureListModel]]
+   * and clear both `pendingMetadata` and `dirtyMetadata`.
    */
   @modelAction
   private saveMetadata() {
-    /**
-     * The `toJS` call ensures that the object is copied instead of
-     * passed by reference.
-     * See also https://mobx-keystone.js.org/references for how to
-     * properly pass by reference if desired.
-     */
-    featureListContext.get(this)?.setDraftMetadata(toJS(this.dirtyMetadata));
+    if (this.pendingMetadata) {
+      /**
+       * The `toJS` call ensures that the object is copied instead of
+       * passed by reference.
+       * See also https://mobx-keystone.js.org/references for how to
+       * properly pass by reference if desired.
+       */
+      featureListContext
+        .get(this)
+        ?.setDraftMetadata(toJS(this.pendingMetadata));
+    } else {
+      console.warn(`There is no pending metadata to save.`);
+    }
+    this.clearMetadata();
+  }
+
+  /**
+   * Clear both `pendingMetadata` and `dirtyMetadata`.
+   */
+  @modelAction
+  private clearMetadata() {
+    this.pendingMetadata = null;
     this.dirtyMetadata = null;
   }
 
@@ -263,8 +290,9 @@ export class ControlsModel extends Model({
           this.rollback();
           break;
         case InteractionMode.DrawPoint:
+          // Discard the new point and close the metadata creation page
           featureListContext.get(this)?.discardNewFeatures();
-          this.dirtyMetadata = null;
+          this.clearMetadata();
           this.isPageOpen = false;
           break;
         case InteractionMode.EditMetadata:
@@ -275,12 +303,13 @@ export class ControlsModel extends Model({
               );
               break;
             case ConfirmationReason.Commit:
+              // `dirtyMetadata` was been transferred to `pendingMetadata` before opening the confirmation dialog
               this.saveMetadata();
               break;
             case ConfirmationReason.Discard:
               break;
           }
-          this.dirtyMetadata = null;
+          this.clearMetadata();
           this.setDefaultMode();
           break;
         case InteractionMode.SelectMultiple:
@@ -297,7 +326,9 @@ export class ControlsModel extends Model({
           break;
         case InteractionMode.DrawPoint:
           {
+            // Save the new point
             const features = featureListContext.get(this);
+            this.pendingMetadata = toJS(this.dirtyMetadata);
             this.saveMetadata();
             features?.confirmNewFeatures();
             this.isPageOpen = false;
@@ -305,6 +336,7 @@ export class ControlsModel extends Model({
           break;
         case InteractionMode.EditMetadata:
           if (!force && this.dirtyMetadata) {
+            this.pendingMetadata = toJS(this.dirtyMetadata);
             this.confirmation = new ConfirmationModel({
               message: 'Do you wish to save changes?',
               reason: ConfirmationReason.Commit,
