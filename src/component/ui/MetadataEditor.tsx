@@ -181,9 +181,9 @@ function _MetadataEditor() {
             );
             castValues = null;
           }
-          formikBag.setSubmitting(false);
           controls.dirtyMetadata = castValues;
           controls.confirm();
+          formikBag.setSubmitting(false);
         }
       ),
     [controls, formStarter]
