@@ -73,17 +73,19 @@ export class ControlsModel extends Model({
    */
   isPageOpen: prop<boolean>(false),
   /**
-   * Geometry metadata that has not yet been saved.
-   * When this property is not `null`, the controller will warn about unsaved changes.
+   * The user interface can set this property as-needed to inform the controller
+   * that there are unsaved changes somewhere.
+   * When it is `true`, the controller will warn about unsaved changes.
    */
-  dirtyMetadata: prop<GeoJsonProperties>(() => null, {
+  isDirty: prop<boolean>(false, {
     setterAction: true,
   }),
   /**
    * Geometry metadata to be saved.
-   * This property is for internal use only.
    */
-  pendingMetadata: prop<GeoJsonProperties>(() => null),
+  pendingMetadata: prop<GeoJsonProperties>(() => null, {
+    setterAction: true,
+  }),
 }) {
   /**
    * Retrieve the [[MetadataInteraction]] corresponding to current user interface state
@@ -188,11 +190,12 @@ export class ControlsModel extends Model({
     /**
      * Discard dirty state
      */
-    if (this.dirtyMetadata) {
+    if (this.isDirty) {
       console.warn(
-        `Dirty metadata encountered while changing from mode ${this.mode} to mode ${mode}.`
+        `Dirty state is present while changing from mode ${this.mode} to mode ${mode}.`
       );
     }
+    this.isDirty = false;
     if (this.pendingMetadata) {
       console.warn(
         `Pending metadata encountered while changing from mode ${this.mode} to mode ${mode}.`
@@ -236,7 +239,7 @@ export class ControlsModel extends Model({
 
   /**
    * Save a copy of `pendingMetadata` to the [[FeatureListModel]]
-   * and clear both `pendingMetadata` and `dirtyMetadata`.
+   * and clear both `pendingMetadata` and `isDirty`.
    */
   @modelAction
   private saveMetadata() {
@@ -257,12 +260,12 @@ export class ControlsModel extends Model({
   }
 
   /**
-   * Clear both `pendingMetadata` and `dirtyMetadata`.
+   * Clear both `pendingMetadata` and `isDirty`.
    */
   @modelAction
   private clearMetadata() {
     this.pendingMetadata = null;
-    this.dirtyMetadata = null;
+    this.isDirty = false;
   }
 
   /**
@@ -303,7 +306,6 @@ export class ControlsModel extends Model({
               );
               break;
             case ConfirmationReason.Commit:
-              // `dirtyMetadata` was been transferred to `pendingMetadata` before opening the confirmation dialog
               this.saveMetadata();
               break;
             case ConfirmationReason.Discard:
@@ -328,15 +330,13 @@ export class ControlsModel extends Model({
           {
             // Save the new point
             const features = featureListContext.get(this);
-            this.pendingMetadata = toJS(this.dirtyMetadata);
             this.saveMetadata();
             features?.confirmNewFeatures();
             this.isPageOpen = false;
           }
           break;
         case InteractionMode.EditMetadata:
-          if (!force && this.dirtyMetadata) {
-            this.pendingMetadata = toJS(this.dirtyMetadata);
+          if (!force && this.isDirty) {
             this.confirmation = new ConfirmationModel({
               message: 'Do you wish to save changes?',
               reason: ConfirmationReason.Commit,
@@ -384,7 +384,7 @@ export class ControlsModel extends Model({
           });
           break;
         case InteractionMode.EditMetadata:
-          if (this.dirtyMetadata) {
+          if (this.isDirty) {
             this.confirmation = new ConfirmationModel({
               message: 'Discard changes to data?',
               reason: ConfirmationReason.Discard,

@@ -61,28 +61,15 @@ function _FormContents({
 
   const { controls } = useContext(StoreContext);
 
-  /**
-   * Function to notify the controller of dirty form state
-   */
-  const setDirty = useMemo(
-    () =>
-      action('metadata_editor_dirty', (dirtyArg: boolean) => {
-        if (dirtyArg) {
-          /**
-           * Notify the controller that there is dirty state.
-           * The controller will warn the user about unsaved changes.
-           */
-          controls.dirtyMetadata = {};
-        } else {
-          controls.dirtyMetadata = null;
-        }
-      }),
-    [controls]
-  );
-
   useEffect(() => {
-    setDirty(dirty);
-  }, [dirty, setDirty]);
+    runInAction(() => {
+      /**
+       * Inform the controller of whether there is dirty state.
+       * The controller will warn the user about unsaved changes.
+       */
+      controls.isDirty = dirty;
+    });
+  }, [dirty, controls]);
 
   /**
    * Cancel button callback
@@ -181,7 +168,7 @@ function _MetadataEditor() {
             );
             castValues = null;
           }
-          controls.dirtyMetadata = castValues;
+          controls.pendingMetadata = castValues;
           controls.confirm();
           formikBag.setSubmitting(false);
         }
