@@ -66,8 +66,8 @@ function _FormContents({
    */
   const setDirty = useMemo(
     () =>
-      action('metadata_editor_dirty', (dirty: boolean) => {
-        if (dirty) {
+      action('metadata_editor_dirty', (dirtyArg: boolean) => {
+        if (dirtyArg) {
           /**
            * Notify the controller that there is dirty state.
            * The controller will warn the user about unsaved changes.
