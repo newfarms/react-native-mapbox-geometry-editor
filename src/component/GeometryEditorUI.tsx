@@ -10,7 +10,7 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { _GeometryEditor } from './GeometryEditor';
 import type { GeometryEditorProps } from './GeometryEditor';
 import { StoreProvider } from '../state/StoreProvider';
-import { ModeToolbox } from './ui/ModeToolbox';
+import { ModeToolbox } from './ui/control/ModeToolbox';
 import { ConfirmationDialog } from './ui/ConfirmationDialog';
 import { MetadataContext } from './ui/MetadataContext';
 import { MetadataPreview } from './geometry/MetadataPreview';
