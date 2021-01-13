@@ -2,9 +2,10 @@ import React, { useContext, useMemo } from 'react';
 import { action } from 'mobx';
 import { StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
-import { Paragraph, Button, Card, Surface } from 'react-native-paper';
+import { Surface } from 'react-native-paper';
 
 import { StoreContext } from '../../../state/StoreContext';
+import { ConfirmationCard } from '../ConfirmationCard';
 
 /**
  * @ignore
@@ -15,10 +16,6 @@ const styles = StyleSheet.create({
   },
   surfaceHidden: {
     height: 0,
-  },
-  surfaceCentered: {
-    flex: 1,
-    justifyContent: 'center',
   },
 });
 
@@ -62,7 +59,7 @@ function _ConfirmationPage({
     [controls]
   );
 
-  const visible = !!controls.confimation; // Convert to boolean
+  const visible = !!controls.confirmation; // Convert to boolean
 
   // There may be more elegant ways to hide a view while keeping it mounted
   let surfaceStyle: { height: number } | { flex: number } =
@@ -71,30 +68,15 @@ function _ConfirmationPage({
     surfaceStyle = styles.surfaceHidden;
   }
 
-  /**
-   * Conditionally-visible confirmation card
-   */
-  let confirmationCard = null;
-  if (visible) {
-    confirmationCard = (
-      <Surface style={styles.surfaceCentered}>
-        <Card>
-          <Card.Title title={controls.confimation?.title} />
-          <Card.Content>
-            <Paragraph>{controls.confimation?.message}</Paragraph>
-          </Card.Content>
-          <Card.Actions>
-            <Button onPress={onConfirm}>Yes</Button>
-            <Button onPress={onDismiss}>No</Button>
-          </Card.Actions>
-        </Card>
-      </Surface>
-    );
-  }
-
   return (
     <>
-      {confirmationCard}
+      <ConfirmationCard
+        visible={visible}
+        title={controls.confirmation?.title as string}
+        message={controls.confirmation?.message as string}
+        onConfirm={onConfirm}
+        onDismiss={onDismiss}
+      />
       <Surface style={surfaceStyle}>{children}</Surface>
     </>
   );

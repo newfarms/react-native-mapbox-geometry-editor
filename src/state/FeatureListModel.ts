@@ -240,6 +240,23 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Retrieve the feature currently single-selected
+   */
+  @computed
+  private get rawFocusedFeature(): FeatureModel | undefined {
+    const arr = filter(
+      this.features,
+      (val) => val.stage === FeatureLifecycleStage.SelectSingle
+    );
+    if (arr.length > 1) {
+      console.warn(
+        'There are multiple single-selected features. Only the first will be returned.'
+      );
+    }
+    return arr[0];
+  }
+
+  /**
    * Retrieve a non-observable copy of the GeoJSON feature currently
    * single-selected, if one exists.
    */
@@ -256,19 +273,11 @@ export class FeatureListModel extends Model({
         id: RnmgeID;
       }
     | undefined {
-    const arr = filter(
-      this.features,
-      (val) => val.stage === FeatureLifecycleStage.SelectSingle
-    );
-    if (arr.length > 0) {
-      if (arr.length > 1) {
-        console.warn(
-          'There are multiple focused features. Only the first will be returned.'
-        );
-      }
+    const feature = this.rawFocusedFeature;
+    if (feature) {
       return {
-        geojson: toJS(arr[0].geojson),
-        id: arr[0].$modelId,
+        geojson: toJS(feature.geojson),
+        id: feature.$modelId,
       };
     }
     return undefined;
@@ -411,5 +420,25 @@ export class FeatureListModel extends Model({
         val.stage = FeatureLifecycleStage.EditShape;
       }
     });
+  }
+
+  /**
+   * Put any single selected feature into a geometry metadata editing lifecycle stage
+   */
+  @modelAction
+  selectedToEditMetadata() {
+    if (this.rawFocusedFeature) {
+      this.rawFocusedFeature.stage = FeatureLifecycleStage.EditMetadata;
+    }
+  }
+
+  /**
+   * Put any feature in a geometry metadata editing lifecycle stage into a selected lifecycle stage
+   */
+  @modelAction
+  draftMetadataToSelected() {
+    if (this.draftMetadataFeature) {
+      this.draftMetadataFeature.stage = FeatureLifecycleStage.SelectSingle;
+    }
   }
 }

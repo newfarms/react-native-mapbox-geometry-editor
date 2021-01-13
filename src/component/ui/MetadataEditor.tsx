@@ -4,13 +4,17 @@ import { observer } from 'mobx-react-lite';
 import { StyleSheet } from 'react-native';
 import { Button, Card } from 'react-native-paper';
 import { Formik } from 'formik';
-import type { FormikHelpers } from 'formik';
+import type { FormikProps, FormikHelpers } from 'formik';
 
 import { StoreContext } from '../../state/StoreContext';
 import { MetadataFieldList } from './MetadataForm';
 import { useMetadata } from '../../hooks/useMetadata';
 import { MetadataInteraction } from '../../type/metadata';
-import type { MetadataFormInitialValues } from '../../type/metadata';
+import type {
+  Metadata,
+  MetadataFormStarter,
+  MetadataFormInitialValues,
+} from '../../type/metadata';
 
 /**
  * @ignore
@@ -28,15 +32,103 @@ const styles = StyleSheet.create({
 });
 
 /**
+ * A component that is passed to Formik to render the inside of the metadata editing form.
+ * @param props Rendering props
+ */
+function _FormContents({
+  formik,
+  extra,
+}: {
+  /**
+   * Formik-provided data and helpers
+   */
+  formik: FormikProps<MetadataFormInitialValues>;
+  /**
+   * Contextual data provided by [[MetadataEditor]]
+   */
+  extra: {
+    formStarter: MetadataFormStarter;
+    data: Metadata | null | undefined;
+    use: MetadataInteraction.Create | MetadataInteraction.Edit;
+    isEditOperation: boolean;
+  };
+}) {
+  /**
+   * Unpack rendering props
+   */
+  const { dirty, isSubmitting, isValid, submitForm } = formik;
+  const { formStarter, data, use, isEditOperation } = extra;
+
+  const { controls } = useContext(StoreContext);
+
+  useEffect(() => {
+    runInAction(() => {
+      /**
+       * Inform the controller of whether there is dirty state.
+       * The controller will warn the user about unsaved changes.
+       */
+      controls.isDirty = dirty;
+    });
+  }, [dirty, controls]);
+
+  /**
+   * Cancel button callback
+   */
+  const onDismiss = useMemo(
+    () =>
+      action('metadata_editor_cancel', () => {
+        controls.cancel();
+      }),
+    [controls]
+  );
+
+  return (
+    <>
+      <Card.Content style={styles.cardContent}>
+        <MetadataFieldList
+          formFieldList={formStarter.formStructure.fields}
+          use={use}
+          data={data}
+        />
+      </Card.Content>
+      <Card.Actions style={styles.cardActions}>
+        <Button
+          onPress={submitForm}
+          disabled={!isValid || isSubmitting || (isEditOperation && !dirty)}
+        >
+          Save
+        </Button>
+        <Button onPress={onDismiss}>Cancel</Button>
+      </Card.Actions>
+    </>
+  );
+}
+
+/**
+ * Renderable MobX wrapper for [[_FormContents]]
+ */
+export const FormContents = observer(_FormContents);
+
+/**
  * A component that renders an interface for editing geometry metadata
  * @return Renderable React node
  */
 function _MetadataEditor() {
-  const { controls, features } = useContext(StoreContext);
+  const { controls } = useContext(StoreContext);
   /**
    * Metadata permissions and pre-processing
    */
-  const use = MetadataInteraction.Create;
+  const use = controls.metadataInteraction;
+  let isEditOperation = false;
+  switch (use) {
+    case MetadataInteraction.Create:
+      break;
+    case MetadataInteraction.Edit:
+      isEditOperation = true;
+      break;
+    default:
+      throw new Error(`Inappropriate metadata interaction, ${use}.`);
+  }
   const { canUse, data, formStarter, featureExists } = useMetadata(use);
 
   /**
@@ -49,15 +141,6 @@ function _MetadataEditor() {
       }
     });
   }, [canUse, featureExists, controls]);
-
-  // Rollback the geometry in case of cancellation
-  const onDismiss = useMemo(
-    () =>
-      action('metadata_editor_cancel', () => {
-        controls.cancel();
-      }),
-    [controls]
-  );
 
   // Commit on confirmation
   const onConfirm = useMemo(
@@ -85,12 +168,12 @@ function _MetadataEditor() {
             );
             castValues = null;
           }
-          features.setDraftMetadata(castValues);
-          formikBag.setSubmitting(false);
+          controls.pendingMetadata = castValues;
           controls.confirm();
+          formikBag.setSubmitting(false);
         }
       ),
-    [controls, features, formStarter]
+    [controls, formStarter]
   );
 
   /**
@@ -98,32 +181,13 @@ function _MetadataEditor() {
    * and submit or cancel buttons.
    */
   const formContents = useCallback(
-    ({
-      isSubmitting,
-      isValid,
-      submitForm,
-    }: {
-      isSubmitting: boolean;
-      isValid: boolean;
-      submitForm: () => Promise<unknown>;
-    }) => (
-      <>
-        <Card.Content style={styles.cardContent}>
-          <MetadataFieldList
-            formFieldList={formStarter.formStructure.fields}
-            use={use}
-            data={data}
-          />
-        </Card.Content>
-        <Card.Actions style={styles.cardActions}>
-          <Button onPress={submitForm} disabled={!isValid || isSubmitting}>
-            Save
-          </Button>
-          <Button onPress={onDismiss}>Cancel</Button>
-        </Card.Actions>
-      </>
+    (formik: FormikProps<MetadataFormInitialValues>) => (
+      <FormContents
+        formik={formik}
+        extra={{ formStarter, data, use, isEditOperation }}
+      />
     ),
-    [onDismiss, formStarter, data, use]
+    [formStarter, data, use, isEditOperation]
   );
 
   return (

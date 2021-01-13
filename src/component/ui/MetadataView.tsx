@@ -8,6 +8,8 @@ import { StoreContext } from '../../state/StoreContext';
 import { MetadataFieldList } from './MetadataList';
 import { DefaultContent } from './page/PageContent';
 import { useMetadata } from '../../hooks/useMetadata';
+import { canUseMetadata } from '../../util/metadata/display';
+import { InteractionMode } from '../../state/ControlsModel';
 import { MetadataInteraction } from '../../type/metadata';
 
 /**
@@ -46,10 +48,20 @@ function _MetadataView() {
     [controls]
   );
 
+  // Whether the edit button should be enabled
+  const { canUse: editEnabled } = canUseMetadata(
+    formStarter.formStructure.attributes,
+    data,
+    MetadataInteraction.Edit
+  );
+
   // Edit button press handler
   const onEdit = useMemo(
-    () => () => console.warn('TODO: Open metadata editing page.'),
-    []
+    () =>
+      action('metadata_view_edit', () => {
+        controls.toggleMode(InteractionMode.EditMetadata);
+      }),
+    [controls]
   );
 
   if (featureExists) {
@@ -66,7 +78,9 @@ function _MetadataView() {
             />
           </Card.Content>
           <Card.Actions style={styles.cardActions}>
-            <Button onPress={onEdit}>Edit</Button>
+            <Button onPress={onEdit} disabled={!editEnabled}>
+              Edit
+            </Button>
             <Button onPress={onDismiss}>Close</Button>
           </Card.Actions>
         </Card>

@@ -1,9 +1,11 @@
+import { computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
-import type { Position } from 'geojson';
+import type { Position, GeoJsonProperties } from 'geojson';
 
-import { ConfirmationModel } from './ConfirmationModel';
+import { ConfirmationModel, ConfirmationReason } from './ConfirmationModel';
 import { featureListContext } from './ModelContexts';
+import { MetadataInteraction } from '../type/metadata';
 import type { MapPressPayload } from '../type/events';
 
 /**
@@ -34,12 +36,12 @@ export enum InteractionMode {
 }
 
 /**
- * Whether or not the editing mode can involve modifying geometry,
- * including metadata
+ * Whether or not the editing mode can involve modifying geometry
  * @param mode An editing mode
  */
 function isGeometryModificationMode(mode: InteractionMode) {
   return !(
+    mode === InteractionMode.EditMetadata ||
     mode === InteractionMode.SelectMultiple ||
     mode === InteractionMode.SelectSingle
   );
@@ -64,20 +66,61 @@ export class ControlsModel extends Model({
    * A description of any operation that the user
    * is asked to confirm or cancel
    */
-  confimation: prop<ConfirmationModel | null>(() => null),
+  confirmation: prop<ConfirmationModel | null>(() => null),
   /**
    * Whether there is a large modal or page open to show something
    * other than the map.
    */
   isPageOpen: prop<boolean>(false),
+  /**
+   * The user interface can set this property as-needed to inform the controller
+   * that there are unsaved changes somewhere.
+   * When it is `true`, the controller will warn about unsaved changes.
+   */
+  isDirty: prop<boolean>(false, {
+    setterAction: true,
+  }),
+  /**
+   * Geometry metadata to be saved.
+   */
+  pendingMetadata: prop<GeoJsonProperties>(() => null, {
+    setterAction: true,
+  }),
 }) {
+  /**
+   * Retrieve the [[MetadataInteraction]] corresponding to current user interface state
+   */
+  @computed
+  get metadataInteraction(): MetadataInteraction {
+    switch (this.mode) {
+      case InteractionMode.DragPoint:
+        break;
+      case InteractionMode.DrawPoint:
+        return MetadataInteraction.Create;
+      case InteractionMode.EditMetadata:
+        return MetadataInteraction.Edit;
+      case InteractionMode.SelectMultiple:
+        break;
+      case InteractionMode.SelectSingle:
+        if (this.isPageOpen) {
+          return MetadataInteraction.ViewDetails;
+        } else {
+          return MetadataInteraction.ViewPreview;
+        }
+    }
+    console.warn(
+      `Metadata interactions are irrelevant to the current interaction mode, ${this.mode}`
+    );
+    return MetadataInteraction.ViewPreview;
+  }
+
   /**
    * Set the editing mode to `mode`, or restore the default editing mode
    * if `mode` is the current editing mode
    */
   @modelAction
   toggleMode(mode: InteractionMode) {
-    if (this.confimation) {
+    if (this.confirmation && this.mode !== InteractionMode.EditMetadata) {
       console.warn(
         `Attempt to change editing mode from ${this.mode} to ${mode} while there is an active confirmation request.`
       );
@@ -88,14 +131,16 @@ export class ControlsModel extends Model({
      * while a metadata display/edit page remains open.
      * Other transitions between editing modes either occur when no pages are open,
      * or are not performed using `toggleMode()`. If they happen regardless,
-     * assume that the client application has mistakenly let the map display instead
+     * assume that something has mistakenly let the map display instead
      * of the open page. Therefore, clean up the abandoned page.
      */
     if (
       this.isPageOpen &&
       !(
-        this.mode === InteractionMode.EditMetadata &&
-        mode === InteractionMode.EditMetadata
+        (this.mode === InteractionMode.EditMetadata &&
+          mode === InteractionMode.EditMetadata) ||
+        (this.mode === InteractionMode.SelectSingle &&
+          mode === InteractionMode.EditMetadata)
       )
     ) {
       console.warn(
@@ -116,6 +161,7 @@ export class ControlsModel extends Model({
       case InteractionMode.DrawPoint:
         break;
       case InteractionMode.EditMetadata:
+        features?.draftMetadataToSelected();
         break;
       case InteractionMode.SelectMultiple:
         // Deselect all features unless they are to be edited
@@ -124,7 +170,9 @@ export class ControlsModel extends Model({
         }
         break;
       case InteractionMode.SelectSingle:
-        features?.deselectAll();
+        if (mode !== InteractionMode.EditMetadata) {
+          features?.deselectAll();
+        }
         break;
     }
 
@@ -139,6 +187,22 @@ export class ControlsModel extends Model({
       features?.clearHistory();
     }
 
+    /**
+     * Discard dirty state
+     */
+    if (this.isDirty) {
+      console.warn(
+        `Dirty state is present while changing from mode ${this.mode} to mode ${mode}.`
+      );
+    }
+    this.isDirty = false;
+    if (this.pendingMetadata) {
+      console.warn(
+        `Pending metadata encountered while changing from mode ${this.mode} to mode ${mode}.`
+      );
+    }
+    this.clearMetadata();
+
     // Change the editing mode
     if (isToggle) {
       this.mode = defaultInteractionMode;
@@ -152,6 +216,7 @@ export class ControlsModel extends Model({
         case InteractionMode.DrawPoint:
           break;
         case InteractionMode.EditMetadata:
+          features?.selectedToEditMetadata();
           break;
         case InteractionMode.SelectMultiple:
           break;
@@ -173,24 +238,80 @@ export class ControlsModel extends Model({
   }
 
   /**
+   * Save a copy of `pendingMetadata` to the [[FeatureListModel]]
+   * and clear both `pendingMetadata` and `isDirty`.
+   */
+  @modelAction
+  private saveMetadata() {
+    if (this.pendingMetadata) {
+      /**
+       * The `toJS` call ensures that the object is copied instead of
+       * passed by reference.
+       * See also https://mobx-keystone.js.org/references for how to
+       * properly pass by reference if desired.
+       */
+      featureListContext
+        .get(this)
+        ?.setDraftMetadata(toJS(this.pendingMetadata));
+    } else {
+      console.warn(`There is no pending metadata to save.`);
+    }
+    this.clearMetadata();
+  }
+
+  /**
+   * Clear both `pendingMetadata` and `isDirty`.
+   */
+  @modelAction
+  private clearMetadata() {
+    this.pendingMetadata = null;
+    this.isDirty = false;
+  }
+
+  /**
    * Confirm the current commit or cancel operation
    * This function is also used as a "Done" button callback
    * for open pages.
    */
   @modelAction
   confirm() {
-    if (this.confimation) {
-      // Cancel operation
+    this._confirm(false);
+  }
+
+  /**
+   * An internal version of [[confirm]] that accepts more arguments
+   *
+   * @param force If `true`, skip opening any confirmation dialogs and immediately
+   *              confirm the current operation.
+   */
+  @modelAction
+  private _confirm(force?: boolean) {
+    if (this.confirmation) {
+      // This is a state change to a confirmation dialog
       switch (this.mode) {
         case InteractionMode.DragPoint:
           this.rollback();
           break;
         case InteractionMode.DrawPoint:
+          // Discard the new point and close the metadata creation page
           featureListContext.get(this)?.discardNewFeatures();
+          this.clearMetadata();
           this.isPageOpen = false;
           break;
         case InteractionMode.EditMetadata:
-          this.rollback();
+          switch (this.confirmation.reason) {
+            case ConfirmationReason.Basic:
+              console.warn(
+                `Unexpected confirmation reason, ${this.confirmation.reason}, for editing mode ${this.mode}.`
+              );
+              break;
+            case ConfirmationReason.Commit:
+              this.saveMetadata();
+              break;
+            case ConfirmationReason.Discard:
+              break;
+          }
+          this.clearMetadata();
           this.setDefaultMode();
           break;
         case InteractionMode.SelectMultiple:
@@ -198,19 +319,31 @@ export class ControlsModel extends Model({
           console.warn(`There are no actions to cancel.`);
           break;
       }
-      this.confimation = null;
+      this.confirmation = null;
     } else {
-      // Commit operation
+      // This is a state change in the absence of a confirmation dialog
       switch (this.mode) {
         case InteractionMode.DragPoint:
           this.setDefaultMode();
           break;
         case InteractionMode.DrawPoint:
-          featureListContext.get(this)?.confirmNewFeatures();
-          this.isPageOpen = false;
+          {
+            // Save the new point
+            const features = featureListContext.get(this);
+            this.saveMetadata();
+            features?.confirmNewFeatures();
+            this.isPageOpen = false;
+          }
           break;
         case InteractionMode.EditMetadata:
-          this.setDefaultMode();
+          if (!force && this.isDirty) {
+            this.confirmation = new ConfirmationModel({
+              message: 'Do you wish to save changes?',
+              reason: ConfirmationReason.Commit,
+            });
+          } else {
+            this.setDefaultMode();
+          }
           break;
         case InteractionMode.SelectMultiple:
           console.warn(`There are no actions to confirm.`);
@@ -235,24 +368,30 @@ export class ControlsModel extends Model({
    */
   @modelAction
   cancel(force?: boolean): boolean {
-    if (this.confimation) {
-      this.confimation = null;
+    if (this.confirmation) {
+      // Dismiss confirmation dialog
+      this.confirmation = null;
     } else {
       switch (this.mode) {
         case InteractionMode.DragPoint:
-          this.confimation = new ConfirmationModel({
+          this.confirmation = new ConfirmationModel({
             message: 'Discard position changes?',
           });
           break;
         case InteractionMode.DrawPoint:
-          this.confimation = new ConfirmationModel({
+          this.confirmation = new ConfirmationModel({
             message: 'Discard this point and its details?',
           });
           break;
         case InteractionMode.EditMetadata:
-          this.confimation = new ConfirmationModel({
-            message: 'Discard changes to data?',
-          });
+          if (this.isDirty) {
+            this.confirmation = new ConfirmationModel({
+              message: 'Discard changes to data?',
+              reason: ConfirmationReason.Discard,
+            });
+          } else {
+            this.setDefaultMode();
+          }
           break;
         case InteractionMode.SelectMultiple:
           console.warn('There are no actions to request confirmation for.');
@@ -265,11 +404,11 @@ export class ControlsModel extends Model({
       /**
        * Force cancellation by confirming the cancel dialog
        */
-      if (force && this.confimation) {
-        this.confirm();
+      if (force && this.confirmation) {
+        this._confirm(true);
       }
     }
-    return !!this.confimation;
+    return !!this.confirmation;
   }
 
   /**
@@ -277,7 +416,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   openPage() {
-    if (this.confimation) {
+    if (this.confirmation) {
       console.warn(
         `A page cannot be opened while there is an active confirmation request.`
       );
@@ -359,7 +498,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   onPressColdGeometry(e: OnPressEvent) {
-    if (this.confimation) {
+    if (this.confirmation) {
       console.warn(
         `Map geometry cannot be interacted with while there is an active confirmation request.`
       );
@@ -415,7 +554,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   handleMapPress(e: MapPressPayload) {
-    if (this.confimation) {
+    if (this.confirmation) {
       console.warn(
         `The map cannot be interacted with while there is an active confirmation request.`
       );
