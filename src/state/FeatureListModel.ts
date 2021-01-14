@@ -97,8 +97,7 @@ export class FeatureListModel extends Model({
     this.features.forEach((val) => {
       val.stage = FeatureLifecycleStage.View;
     });
-    this.undoManager?.clearRedo();
-    this.undoManager?.clearUndo();
+    this.clearHistory();
   }
 
   /**
@@ -126,6 +125,17 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Whether there are changes that can be undone
+   */
+  @computed
+  get canUndo(): boolean {
+    if (this.undoManager) {
+      return this.undoManager.canUndo;
+    }
+    return false;
+  }
+
+  /**
    * Revert the last geometry modification
    */
   @modelAction
@@ -135,6 +145,17 @@ export class FeatureListModel extends Model({
     } else {
       console.warn('No changes to undo.');
     }
+  }
+
+  /**
+   * Whether there are changes that can be redone
+   */
+  @computed
+  get canRedo(): boolean {
+    if (this.undoManager) {
+      return this.undoManager.canRedo;
+    }
+    return false;
   }
 
   /**
@@ -254,6 +275,28 @@ export class FeatureListModel extends Model({
       );
     }
     return arr[0];
+  }
+
+  /**
+   * Retrieve all features in a selected state
+   */
+  @computed
+  private get rawSelectedFeatures(): Array<FeatureModel> {
+    const arr = filter(
+      this.features,
+      (val) =>
+        val.stage === FeatureLifecycleStage.SelectSingle ||
+        val.stage === FeatureLifecycleStage.SelectMultiple
+    );
+    return arr;
+  }
+
+  /**
+   * Count of features in a selected state
+   */
+  @computed
+  get selectedFeaturesCount(): number {
+    return this.rawSelectedFeatures.length;
   }
 
   /**

@@ -180,12 +180,6 @@ export class ControlsModel extends Model({
     if (isGeometryModificationMode(this.mode)) {
       features?.endEditingSession();
     }
-    if (
-      isGeometryModificationMode(mode) &&
-      !isGeometryModificationMode(this.mode)
-    ) {
-      features?.clearHistory();
-    }
 
     /**
      * Discard dirty state
@@ -227,6 +221,9 @@ export class ControlsModel extends Model({
       // Save the new editing mode
       this.mode = mode;
     }
+
+    // Drop add editing mode change-related events from the undo history
+    features?.clearHistory();
   }
 
   /**
@@ -411,6 +408,11 @@ export class ControlsModel extends Model({
     return !!this.confirmation;
   }
 
+  @modelAction
+  undo() {
+    console.warn(`TODO: undo`);
+  }
+
   /**
    * Open a page appropriate to the current state
    */
@@ -465,6 +467,11 @@ export class ControlsModel extends Model({
       this.cancel(true);
       this.isPageOpen = false;
     }
+  }
+
+  @modelAction
+  delete() {
+    console.warn(`TODO: delete`);
   }
 
   /**
