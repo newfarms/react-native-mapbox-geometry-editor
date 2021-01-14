@@ -9,6 +9,7 @@ import {
 } from 'mobx-keystone';
 import type { UndoManager } from 'mobx-keystone';
 import { point, featureCollection } from '@turf/helpers';
+import difference from 'lodash/difference';
 import flatten from 'lodash/flatten';
 import filter from 'lodash/filter';
 import remove from 'lodash/remove';
@@ -483,5 +484,13 @@ export class FeatureListModel extends Model({
     if (this.draftMetadataFeature) {
       this.draftMetadataFeature.stage = FeatureLifecycleStage.SelectSingle;
     }
+  }
+
+  /**
+   * Delete features in a selected lifecycle stage
+   */
+  @modelAction
+  deleteSelected() {
+    this.features = difference(this.features, this.rawSelectedFeatures);
   }
 }

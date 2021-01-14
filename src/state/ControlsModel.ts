@@ -408,6 +408,9 @@ export class ControlsModel extends Model({
     return !!this.confirmation;
   }
 
+  /**
+   * Undo the last geometry modification
+   */
   @modelAction
   undo() {
     console.warn(`TODO: undo`);
@@ -469,9 +472,12 @@ export class ControlsModel extends Model({
     }
   }
 
+  /**
+   * Delete selected geometry
+   */
   @modelAction
   delete() {
-    console.warn(`TODO: delete`);
+    featureListContext.get(this)?.deleteSelected();
   }
 
   /**
