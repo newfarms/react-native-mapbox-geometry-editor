@@ -11,6 +11,7 @@ import type { UndoManager } from 'mobx-keystone';
 import { point, featureCollection } from '@turf/helpers';
 import flatten from 'lodash/flatten';
 import filter from 'lodash/filter';
+import remove from 'lodash/remove';
 import type { Position, GeoJsonProperties } from 'geojson';
 
 import { globalToLocalIndices } from '../util/collections';
@@ -225,17 +226,16 @@ export class FeatureListModel extends Model({
   @modelAction
   discardNewFeatures() {
     // Search for all features that are not new
-    const arr = filter(
+    const arr = remove(
       this.features,
-      (val) => val.stage !== FeatureLifecycleStage.NewShape
+      (val) => val.stage === FeatureLifecycleStage.NewShape
     );
-    if (arr.length === this.features.length) {
+    if (arr.length === 0) {
       console.warn('There are no new features to discard.');
     } else {
-      if (arr.length < this.features.length - 1) {
-        console.warn('There are multiple new features that will be discarded.');
+      if (arr.length > 1) {
+        console.warn('Multiple new features were discarded.');
       }
-      this.features = arr;
     }
   }
 
