@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
  * @return Renderable React node
  */
 function _MetadataView() {
-  const { controls } = useContext(StoreContext);
+  const { controls, features } = useContext(StoreContext);
   /**
    * Metadata permissions and pre-processing
    */
@@ -49,11 +49,14 @@ function _MetadataView() {
   );
 
   // Whether the edit button should be enabled
-  const { canUse: editEnabled } = canUseMetadata(
-    formStarter.formStructure.attributes,
-    data,
-    MetadataInteraction.Edit
-  );
+  let editEnabled = !features.canUndo;
+  if (editEnabled) {
+    editEnabled = canUseMetadata(
+      formStarter.formStructure.attributes,
+      data,
+      MetadataInteraction.Edit
+    ).canUse;
+  }
 
   // Edit button press handler
   const onEdit = useMemo(

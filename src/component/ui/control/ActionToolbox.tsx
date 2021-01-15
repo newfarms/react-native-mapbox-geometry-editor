@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { StyleSheet } from 'react-native';
 import { Surface } from 'react-native-paper';
 
-import { DeleteControl, UndoControl } from './actionControls';
+import { DeleteControl, FinishControl, UndoControl } from './actionControls';
 import { StoreContext } from '../../../state/StoreContext';
 import { InteractionMode } from '../../../state/ControlsModel';
 
@@ -12,7 +12,11 @@ import { InteractionMode } from '../../../state/ControlsModel';
  * @ignore
  */
 const styles = StyleSheet.create({
-  toolbox: {
+  topToolbox: {
+    position: 'absolute',
+    backgroundColor: 'transparent',
+  },
+  bottomToolbox: {
     position: 'absolute',
     bottom: 0,
     right: 0,
@@ -27,6 +31,7 @@ const styles = StyleSheet.create({
 function _ActionToolbox() {
   const { controls, features } = useContext(StoreContext);
 
+  let bottomToolbox = null;
   switch (controls.mode) {
     case InteractionMode.DragPoint:
       break;
@@ -37,15 +42,29 @@ function _ActionToolbox() {
     case InteractionMode.SelectMultiple:
     case InteractionMode.SelectSingle:
       if (features.selectedFeaturesCount > 0 || features.canUndo) {
-        return (
-          <Surface style={styles.toolbox}>
+        bottomToolbox = (
+          <Surface style={styles.bottomToolbox}>
             <UndoControl />
             <DeleteControl />
           </Surface>
         );
       }
   }
-  return null;
+  let topToolbox = null;
+  if (features.canUndo) {
+    topToolbox = (
+      <Surface style={styles.topToolbox}>
+        <FinishControl />
+      </Surface>
+    );
+  }
+
+  return (
+    <>
+      {topToolbox}
+      {bottomToolbox}
+    </>
+  );
 }
 
 /**

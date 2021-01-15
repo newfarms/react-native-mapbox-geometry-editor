@@ -20,9 +20,8 @@ function _UndoControl() {
   );
 
   const enabled = features.canUndo;
-  let icon = 'undo';
 
-  return <ActionButton icon={icon} disabled={!enabled} onPress={onPress} />;
+  return <ActionButton icon="undo" disabled={!enabled} onPress={onPress} />;
 }
 
 /**
@@ -62,3 +61,27 @@ function _DeleteControl() {
  * Renderable MobX wrapper for [[_DeleteControl]]
  */
 export const DeleteControl = observer(_DeleteControl);
+
+/**
+ * A component that renders a finish control
+ */
+function _FinishControl() {
+  const { controls, features } = useContext(StoreContext);
+  // Button press callback
+  const onPress = useMemo(
+    () =>
+      action('finish_control_press', () => {
+        controls.confirm();
+      }),
+    [controls]
+  );
+
+  const enabled = features.canUndo;
+
+  return <ActionButton icon="check" disabled={!enabled} onPress={onPress} />;
+}
+
+/**
+ * Renderable MobX wrapper for [[_FinishControl]]
+ */
+export const FinishControl = observer(_FinishControl);

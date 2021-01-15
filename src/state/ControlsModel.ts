@@ -120,12 +120,23 @@ export class ControlsModel extends Model({
    */
   @modelAction
   toggleMode(mode: InteractionMode) {
+    /**
+     * Check for potential bugs
+     */
     if (this.confirmation && this.mode !== InteractionMode.EditMetadata) {
       console.warn(
         `Attempt to change editing mode from ${this.mode} to ${mode} while there is an active confirmation request.`
       );
       return;
     }
+    const features = featureListContext.get(this);
+    if (features?.canUndo) {
+      console.warn(
+        `Attempt to change editing mode from ${this.mode} to ${mode} while the undo history is not empty.`
+      );
+      return;
+    }
+
     /**
      * The transition between geometry metadata view and edit operations occurs
      * while a metadata display/edit page remains open.
@@ -150,7 +161,6 @@ export class ControlsModel extends Model({
       this.notifyOfPageClose();
     }
 
-    const features = featureListContext.get(this);
     // Whether this is a deactivation of the current mode
     const isToggle = this.mode === mode;
 
@@ -170,6 +180,7 @@ export class ControlsModel extends Model({
         }
         break;
       case InteractionMode.SelectSingle:
+        // Deselect the feature unless its metadata is to be edited
         if (mode !== InteractionMode.EditMetadata) {
           features?.deselectAll();
         }
@@ -179,6 +190,9 @@ export class ControlsModel extends Model({
     // Enclose editing sessions in "transactions"
     if (isGeometryModificationMode(this.mode)) {
       features?.endEditingSession();
+    } else {
+      // Make sure the redo history is clear
+      features?.clearHistory();
     }
 
     /**
@@ -221,9 +235,6 @@ export class ControlsModel extends Model({
       // Save the new editing mode
       this.mode = mode;
     }
-
-    // Drop add editing mode change-related events from the undo history
-    features?.clearHistory();
   }
 
   /**
@@ -287,7 +298,7 @@ export class ControlsModel extends Model({
       // This is a state change to a confirmation dialog
       switch (this.mode) {
         case InteractionMode.DragPoint:
-          this.rollback();
+          featureListContext.get(this)?.clearHistory();
           break;
         case InteractionMode.DrawPoint:
           // Discard the new point and close the metadata creation page
@@ -313,16 +324,13 @@ export class ControlsModel extends Model({
           break;
         case InteractionMode.SelectMultiple:
         case InteractionMode.SelectSingle:
-          console.warn(`There are no actions to cancel.`);
+          featureListContext.get(this)?.clearHistory();
           break;
       }
       this.confirmation = null;
     } else {
       // This is a state change in the absence of a confirmation dialog
       switch (this.mode) {
-        case InteractionMode.DragPoint:
-          this.setDefaultMode();
-          break;
         case InteractionMode.DrawPoint:
           {
             // Save the new point
@@ -342,11 +350,20 @@ export class ControlsModel extends Model({
             this.setDefaultMode();
           }
           break;
+        case InteractionMode.DragPoint:
         case InteractionMode.SelectMultiple:
-          console.warn(`There are no actions to confirm.`);
-          break;
         case InteractionMode.SelectSingle:
-          this.isPageOpen = false;
+          if (this.mode === InteractionMode.SelectSingle && this.isPageOpen) {
+            this.isPageOpen = false;
+          } else if (featureListContext.get(this)?.canUndo) {
+            this.confirmation = new ConfirmationModel({
+              message:
+                'Do you wish to save changes and clear the editing history?',
+              reason: ConfirmationReason.Commit,
+            });
+          } else {
+            console.warn(`There are no actions to confirm.`);
+          }
           break;
       }
     }
@@ -413,7 +430,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   undo() {
-    console.warn(`TODO: undo`);
+    featureListContext.get(this)?.undo();
   }
 
   /**
@@ -478,14 +495,6 @@ export class ControlsModel extends Model({
   @modelAction
   delete() {
     featureListContext.get(this)?.deleteSelected();
-  }
-
-  /**
-   * Rollback geometry or metadata modifications
-   */
-  @modelAction
-  private rollback() {
-    featureListContext.get(this)?.rollbackEditingSession();
   }
 
   /**
