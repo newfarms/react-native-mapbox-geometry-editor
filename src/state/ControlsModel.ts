@@ -294,15 +294,14 @@ export class ControlsModel extends Model({
    */
   @modelAction
   private _confirm(force?: boolean) {
+    const features = featureListContext.get(this);
+
     if (this.confirmation) {
       // This is a state change to a confirmation dialog
       switch (this.mode) {
-        case InteractionMode.DragPoint:
-          featureListContext.get(this)?.clearHistory();
-          break;
         case InteractionMode.DrawPoint:
           // Discard the new point and close the metadata creation page
-          featureListContext.get(this)?.discardNewFeatures();
+          features?.discardNewFeatures();
           this.clearMetadata();
           this.isPageOpen = false;
           break;
@@ -322,9 +321,23 @@ export class ControlsModel extends Model({
           this.clearMetadata();
           this.setDefaultMode();
           break;
+        case InteractionMode.DragPoint:
         case InteractionMode.SelectMultiple:
         case InteractionMode.SelectSingle:
-          featureListContext.get(this)?.clearHistory();
+          switch (this.confirmation.reason) {
+            case ConfirmationReason.Basic:
+              console.warn(
+                `Unexpected confirmation reason, ${this.confirmation.reason}, for editing mode ${this.mode}.`
+              );
+              break;
+            case ConfirmationReason.Commit:
+              features?.clearHistory();
+              break;
+            case ConfirmationReason.Discard:
+              features?.rollbackEditingSession();
+              features?.clearHistory();
+              break;
+          }
           break;
       }
       this.confirmation = null;
@@ -332,13 +345,10 @@ export class ControlsModel extends Model({
       // This is a state change in the absence of a confirmation dialog
       switch (this.mode) {
         case InteractionMode.DrawPoint:
-          {
-            // Save the new point
-            const features = featureListContext.get(this);
-            this.saveMetadata();
-            features?.confirmNewFeatures();
-            this.isPageOpen = false;
-          }
+          // Save the new point
+          this.saveMetadata();
+          features?.confirmNewFeatures();
+          this.isPageOpen = false;
           break;
         case InteractionMode.EditMetadata:
           if (!force && this.isDirty) {
@@ -355,7 +365,7 @@ export class ControlsModel extends Model({
         case InteractionMode.SelectSingle:
           if (this.mode === InteractionMode.SelectSingle && this.isPageOpen) {
             this.isPageOpen = false;
-          } else if (featureListContext.get(this)?.canUndo) {
+          } else if (features?.canUndo) {
             this.confirmation = new ConfirmationModel({
               message:
                 'Do you wish to save changes and clear the editing history?',
@@ -387,11 +397,6 @@ export class ControlsModel extends Model({
       this.confirmation = null;
     } else {
       switch (this.mode) {
-        case InteractionMode.DragPoint:
-          this.confirmation = new ConfirmationModel({
-            message: 'Discard position changes?',
-          });
-          break;
         case InteractionMode.DrawPoint:
           this.confirmation = new ConfirmationModel({
             message: 'Discard this point and its details?',
@@ -407,12 +412,19 @@ export class ControlsModel extends Model({
             this.setDefaultMode();
           }
           break;
+        case InteractionMode.DragPoint:
         case InteractionMode.SelectMultiple:
-          console.warn('There are no actions to request confirmation for.');
-          break;
         case InteractionMode.SelectSingle:
-          // There is no operation to cancel, but close any open page
-          this.isPageOpen = false;
+          if (this.mode === InteractionMode.SelectSingle && this.isPageOpen) {
+            this.isPageOpen = false;
+          } else if (featureListContext.get(this)?.canUndo) {
+            this.confirmation = new ConfirmationModel({
+              message: 'Discard all changes and clear the editing history?',
+              reason: ConfirmationReason.Discard,
+            });
+          } else {
+            console.warn(`There are no actions to cancel.`);
+          }
           break;
       }
       /**

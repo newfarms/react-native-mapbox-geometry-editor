@@ -4,7 +4,12 @@ import { observer } from 'mobx-react-lite';
 import { StyleSheet } from 'react-native';
 import { Surface } from 'react-native-paper';
 
-import { DeleteControl, FinishControl, UndoControl } from './actionControls';
+import {
+  DeleteControl,
+  FinishControl,
+  RollbackControl,
+  UndoControl,
+} from './actionControls';
 import { StoreContext } from '../../../state/StoreContext';
 import { InteractionMode } from '../../../state/ControlsModel';
 
@@ -55,6 +60,7 @@ function _ActionToolbox() {
     topToolbox = (
       <Surface style={styles.topToolbox}>
         <FinishControl />
+        <RollbackControl />
       </Surface>
     );
   }

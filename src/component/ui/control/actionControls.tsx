@@ -63,7 +63,8 @@ function _DeleteControl() {
 export const DeleteControl = observer(_DeleteControl);
 
 /**
- * A component that renders a finish control
+ * A component that renders a finish control for saving
+ * all changes at the end of a self-contained editing task.
  */
 function _FinishControl() {
   const { controls, features } = useContext(StoreContext);
@@ -85,3 +86,28 @@ function _FinishControl() {
  * Renderable MobX wrapper for [[_FinishControl]]
  */
 export const FinishControl = observer(_FinishControl);
+
+/**
+ * A component that renders a rollback control for discarding all changes
+ * at the end of a self-contained editing task.
+ */
+function _RollbackControl() {
+  const { controls, features } = useContext(StoreContext);
+  // Button press callback
+  const onPress = useMemo(
+    () =>
+      action('rollback_control_press', () => {
+        controls.cancel();
+      }),
+    [controls]
+  );
+
+  const enabled = features.canUndo;
+
+  return <ActionButton icon="cancel" disabled={!enabled} onPress={onPress} />;
+}
+
+/**
+ * Renderable MobX wrapper for [[_RollbackControl]]
+ */
+export const RollbackControl = observer(_RollbackControl);
