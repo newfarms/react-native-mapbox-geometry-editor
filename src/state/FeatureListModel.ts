@@ -34,7 +34,155 @@ export class FeatureListModel extends Model({
   /**
    * Initial contents of the collection
    */
-  features: prop<Array<FeatureModel>>(() => []),
+  features: prop<Array<FeatureModel>>(() => [
+    new FeatureModel({
+      stage: FeatureLifecycleStage.NewShape,
+      finalType: 'Polygon',
+      geojson: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Point',
+          coordinates: [3.37924151661426, 6.468413221650249],
+        },
+      },
+    }),
+    new FeatureModel({
+      stage: FeatureLifecycleStage.NewShape,
+      finalType: 'Polygon',
+      geojson: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [3.3800570304318676, 6.468325619226564],
+            [3.380685196480704, 6.468238016787715],
+          ],
+        },
+      },
+    }),
+    new FeatureModel({
+      stage: FeatureLifecycleStage.NewShape,
+      finalType: 'Polygon',
+      geojson: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [3.381677037610271, 6.468227066481739],
+              [3.382492551427853, 6.468500824058757],
+              [3.3825696946268056, 6.46743864383176],
+              [3.381677037610271, 6.468227066481739],
+            ],
+          ],
+        },
+      },
+    }),
+    new FeatureModel({
+      stage: FeatureLifecycleStage.NewShape,
+      finalType: 'Polygon',
+      geojson: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [3.3833631675303577, 6.467821904995756],
+              [3.383991333578965, 6.467778103734437],
+              [3.3840023540360056, 6.466803524691268],
+              [3.3833852084444387, 6.466913028048344],
+              [3.3833631675303577, 6.467821904995756],
+            ],
+          ],
+        },
+      },
+    }),
+    new FeatureModel({
+      stage: FeatureLifecycleStage.NewShape,
+      finalType: 'Polygon',
+      geojson: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [3.3840905176919724, 6.466102702644933],
+              [3.3845313359718596, 6.466310759291281],
+              [3.3850713383644995, 6.465949397692796],
+              [3.384828888310628, 6.465379978892039],
+              [3.384112558606028, 6.465445681094026],
+              [3.3840905176919724, 6.466102702644933],
+            ],
+          ],
+        },
+      },
+    }),
+    new FeatureModel({
+      stage: FeatureLifecycleStage.View,
+      finalType: 'Polygon',
+      geojson: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [3.3809276465346265, 6.467263438631348],
+              [3.381456628470201, 6.467646699928203],
+              [3.3817100989811126, 6.46675972334195],
+              [3.3809276465346265, 6.467263438631348],
+            ],
+          ],
+        },
+      },
+    }),
+    new FeatureModel({
+      stage: FeatureLifecycleStage.View,
+      finalType: 'Polygon',
+      geojson: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [3.3823603059437755, 6.4665407165378515],
+              [3.383175819761383, 6.4664859648218975],
+              [3.3832860243314054, 6.465774191976219],
+              [3.3825035718849192, 6.4657194401774305],
+              [3.3823603059437755, 6.4665407165378515],
+            ],
+          ],
+        },
+      },
+    }),
+    new FeatureModel({
+      stage: FeatureLifecycleStage.View,
+      finalType: 'Polygon',
+      geojson: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [3.382812144680677, 6.4648872121044905],
+              [3.3832860243314054, 6.4652157233495595],
+              [3.3837488835250933, 6.464941963993416],
+              [3.3834843925574463, 6.464164486614174],
+              [3.382735001481725, 6.4640878338500745],
+              [3.382812144680677, 6.4648872121044905],
+            ],
+          ],
+        },
+      },
+    }),
+  ]),
   /**
    * Saved undo middleware state.
    * This data allows [[FeatureListModel]] to attach and dispose of undo middleware

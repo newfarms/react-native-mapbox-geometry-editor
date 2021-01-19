@@ -248,13 +248,13 @@ export class FeatureModel extends Model({
     if (this.isInHotStage && this.stage !== FeatureLifecycleStage.EditShape) {
       return this.coordinatesWithRoles.map((val) => {
         return point(
-          val.coordinates,
+          toJS(val.coordinates),
           {
             ...toJS(this.renderFeatureProperties),
             rnmgeRole: val.role,
           },
           {
-            bbox: this.geojson.bbox,
+            bbox: toJS(this.geojson.bbox),
             id: this.geojson.id,
           }
         );
