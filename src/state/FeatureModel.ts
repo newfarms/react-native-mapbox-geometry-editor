@@ -7,6 +7,7 @@ import type { Position } from 'geojson';
 import type {
   DraggablePosition,
   EditableFeature,
+  EditableGeometryType,
   RenderFeature,
   RenderProperties,
 } from '../type/geometry';
@@ -34,6 +35,12 @@ export class FeatureModel extends Model({
    * The GeoJSON feature
    */
   geojson: prop<EditableFeature>(),
+  /**
+   * The intended type of geometry, which may not match the type of `geojson`.
+   * For example, when a polygon is being drawn and does not yet have three
+   * vertices, its `geojson` attribute will be a GeoJSON Point or LineString.
+   */
+  finalType: prop<EditableGeometryType>(),
 }) {
   /**
    * Re-position a draggable point in this feature.
@@ -100,72 +107,129 @@ export class FeatureModel extends Model({
      */
     role: CoordinateRole;
   }> {
+    let result: Array<{
+      coordinates: Position;
+      role: CoordinateRole;
+    }> = [];
     switch (this.geojson.geometry.type) {
       case 'Point':
-        return [
-          {
-            coordinates: this.geojson.geometry.coordinates,
-            role: CoordinateRole.PointFeature,
-          },
-        ];
+        switch (this.finalType) {
+          case 'Point':
+            result = [
+              {
+                coordinates: this.geojson.geometry.coordinates,
+                role: CoordinateRole.PointFeature,
+              },
+            ];
+            break;
+          case 'LineString':
+            result = [
+              {
+                coordinates: this.geojson.geometry.coordinates,
+                role: CoordinateRole.LineStart,
+              },
+            ];
+            break;
+          case 'Polygon':
+            result = [
+              {
+                coordinates: this.geojson.geometry.coordinates,
+                role: CoordinateRole.PolygonStart,
+              },
+            ];
+            break;
+        }
+        break;
       case 'LineString':
-        return this.geojson.geometry.coordinates.map((val, index, arr) => {
-          let role = CoordinateRole.LineInner;
-          if (index === 0) {
-            role = CoordinateRole.LineStart;
-          } else if (index === 1 && arr.length > 3) {
-            role = CoordinateRole.LineSecond;
-          } else if (index === arr.length - 2 && arr.length > 2) {
-            role = CoordinateRole.LineSecondLast;
-          } else if (index === arr.length - 1 && arr.length > 1) {
-            role = CoordinateRole.LineLast;
-          }
-          return {
-            coordinates: val,
-            role,
-          };
-        });
-      case 'Polygon': {
-        /**
-         * First linear ring is the exterior boundary
-         */
-        const coordinates: Array<{
-          coordinates: Position;
-          role: CoordinateRole;
-        }> = this.geojson.geometry.coordinates[0]
-          .slice(0, -1) // The last position in a GeoJSON linear ring is a repeat of the first, so exclude it
-          .map((val, index, arr) => {
-            let role = CoordinateRole.PolygonInner;
-            if (index === 0) {
-              role = CoordinateRole.PolygonStart;
-            } else if (index === arr.length - 1 && arr.length > 1) {
-              role = CoordinateRole.PolygonSecondLast;
-            }
-            return {
-              coordinates: val,
-              role,
-            };
-          });
-        /**
-         * Other linear rings are holes
-         */
-        if (this.geojson.geometry.coordinates.length > 1) {
-          const holeCoordinates = flatten(
-            this.geojson.geometry.coordinates.slice(1).map((ring) =>
-              ring.slice(0, -1).map((val) => {
+        switch (this.finalType) {
+          case 'Point':
+            throw new Error(
+              `this.finalType is ${this.finalType}, but this.geojson.geometry.type is ${this.geojson.geometry.type}`
+            );
+          case 'LineString':
+            result = this.geojson.geometry.coordinates.map(
+              (val, index, arr) => {
+                let role = CoordinateRole.LineInner;
+                if (index === 0) {
+                  role = CoordinateRole.LineStart;
+                } else if (index === 1 && arr.length > 3) {
+                  role = CoordinateRole.LineSecond;
+                } else if (index === arr.length - 2 && arr.length > 2) {
+                  role = CoordinateRole.LineSecondLast;
+                } else if (index === arr.length - 1 && arr.length > 1) {
+                  role = CoordinateRole.LineLast;
+                }
                 return {
                   coordinates: val,
-                  role: CoordinateRole.PolygonHole,
+                  role,
                 };
-              })
-            )
-          );
-          return coordinates.concat(holeCoordinates);
-        } else {
-          return coordinates;
+              }
+            );
+            break;
+          case 'Polygon':
+            result = this.geojson.geometry.coordinates.map((val, index) => {
+              let role = CoordinateRole.PolygonInner;
+              if (index === 0) {
+                role = CoordinateRole.PolygonStart;
+              } else if (index === 1) {
+                role = CoordinateRole.PolygonSecondLast;
+              } else {
+                throw new Error(
+                  `A LineString representing an incomplete Polygon should contain exactly two points.`
+                );
+              }
+              return {
+                coordinates: val,
+                role,
+              };
+            });
+            break;
         }
-      }
+        break;
+      case 'Polygon':
+        {
+          /**
+           * First linear ring is the exterior boundary
+           */
+          const coordinates: Array<{
+            coordinates: Position;
+            role: CoordinateRole;
+          }> = this.geojson.geometry.coordinates[0]
+            .slice(0, -1) // The last position in a GeoJSON linear ring is a repeat of the first, so exclude it
+            .map((val, index, arr) => {
+              let role = CoordinateRole.PolygonInner;
+              if (index === 0) {
+                role = CoordinateRole.PolygonStart;
+              } else if (index === arr.length - 1 && arr.length > 1) {
+                role = CoordinateRole.PolygonSecondLast;
+              }
+              return {
+                coordinates: val,
+                role,
+              };
+            });
+          /**
+           * Other linear rings are holes
+           */
+          if (this.geojson.geometry.coordinates.length > 1) {
+            const holeCoordinates = flatten(
+              this.geojson.geometry.coordinates.slice(1).map((ring) =>
+                ring.slice(0, -1).map((val) => {
+                  return {
+                    coordinates: val,
+                    role: CoordinateRole.PolygonHole,
+                  };
+                })
+              )
+            );
+            result = coordinates.concat(holeCoordinates);
+          } else {
+            result = coordinates;
+          }
+        }
+        break;
     }
+    return result;
   }
 
   /**
@@ -250,7 +314,7 @@ export class FeatureModel extends Model({
   @computed
   private get renderFeatureProperties(): RenderProperties {
     let role: GeometryRole | CoordinateRole = GeometryRole.NonPoint;
-    if (this.geojson.geometry.type === 'Point') {
+    if (this.finalType === 'Point') {
       role = CoordinateRole.PointFeature;
     }
     let copyProperties: RenderProperties = {

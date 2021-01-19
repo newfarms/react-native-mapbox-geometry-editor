@@ -221,6 +221,7 @@ export class FeatureListModel extends Model({
         new FeatureModel({
           stage: FeatureLifecycleStage.NewShape,
           geojson: point(position),
+          finalType: 'Point',
         })
       );
     });

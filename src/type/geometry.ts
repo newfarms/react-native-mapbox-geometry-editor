@@ -24,6 +24,11 @@ export type BBox2D = [number, number, number, number];
 type EditableGeometry = Point | LineString | Polygon;
 
 /**
+ * The valid values for the "type" property of [[EditableGeometry]] objects.
+ */
+export type EditableGeometryType = EditableGeometry['type'];
+
+/**
  * Geometry available for editing is represented
  * using features that contain only single shapes.
  * Doing so simplifies selection and editing on the user interface.
