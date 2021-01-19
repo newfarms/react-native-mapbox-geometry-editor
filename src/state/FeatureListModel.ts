@@ -6,11 +6,14 @@ import {
   prop,
   undoMiddleware,
   UndoStore,
+  withoutUndo,
 } from 'mobx-keystone';
 import type { UndoManager } from 'mobx-keystone';
 import { point, featureCollection } from '@turf/helpers';
+import difference from 'lodash/difference';
 import flatten from 'lodash/flatten';
 import filter from 'lodash/filter';
+import remove from 'lodash/remove';
 import type { Position, GeoJsonProperties } from 'geojson';
 
 import { globalToLocalIndices } from '../util/collections';
@@ -90,15 +93,16 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   endEditingSession() {
-    /**
-     * Finalize all geometry
-     * Note that this step is done before clearing the undo/redo history.
-     */
-    this.features.forEach((val) => {
-      val.stage = FeatureLifecycleStage.View;
+    withoutUndo(() => {
+      /**
+       * Finalize all geometry
+       * Note that this step is done before clearing the undo/redo history.
+       */
+      this.features.forEach((val) => {
+        val.stage = FeatureLifecycleStage.View;
+      });
     });
-    this.undoManager?.clearRedo();
-    this.undoManager?.clearUndo();
+    this.clearHistory();
   }
 
   /**
@@ -126,6 +130,17 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Whether there are changes that can be undone
+   */
+  @computed
+  get canUndo(): boolean {
+    if (this.undoManager) {
+      return this.undoManager.canUndo;
+    }
+    return false;
+  }
+
+  /**
    * Revert the last geometry modification
    */
   @modelAction
@@ -135,6 +150,17 @@ export class FeatureListModel extends Model({
     } else {
       console.warn('No changes to undo.');
     }
+  }
+
+  /**
+   * Whether there are changes that can be redone
+   */
+  @computed
+  get canRedo(): boolean {
+    if (this.undoManager) {
+      return this.undoManager.canRedo;
+    }
+    return false;
   }
 
   /**
@@ -190,12 +216,14 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   addNewPoint(position: Position) {
-    this.features.push(
-      new FeatureModel({
-        stage: FeatureLifecycleStage.NewShape,
-        geojson: point(position),
-      })
-    );
+    withoutUndo(() => {
+      this.features.push(
+        new FeatureModel({
+          stage: FeatureLifecycleStage.NewShape,
+          geojson: point(position),
+        })
+      );
+    });
   }
 
   /**
@@ -203,19 +231,20 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   discardNewFeatures() {
-    // Search for all features that are not new
-    const arr = filter(
-      this.features,
-      (val) => val.stage !== FeatureLifecycleStage.NewShape
-    );
-    if (arr.length === this.features.length) {
-      console.warn('There are no new features to discard.');
-    } else {
-      if (arr.length < this.features.length - 1) {
-        console.warn('There are multiple new features that will be discarded.');
+    withoutUndo(() => {
+      // Search for all features that are not new
+      const arr = remove(
+        this.features,
+        (val) => val.stage === FeatureLifecycleStage.NewShape
+      );
+      if (arr.length === 0) {
+        console.warn('There are no new features to discard.');
+      } else {
+        if (arr.length > 1) {
+          console.warn('Multiple new features were discarded.');
+        }
       }
-      this.features = arr;
-    }
+    });
   }
 
   /**
@@ -223,20 +252,22 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   confirmNewFeatures() {
-    const arr = filter(
-      this.features,
-      (val) => val.stage === FeatureLifecycleStage.NewShape
-    );
-    if (arr.length > 0) {
-      if (arr.length > 1) {
-        console.warn('There are multiple new features.');
+    withoutUndo(() => {
+      const arr = filter(
+        this.features,
+        (val) => val.stage === FeatureLifecycleStage.NewShape
+      );
+      if (arr.length > 0) {
+        if (arr.length > 1) {
+          console.warn('There are multiple new features.');
+        }
+        arr.forEach((feature) => {
+          feature.stage = FeatureLifecycleStage.View;
+        });
+      } else {
+        console.warn('There are no new features to confirm.');
       }
-      arr.forEach((feature) => {
-        feature.stage = FeatureLifecycleStage.View;
-      });
-    } else {
-      console.warn('There are no new features to confirm.');
-    }
+    });
   }
 
   /**
@@ -254,6 +285,28 @@ export class FeatureListModel extends Model({
       );
     }
     return arr[0];
+  }
+
+  /**
+   * Retrieve all features in a selected state
+   */
+  @computed
+  private get rawSelectedFeatures(): Array<FeatureModel> {
+    const arr = filter(
+      this.features,
+      (val) =>
+        val.stage === FeatureLifecycleStage.SelectSingle ||
+        val.stage === FeatureLifecycleStage.SelectMultiple
+    );
+    return arr;
+  }
+
+  /**
+   * Count of features in a selected state
+   */
+  @computed
+  get selectedFeaturesCount(): number {
+    return this.rawSelectedFeatures.length;
   }
 
   /**
@@ -321,11 +374,13 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   setDraftMetadata(data: GeoJsonProperties) {
-    if (this.draftMetadataFeature) {
-      this.draftMetadataFeature.geojson.properties = data;
-    } else {
-      console.warn('There are no features with draft metadata.');
-    }
+    withoutUndo(() => {
+      if (this.draftMetadataFeature) {
+        this.draftMetadataFeature.geojson.properties = data;
+      } else {
+        console.warn('There are no features with draft metadata.');
+      }
+    });
   }
 
   /**
@@ -335,27 +390,29 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   toggleMultiSelectFeature(id: RnmgeID) {
-    const arr = filter(this.features, (val) => val.$modelId === id);
-    if (arr.length > 0) {
-      // This check is present in case IDs are generated by the client application or the user in the future
-      if (arr.length > 1) {
-        console.warn(
-          `There are multiple features with the same ID "${id}". Only the first will be used.`
-        );
-      }
-      const feature = arr[0];
-      if (feature.stage === FeatureLifecycleStage.View) {
-        feature.stage = FeatureLifecycleStage.SelectMultiple;
-      } else if (feature.stage === FeatureLifecycleStage.SelectMultiple) {
-        feature.stage = FeatureLifecycleStage.View;
+    withoutUndo(() => {
+      const arr = filter(this.features, (val) => val.$modelId === id);
+      if (arr.length > 0) {
+        // This check is present in case IDs are generated by the client application or the user in the future
+        if (arr.length > 1) {
+          console.warn(
+            `There are multiple features with the same ID "${id}". Only the first will be used.`
+          );
+        }
+        const feature = arr[0];
+        if (feature.stage === FeatureLifecycleStage.View) {
+          feature.stage = FeatureLifecycleStage.SelectMultiple;
+        } else if (feature.stage === FeatureLifecycleStage.SelectMultiple) {
+          feature.stage = FeatureLifecycleStage.View;
+        } else {
+          console.warn(
+            `Feature with the ID "${id}" is in an inappropriate stage for toggling multi-selection, ${feature.stage}.`
+          );
+        }
       } else {
-        console.warn(
-          `Feature with the ID "${id}" is in an inappropriate stage for toggling multi-selection, ${feature.stage}.`
-        );
+        console.warn(`There are no features with the ID "${id}".`);
       }
-    } else {
-      console.warn(`There are no features with the ID "${id}".`);
-    }
+    });
   }
 
   /**
@@ -365,29 +422,31 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   toggleSingleSelectFeature(id: RnmgeID) {
-    const arr = filter(this.features, (val) => val.$modelId === id);
-    if (arr.length > 0) {
-      // This check is present in case IDs are generated by the client application or the user in the future
-      if (arr.length > 1) {
-        console.warn(
-          `There are multiple features with the same ID "${id}". Only the first will be used.`
-        );
-      }
-      const feature = arr[0];
-      if (feature.stage === FeatureLifecycleStage.View) {
-        // Deselect all other features
-        this.deselectAll();
-        feature.stage = FeatureLifecycleStage.SelectSingle;
-      } else if (feature.stage === FeatureLifecycleStage.SelectSingle) {
-        feature.stage = FeatureLifecycleStage.View;
+    withoutUndo(() => {
+      const arr = filter(this.features, (val) => val.$modelId === id);
+      if (arr.length > 0) {
+        // This check is present in case IDs are generated by the client application or the user in the future
+        if (arr.length > 1) {
+          console.warn(
+            `There are multiple features with the same ID "${id}". Only the first will be used.`
+          );
+        }
+        const feature = arr[0];
+        if (feature.stage === FeatureLifecycleStage.View) {
+          // Deselect all other features
+          this.deselectAll();
+          feature.stage = FeatureLifecycleStage.SelectSingle;
+        } else if (feature.stage === FeatureLifecycleStage.SelectSingle) {
+          feature.stage = FeatureLifecycleStage.View;
+        } else {
+          console.warn(
+            `Feature with the ID "${id}" is in an inappropriate stage for toggling single-selection, ${feature.stage}.`
+          );
+        }
       } else {
-        console.warn(
-          `Feature with the ID "${id}" is in an inappropriate stage for toggling single-selection, ${feature.stage}.`
-        );
+        console.warn(`There are no features with the ID "${id}".`);
       }
-    } else {
-      console.warn(`There are no features with the ID "${id}".`);
-    }
+    });
   }
 
   /**
@@ -395,18 +454,20 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   deselectAll() {
-    /**
-     * This class could be optimized in the future by storing a list
-     * of selected features, so that it is not necessary to iterate
-     * over all features when processing selected features.
-     */
-    this.features.forEach((val) => {
-      if (
-        val.stage === FeatureLifecycleStage.SelectMultiple ||
-        val.stage === FeatureLifecycleStage.SelectSingle
-      ) {
-        val.stage = FeatureLifecycleStage.View;
-      }
+    withoutUndo(() => {
+      /**
+       * This class could be optimized in the future by storing a list
+       * of selected features, so that it is not necessary to iterate
+       * over all features when processing selected features.
+       */
+      this.features.forEach((val) => {
+        if (
+          val.stage === FeatureLifecycleStage.SelectMultiple ||
+          val.stage === FeatureLifecycleStage.SelectSingle
+        ) {
+          val.stage = FeatureLifecycleStage.View;
+        }
+      });
     });
   }
 
@@ -415,10 +476,12 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   selectedToEditable() {
-    this.features.forEach((val) => {
-      if (val.stage === FeatureLifecycleStage.SelectMultiple) {
-        val.stage = FeatureLifecycleStage.EditShape;
-      }
+    withoutUndo(() => {
+      this.features.forEach((val) => {
+        if (val.stage === FeatureLifecycleStage.SelectMultiple) {
+          val.stage = FeatureLifecycleStage.EditShape;
+        }
+      });
     });
   }
 
@@ -427,9 +490,11 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   selectedToEditMetadata() {
-    if (this.rawFocusedFeature) {
-      this.rawFocusedFeature.stage = FeatureLifecycleStage.EditMetadata;
-    }
+    withoutUndo(() => {
+      if (this.rawFocusedFeature) {
+        this.rawFocusedFeature.stage = FeatureLifecycleStage.EditMetadata;
+      }
+    });
   }
 
   /**
@@ -437,8 +502,18 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   draftMetadataToSelected() {
-    if (this.draftMetadataFeature) {
-      this.draftMetadataFeature.stage = FeatureLifecycleStage.SelectSingle;
-    }
+    withoutUndo(() => {
+      if (this.draftMetadataFeature) {
+        this.draftMetadataFeature.stage = FeatureLifecycleStage.SelectSingle;
+      }
+    });
+  }
+
+  /**
+   * Delete features in a selected lifecycle stage
+   */
+  @modelAction
+  deleteSelected() {
+    this.features = difference(this.features, this.rawSelectedFeatures);
   }
 }

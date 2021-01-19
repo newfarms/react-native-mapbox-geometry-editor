@@ -10,7 +10,8 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { _GeometryEditor } from './GeometryEditor';
 import type { GeometryEditorProps } from './GeometryEditor';
 import { StoreProvider } from '../state/StoreProvider';
-import { ModeToolbox } from './ui/ModeToolbox';
+import { ActionToolbox } from './ui/control/ActionToolbox';
+import { ModeToolbox } from './ui/control/ModeToolbox';
 import { ConfirmationDialog } from './ui/ConfirmationDialog';
 import { MetadataContext } from './ui/MetadataContext';
 import { MetadataPreview } from './geometry/MetadataPreview';
@@ -66,6 +67,7 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
               {props.children}
             </_GeometryEditor>
             <ModeToolbox />
+            <ActionToolbox />
             <PageController pageProps={pageProps} />
             <ConfirmationDialog visibleIfPageOpen={false} />
           </MetadataContext.Provider>
