@@ -3,8 +3,8 @@ import { action } from 'mobx';
 import React, { useContext, useMemo } from 'react';
 import { ToggleButton } from 'react-native-paper';
 
-import { InteractionMode } from '../../state/ControlsModel';
-import { StoreContext } from '../../state/StoreContext';
+import { InteractionMode } from '../../../state/ControlsModel';
+import { StoreContext } from '../../../state/StoreContext';
 
 /**
  * Create a toggle button that enables and disables an editing mode
