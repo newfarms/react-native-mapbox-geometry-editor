@@ -26,39 +26,8 @@ function getDefaultDraggablePointStyle(
     radius: ANNOTATION_SIZE * 2,
     color: 'red',
     strokeWidth: 3,
+    strokeColor: coordinateRoleColor(role),
   };
-  switch (role) {
-    case CoordinateRole.PointFeature:
-      style.strokeColor = 'aquamarine';
-      break;
-    case CoordinateRole.LineStart:
-      style.strokeColor = 'cornflowerblue';
-      break;
-    case CoordinateRole.LineSecond:
-      style.strokeColor = 'darkturquoise';
-      break;
-    case CoordinateRole.LineInner:
-      style.strokeColor = 'aquamarine';
-      break;
-    case CoordinateRole.LineSecondLast:
-      style.strokeColor = 'darkkhaki';
-      break;
-    case CoordinateRole.LineLast:
-      style.strokeColor = 'darkorange';
-      break;
-    case CoordinateRole.PolygonStart:
-      style.strokeColor = 'cornflowerblue';
-      break;
-    case CoordinateRole.PolygonInner:
-      style.strokeColor = 'aquamarine';
-      break;
-    case CoordinateRole.PolygonSecondLast:
-      style.strokeColor = 'darkorange';
-      break;
-    case CoordinateRole.PolygonHole:
-      style.strokeColor = 'darkcyan';
-      break;
-  }
   return style;
 }
 
@@ -108,6 +77,38 @@ function featureLifecycleStrokeWidth(stage?: FeatureLifecycleStage): number {
       return 1;
     default:
       return 2;
+  }
+}
+
+/**
+ * Default colours for coordinate roles
+ * @param role The coordinate role
+ */
+function coordinateRoleColor(role?: CoordinateRole): string {
+  if (!role) {
+    return missingColor;
+  }
+  switch (role) {
+    case CoordinateRole.PointFeature:
+      return '#7fffd4'; // aquamarine
+    case CoordinateRole.LineStart:
+      return '#6495ed'; // cornflowerblue
+    case CoordinateRole.LineSecond:
+      return '#00ced1'; // darkturquoise
+    case CoordinateRole.LineInner:
+      return '#7fffd4'; // aquamarine
+    case CoordinateRole.LineSecondLast:
+      return '#bdb76b'; // darkkhaki
+    case CoordinateRole.LineLast:
+      return '#ff8c00'; // darkorange
+    case CoordinateRole.PolygonStart:
+      return '#6495ed'; // cornflowerblue
+    case CoordinateRole.PolygonInner:
+      return '#7fffd4'; // aquamarine
+    case CoordinateRole.PolygonSecondLast:
+      return '#ff8c00'; // darkorange
+    case CoordinateRole.PolygonHole:
+      return '#008b8b'; // darkcyan
   }
 }
 
@@ -168,6 +169,45 @@ function getDefaultPointStyle(): CircleLayerStyle {
 }
 
 /**
+ * The default style generation function for vertices of non-point features
+ * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'Point'`
+ */
+function getDefaultVertexStyle(): CircleLayerStyle {
+  return {
+    circleRadius: ANNOTATION_SIZE / 2,
+    circleColor: [
+      'match',
+      ['get', 'rnmgeRole'],
+      CoordinateRole.PointFeature,
+      coordinateRoleColor(CoordinateRole.PointFeature),
+      CoordinateRole.LineStart,
+      coordinateRoleColor(CoordinateRole.LineStart),
+      CoordinateRole.LineSecond,
+      coordinateRoleColor(CoordinateRole.LineSecond),
+      CoordinateRole.LineInner,
+      coordinateRoleColor(CoordinateRole.LineInner),
+      CoordinateRole.LineSecondLast,
+      coordinateRoleColor(CoordinateRole.LineSecondLast),
+      CoordinateRole.LineLast,
+      coordinateRoleColor(CoordinateRole.LineLast),
+      CoordinateRole.PolygonStart,
+      coordinateRoleColor(CoordinateRole.PolygonStart),
+      CoordinateRole.PolygonInner,
+      coordinateRoleColor(CoordinateRole.PolygonInner),
+      CoordinateRole.PolygonSecondLast,
+      coordinateRoleColor(CoordinateRole.PolygonSecondLast),
+      CoordinateRole.PolygonHole,
+      coordinateRoleColor(CoordinateRole.PolygonHole),
+      coordinateRoleColor(),
+    ],
+    circlePitchAlignment: 'map',
+    circleStrokeWidth: 0,
+    // Circle edge colour based on geometry lifecycle stage
+    circleStrokeColor: missingColor,
+  };
+}
+
+/**
  * The default style generation function for clusters of point features
  * @return Mapbox style JSON for a cluster feature
  */
@@ -203,6 +243,7 @@ function getDefaultClusterSymbolStyle(): SymbolLayerStyle {
 export const defaultStyleGeneratorMap: StyleGeneratorMap = {
   draggablePoint: getDefaultDraggablePointStyle,
   point: getDefaultPointStyle,
+  vertex: getDefaultVertexStyle,
   cluster: getDefaultClusterStyle,
   clusterSymbol: getDefaultClusterSymbolStyle,
 };

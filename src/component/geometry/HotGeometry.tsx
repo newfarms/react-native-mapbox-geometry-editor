@@ -5,6 +5,7 @@ import MapboxGL from '@react-native-mapbox-gl/maps';
 
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
+import { CoordinateRole } from '../../type/geometry';
 
 /**
  * Renders "hot" geometry on a Mapbox map.
@@ -24,8 +25,21 @@ function _HotGeometry() {
     <MapboxGL.ShapeSource id="hot_geometry" shape={featuresJS}>
       <MapboxGL.CircleLayer
         id="hot_points"
-        filter={['==', ['geometry-type'], 'Point']}
+        filter={[
+          'all',
+          ['==', ['geometry-type'], 'Point'],
+          ['==', ['get', 'rnmgeRole'], CoordinateRole.PointFeature],
+        ]}
         style={styleGenerators.point()}
+      />
+      <MapboxGL.CircleLayer
+        id="hot_vertices"
+        filter={[
+          'all',
+          ['==', ['geometry-type'], 'Point'],
+          ['!=', ['get', 'rnmgeRole'], CoordinateRole.PointFeature],
+        ]}
+        style={styleGenerators.vertex()}
       />
     </MapboxGL.ShapeSource>
   );

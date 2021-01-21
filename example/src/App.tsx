@@ -133,6 +133,10 @@ const styleGeneratorMap: StyleGeneratorMap = {
     return style;
   },
   /**
+   * Style for vertices of non-point geometry
+   */
+  vertex: defaultStyleGeneratorMap.vertex,
+  /**
    * Style for clustered point geometry
    */
   cluster: () => {

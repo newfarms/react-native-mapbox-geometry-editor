@@ -87,11 +87,18 @@ export interface StyleGeneratorMap {
    */
   readonly draggablePoint: DraggablePointStyleGenerator;
   /**
-   * Style generator for non-draggable point features
-   * These features will be of type [[RenderFeature]]
-   * and will have a geometry of type `'Point'`
+   * Style generator for non-draggable point features.
+   * Features will be of type [[RenderFeature]] and will have a geometry
+   * of type `'Point'`
    */
   readonly point: CircleLayerStyleGenerator;
+  /**
+   * Style generator for point features that mark vertices of non-point features
+   * in the process of being created or edited.
+   * Features will be of type [[RenderFeature]] and will have a geometry
+   * of type `'Point'`
+   */
+  readonly vertex: CircleLayerStyleGenerator;
   /**
    * Style generator for clustered point features
    */
