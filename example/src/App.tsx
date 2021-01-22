@@ -137,6 +137,10 @@ const styleGeneratorMap: StyleGeneratorMap = {
    */
   vertex: defaultStyleGeneratorMap.vertex,
   /**
+   * Style for polylines describing the edges of non-polyline geometry
+   */
+  edge: defaultStyleGeneratorMap.edge,
+  /**
    * Style for clustered point geometry
    */
   cluster: () => {

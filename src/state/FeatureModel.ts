@@ -1,7 +1,7 @@
 import { computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import flatten from 'lodash/flatten';
-import { point } from '@turf/helpers';
+import { point, lineString } from '@turf/helpers';
 import type { Position } from 'geojson';
 
 import type {
@@ -14,6 +14,7 @@ import type {
 import {
   FeatureLifecycleStage,
   CoordinateRole,
+  LineStringRole,
   GeometryRole,
 } from '../type/geometry';
 import { globalToLocalIndices } from '../util/collections';
@@ -98,7 +99,7 @@ export class FeatureModel extends Model({
   @computed
   private get coordinatesWithRoles(): Array<{
     /**
-     * Point coordiantes
+     * Point coordinates
      */
     coordinates: Position;
     /**
@@ -233,6 +234,102 @@ export class FeatureModel extends Model({
   }
 
   /**
+   * Helper function that lists the polylines of this
+   * feature and determines their geometrical roles
+   */
+  @computed
+  private get lineStringsWithRoles(): Array<{
+    /**
+     * Line string coordinates
+     */
+    coordinates: Array<Position>;
+    /**
+     * Information about the position of the line string
+     * in the context of the originating shape
+     */
+    role: LineStringRole;
+  }> {
+    let result: Array<{
+      coordinates: Array<Position>;
+      role: LineStringRole;
+    }> = [];
+    switch (this.geojson.geometry.type) {
+      case 'Point':
+        break;
+      case 'LineString':
+        switch (this.finalType) {
+          case 'Point':
+            throw new Error(
+              `this.finalType is ${this.finalType}, but this.geojson.geometry.type is ${this.geojson.geometry.type}`
+            );
+          case 'LineString':
+            result = [
+              {
+                coordinates: this.geojson.geometry.coordinates,
+                role: LineStringRole.LineStringFeature,
+              },
+            ];
+            break;
+          case 'Polygon':
+            result = [
+              {
+                coordinates: this.geojson.geometry.coordinates,
+                role: LineStringRole.PolygonInner,
+              },
+            ];
+            break;
+        }
+        break;
+      case 'Polygon':
+        {
+          let edges: Array<{
+            coordinates: Array<Position>;
+            role: LineStringRole;
+          }> = [];
+          /**
+           * First linear ring is the exterior boundary. When the polygon is being created,
+           * treat the last edge as a special edge.
+           */
+          if (this.stage === FeatureLifecycleStage.NewShape) {
+            edges = [
+              {
+                coordinates: this.geojson.geometry.coordinates[0].slice(0, -1),
+                role: LineStringRole.PolygonInner,
+              },
+              {
+                coordinates: this.geojson.geometry.coordinates[0].slice(-2),
+                role: LineStringRole.PolygonLast,
+              },
+            ];
+          } else {
+            // Otherwise treat all edges as equivalent.
+            edges = [
+              {
+                coordinates: this.geojson.geometry.coordinates[0],
+                role: LineStringRole.PolygonInner,
+              },
+            ];
+          }
+          /**
+           * Other linear rings are holes
+           */
+          if (this.geojson.geometry.coordinates.length > 1) {
+            const holeEdges = this.geojson.geometry.coordinates
+              .slice(1)
+              .map((ring) => {
+                return { coordinates: ring, role: LineStringRole.PolygonHole };
+              });
+            result = edges.concat(holeEdges);
+          } else {
+            result = edges;
+          }
+        }
+        break;
+    }
+    return result;
+  }
+
+  /**
    * Helper function that computes the list of non-draggable coordinates
    * for a non-point feature that is in a "hot" lifecycle stage.
    * Returns an empty list for a point feature.
@@ -284,6 +381,33 @@ export class FeatureModel extends Model({
   }
 
   /**
+   * Helper function that generates a list of `LineString` features to display
+   * the edges of a polygon in a "hot" lifecycle stage.
+   * Returns an empty list for a non-polygon feature, or for a feature that
+   * is not in a "hot" lifecycle stage,
+   */
+  @computed
+  private get hotEdges(): Array<RenderFeature> {
+    if (this.geojson.geometry.type === 'Polygon' && this.isInHotStage) {
+      return this.lineStringsWithRoles.map((val) => {
+        return lineString(
+          val.coordinates.map((c) => toJS(c)),
+          {
+            ...toJS(this.renderFeatureProperties),
+            rnmgeRole: val.role,
+          },
+          {
+            bbox: toJS(this.geojson.bbox),
+            id: this.geojson.id,
+          }
+        );
+      });
+    } else {
+      return [];
+    }
+  }
+
+  /**
    * Determines whether this feature is in a lifecycle stage that permits
    * shape modification. If so, the feature should be rendered in the "hot"
    * map layers.
@@ -313,9 +437,13 @@ export class FeatureModel extends Model({
    */
   @computed
   private get renderFeatureProperties(): RenderProperties {
-    let role: GeometryRole | CoordinateRole = GeometryRole.NonPoint;
+    let role: GeometryRole | CoordinateRole | LineStringRole =
+      GeometryRole.Other;
     if (this.finalType === 'Point') {
       role = CoordinateRole.PointFeature;
+    }
+    if (this.finalType === 'LineString') {
+      role = LineStringRole.LineStringFeature;
     }
     let copyProperties: RenderProperties = {
       rnmgeID: this.$modelId,
@@ -353,25 +481,35 @@ export class FeatureModel extends Model({
   @computed
   get hotFeatures(): Array<RenderFeature> {
     if (this.isInHotStage) {
-      if (this.geojson.geometry.type === 'Point') {
-        if (this.stage === FeatureLifecycleStage.EditShape) {
-          // Draggable points are rendered in other layers
-          return [];
-        } else {
-          return [this.renderFeature];
-        }
-      } else {
-        if (this.stage === FeatureLifecycleStage.EditShape) {
-          // Draggable points are rendered in other layers
-          return [this.renderFeature];
-        } else {
-          /**
-           * The hot layers will render geometry and its points as separate
-           * objects in order to allow custom styling to be applied to
-           * individual points within a geometry.
-           */
-          return [this.renderFeature].concat(this.fixedPositions);
-        }
+      /**
+       * The hot layers will render geometry and its points and edges as separate
+       * objects in order to allow custom styling to be applied to
+       * individual points and edges within a geometry.
+       */
+      switch (this.geojson.geometry.type) {
+        case 'Point':
+          if (this.stage === FeatureLifecycleStage.EditShape) {
+            // Draggable points are rendered in other layers
+            return [];
+          } else {
+            return [this.renderFeature];
+          }
+        case 'LineString':
+          if (this.stage === FeatureLifecycleStage.EditShape) {
+            // Draggable points are rendered in other layers
+            return [this.renderFeature];
+          } else {
+            return [this.renderFeature].concat(this.fixedPositions);
+          }
+        case 'Polygon':
+          if (this.stage === FeatureLifecycleStage.EditShape) {
+            // Draggable points are rendered in other layers
+            return [this.renderFeature].concat(this.hotEdges);
+          } else {
+            return [this.renderFeature]
+              .concat(this.hotEdges)
+              .concat(this.fixedPositions);
+          }
       }
     } else {
       return [];

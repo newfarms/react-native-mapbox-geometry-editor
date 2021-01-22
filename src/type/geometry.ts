@@ -126,16 +126,47 @@ export enum CoordinateRole {
 }
 
 /**
- * The equivalent of [[CoordinateRole]] for geometrical
- * features that are not points.
+ * The possible roles of a line string in a shape
+ */
+export enum LineStringRole {
+  /**
+   * The line string is a polyline feature
+   */
+  LineStringFeature = 'LINESTRINGFEATURE',
+  /**
+   * The line string is a series of edges in a polygon's first linear ring,
+   * and does not contain the tentative edge that closes the linear ring.
+   * This role is also used for line strings that have less than three vertices
+   * (i.e. incomplete polygons). Polygons that have been drawn previously
+   * do not have a special tentative final edge, and so all edges are marked
+   * with this role.
+   */
+  PolygonInner = 'POLYGONINNER',
+  /**
+   * The line string is the edge that closes a polygon's first linear ring.
+   * The linear ring therefore has at least three vertices, and is in the process
+   * of being constructed. (In a finished polygon, no edge can be said to be
+   * a special last edge.)
+   */
+  PolygonLast = 'POLYGONLAST',
+  /**
+   * The line string is part of a hole in a polygon
+   * (i.e. not part of the first linear ring)
+   */
+  PolygonHole = 'POLYGONHOLE',
+}
+
+/**
+ * The equivalent of [[CoordinateRole]] and [[LineStringRole]] for geometrical
+ * features that are not points or line strings.
  * This enum provides a value to fill an otherwise empty
- * field when that field is relevant only to point features.
+ * field when that field is relevant only to other types of features.
  */
 export enum GeometryRole {
   /**
-   * The feature is not a point
+   * The feature is not a point or a line string
    */
-  NonPoint = 'NONPOINT',
+  Other = 'OTHER',
 }
 
 /**
@@ -167,11 +198,11 @@ export interface RenderProperties {
    */
   readonly rnmgeStage: FeatureLifecycleStage;
   /**
-   * For point features, the geometrical role of the point in its
-   * containing feature.
-   * For non-point features, it is set to [[GeometryRole.NonPoint]]
+   * For point and line string features, the geometrical role in their
+   * containing features.
+   * For other features, it is set to [[GeometryRole.Other]]
    */
-  readonly rnmgeRole: CoordinateRole | GeometryRole;
+  readonly rnmgeRole: CoordinateRole | LineStringRole | GeometryRole;
   /**
    * Client-defined properties associated with GeoJSON features.
    * These properties are set by the client, not by the library.

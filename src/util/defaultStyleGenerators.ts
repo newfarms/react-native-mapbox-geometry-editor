@@ -1,9 +1,14 @@
 import type {
   CircleLayerStyle,
+  LineLayerStyle,
   SymbolLayerStyle,
 } from '@react-native-mapbox-gl/maps';
 
-import { CoordinateRole, FeatureLifecycleStage } from '../type/geometry';
+import {
+  CoordinateRole,
+  FeatureLifecycleStage,
+  LineStringRole,
+} from '../type/geometry';
 import type { EditableFeature } from '../type/geometry';
 import type { DraggablePointStyle, StyleGeneratorMap } from '../type/style';
 
@@ -76,7 +81,7 @@ function featureLifecycleStrokeWidth(stage?: FeatureLifecycleStage): number {
     case FeatureLifecycleStage.View:
       return 1;
     default:
-      return 2;
+      return MISSING_WIDTH;
   }
 }
 
@@ -86,7 +91,7 @@ function featureLifecycleStrokeWidth(stage?: FeatureLifecycleStage): number {
  */
 function coordinateRoleColor(role?: CoordinateRole): string {
   if (!role) {
-    return missingColor;
+    return MISSING_COLOR;
   }
   switch (role) {
     case CoordinateRole.PointFeature:
@@ -113,9 +118,54 @@ function coordinateRoleColor(role?: CoordinateRole): string {
 }
 
 /**
+ * Default colours for line string roles
+ * @param role The line string role
+ */
+function lineStringRoleColor(role?: LineStringRole): string {
+  if (!role) {
+    return MISSING_COLOR;
+  }
+  switch (role) {
+    case LineStringRole.LineStringFeature:
+      return '#7fffd4'; // aquamarine
+    case LineStringRole.PolygonInner:
+      return '#8fbc8f'; // darkseagreen
+    case LineStringRole.PolygonLast:
+      return '#daa520'; // goldenrod
+    case LineStringRole.PolygonHole:
+      return '#b0c4de'; // lightsteelblue
+  }
+}
+
+/**
+ * Default widths for line string roles
+ * @param role The line string role
+ */
+function lineStringRoleWidth(role?: LineStringRole): number {
+  if (!role) {
+    return MISSING_WIDTH;
+  }
+  switch (role) {
+    case LineStringRole.LineStringFeature:
+      return 3;
+    case LineStringRole.PolygonInner:
+      return 2;
+    case LineStringRole.PolygonLast:
+      return 1;
+    case LineStringRole.PolygonHole:
+      return 2;
+  }
+}
+
+/**
  * The default colour to use for missing information
  */
-const missingColor = '#000000';
+const MISSING_COLOR = '#000000';
+
+/**
+ * The default width to use for missing information
+ */
+const MISSING_WIDTH = 2;
 
 /**
  * The default style generation function for non-draggable point features
@@ -163,7 +213,7 @@ function getDefaultPointStyle(): CircleLayerStyle {
       featureLifecycleStageColor(FeatureLifecycleStage.DraftShape),
       FeatureLifecycleStage.View,
       featureLifecycleStageColor(FeatureLifecycleStage.View),
-      missingColor,
+      MISSING_COLOR,
     ],
   };
 }
@@ -203,7 +253,42 @@ function getDefaultVertexStyle(): CircleLayerStyle {
     circlePitchAlignment: 'map',
     circleStrokeWidth: 0,
     // Circle edge colour based on geometry lifecycle stage
-    circleStrokeColor: missingColor,
+    circleStrokeColor: MISSING_COLOR,
+  };
+}
+
+/**
+ * The default style generation function for edges of non-line string features
+ * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'LineString'`
+ */
+function getDefaultEdgeStyle(): LineLayerStyle {
+  return {
+    lineColor: [
+      'match',
+      ['get', 'rnmgeRole'],
+      LineStringRole.LineStringFeature,
+      lineStringRoleColor(LineStringRole.LineStringFeature),
+      LineStringRole.PolygonInner,
+      lineStringRoleColor(LineStringRole.PolygonInner),
+      LineStringRole.PolygonLast,
+      lineStringRoleColor(LineStringRole.PolygonLast),
+      LineStringRole.PolygonHole,
+      lineStringRoleColor(LineStringRole.PolygonHole),
+      lineStringRoleColor(),
+    ],
+    lineWidth: [
+      'match',
+      ['get', 'rnmgeRole'],
+      LineStringRole.LineStringFeature,
+      lineStringRoleWidth(LineStringRole.LineStringFeature),
+      LineStringRole.PolygonInner,
+      lineStringRoleWidth(LineStringRole.PolygonInner),
+      LineStringRole.PolygonLast,
+      lineStringRoleWidth(LineStringRole.PolygonLast),
+      LineStringRole.PolygonHole,
+      lineStringRoleWidth(LineStringRole.PolygonHole),
+      lineStringRoleWidth(),
+    ],
   };
 }
 
@@ -244,6 +329,7 @@ export const defaultStyleGeneratorMap: StyleGeneratorMap = {
   draggablePoint: getDefaultDraggablePointStyle,
   point: getDefaultPointStyle,
   vertex: getDefaultVertexStyle,
+  edge: getDefaultEdgeStyle,
   cluster: getDefaultClusterStyle,
   clusterSymbol: getDefaultClusterSymbolStyle,
 };

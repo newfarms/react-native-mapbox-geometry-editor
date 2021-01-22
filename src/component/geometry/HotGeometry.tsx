@@ -5,7 +5,7 @@ import MapboxGL from '@react-native-mapbox-gl/maps';
 
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
-import { CoordinateRole } from '../../type/geometry';
+import { CoordinateRole, LineStringRole } from '../../type/geometry';
 
 /**
  * Renders "hot" geometry on a Mapbox map.
@@ -31,6 +31,15 @@ function _HotGeometry() {
           ['==', ['get', 'rnmgeRole'], CoordinateRole.PointFeature],
         ]}
         style={styleGenerators.point()}
+      />
+      <MapboxGL.LineLayer
+        id="hot_edges"
+        filter={[
+          'all',
+          ['==', ['geometry-type'], 'LineString'],
+          ['!=', ['get', 'rnmgeRole'], LineStringRole.LineStringFeature],
+        ]}
+        style={styleGenerators.edge()}
       />
       <MapboxGL.CircleLayer
         id="hot_vertices"
