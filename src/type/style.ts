@@ -4,6 +4,7 @@
  */
 import type {
   CircleLayerStyle,
+  FillLayerStyle,
   LineLayerStyle,
   SymbolLayerStyle,
 } from '@react-native-mapbox-gl/maps';
@@ -76,6 +77,19 @@ export interface LineLayerStyleGenerator {
 }
 
 /**
+ * A function that will be called to output style properties for polygon features
+ */
+export interface PolygonLayerStyleGenerator {
+  /**
+   * Refer to Mapbox's documentation of data-driven styling expressions
+   * for more information on data-driven styling:
+   * https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions/
+   * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'Polygon'`
+   */
+  (): FillLayerStyle;
+}
+
+/**
  * A function that will be called to output style properties for `MapboxGL.SymbolLayer`
  * layers rendered as child layers of `MapboxGL.CircleLayer` layers representing clusters.
  *
@@ -120,6 +134,12 @@ export interface StyleGeneratorMap {
    * of type `'LineString'`
    */
   readonly edge: LineLayerStyleGenerator;
+  /**
+   * Style generator for polygon features.
+   * Features will be of type [[RenderFeature]] and will have a geometry
+   * of type `'Polygon'`
+   */
+  readonly polygon: PolygonLayerStyleGenerator;
   /**
    * Style generator for clustered point features
    */

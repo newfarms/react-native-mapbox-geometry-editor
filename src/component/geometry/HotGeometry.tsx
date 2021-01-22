@@ -32,6 +32,11 @@ function _HotGeometry() {
         ]}
         style={styleGenerators.point()}
       />
+      <MapboxGL.FillLayer
+        id="hot_polygons"
+        filter={['==', ['geometry-type'], 'Polygon']}
+        style={styleGenerators.polygon()}
+      />
       <MapboxGL.LineLayer
         id="hot_edges"
         filter={[

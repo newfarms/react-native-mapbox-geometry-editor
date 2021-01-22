@@ -1,5 +1,6 @@
 import type {
   CircleLayerStyle,
+  FillLayerStyle,
   LineLayerStyle,
   SymbolLayerStyle,
 } from '@react-native-mapbox-gl/maps';
@@ -147,11 +148,11 @@ function lineStringRoleWidth(role?: LineStringRole): number {
   }
   switch (role) {
     case LineStringRole.LineStringFeature:
-      return 3;
-    case LineStringRole.PolygonInner:
       return 2;
+    case LineStringRole.PolygonInner:
+      return 3;
     case LineStringRole.PolygonLast:
-      return 1;
+      return 3;
     case LineStringRole.PolygonHole:
       return 2;
   }
@@ -293,6 +294,39 @@ function getDefaultEdgeStyle(): LineLayerStyle {
 }
 
 /**
+ * The default style generation function for polygon features
+ * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'Polygon'`
+ */
+function getDefaultPolygonStyle(): FillLayerStyle {
+  return {
+    fillColor: '#fffacd', // lemonchiffon
+    /**
+     * Outline colour based on geometry lifecycle stage
+     * The outline is very thin (1 px?) and hard to notice.
+     */
+    fillOutlineColor: [
+      'match',
+      ['get', 'rnmgeStage'],
+      FeatureLifecycleStage.NewShape,
+      featureLifecycleStageColor(FeatureLifecycleStage.NewShape),
+      FeatureLifecycleStage.EditShape,
+      featureLifecycleStageColor(FeatureLifecycleStage.EditShape),
+      FeatureLifecycleStage.EditMetadata,
+      featureLifecycleStageColor(FeatureLifecycleStage.EditMetadata),
+      FeatureLifecycleStage.SelectMultiple,
+      featureLifecycleStageColor(FeatureLifecycleStage.SelectMultiple),
+      FeatureLifecycleStage.SelectSingle,
+      featureLifecycleStageColor(FeatureLifecycleStage.SelectSingle),
+      FeatureLifecycleStage.DraftShape,
+      featureLifecycleStageColor(FeatureLifecycleStage.DraftShape),
+      FeatureLifecycleStage.View,
+      featureLifecycleStageColor(FeatureLifecycleStage.View),
+      MISSING_COLOR,
+    ],
+  };
+}
+
+/**
  * The default style generation function for clusters of point features
  * @return Mapbox style JSON for a cluster feature
  */
@@ -330,6 +364,7 @@ export const defaultStyleGeneratorMap: StyleGeneratorMap = {
   point: getDefaultPointStyle,
   vertex: getDefaultVertexStyle,
   edge: getDefaultEdgeStyle,
+  polygon: getDefaultPolygonStyle,
   cluster: getDefaultClusterStyle,
   clusterSymbol: getDefaultClusterSymbolStyle,
 };
