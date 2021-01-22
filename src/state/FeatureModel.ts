@@ -439,11 +439,36 @@ export class FeatureModel extends Model({
   private get renderFeatureProperties(): RenderProperties {
     let role: GeometryRole | CoordinateRole | LineStringRole =
       GeometryRole.Other;
-    if (this.finalType === 'Point') {
-      role = CoordinateRole.PointFeature;
-    }
-    if (this.finalType === 'LineString') {
-      role = LineStringRole.LineStringFeature;
+    switch (this.geojson.geometry.type) {
+      case 'Point':
+        switch (this.finalType) {
+          case 'Point':
+            role = CoordinateRole.PointFeature;
+            break;
+          case 'LineString':
+            role = CoordinateRole.LineStart;
+            break;
+          case 'Polygon':
+            role = CoordinateRole.PolygonStart;
+            break;
+        }
+        break;
+      case 'LineString':
+        switch (this.finalType) {
+          case 'Point':
+            throw new Error(
+              `this.finalType is ${this.finalType}, but this.geojson.geometry.type is ${this.geojson.geometry.type}`
+            );
+          case 'LineString':
+            role = LineStringRole.LineStringFeature;
+            break;
+          case 'Polygon':
+            role = LineStringRole.PolygonInner;
+            break;
+        }
+        break;
+      case 'Polygon':
+        break;
     }
     let copyProperties: RenderProperties = {
       rnmgeID: this.$modelId,
@@ -482,11 +507,11 @@ export class FeatureModel extends Model({
   get hotFeatures(): Array<RenderFeature> {
     if (this.isInHotStage) {
       /**
-       * The hot layers will render geometry and its points and edges as separate
+       * The hot layers will render geometry and its vertices and edges as separate
        * objects in order to allow custom styling to be applied to
-       * individual points and edges within a geometry.
+       * individual vertices and edges within a geometry.
        */
-      switch (this.geojson.geometry.type) {
+      switch (this.finalType) {
         case 'Point':
           if (this.stage === FeatureLifecycleStage.EditShape) {
             // Draggable points are rendered in other layers
