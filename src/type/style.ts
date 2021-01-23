@@ -71,6 +71,10 @@ export interface LineLayerStyleGenerator {
    * Refer to Mapbox's documentation of data-driven styling expressions
    * for more information on data-driven styling:
    * https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions/
+   *
+   * Note: Data-driven dash pattern styling is not yet supported by Mapbox
+   * (https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/#paint-line-line-dasharray)
+   *
    * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'LineString'`
    */
   (): LineLayerStyle;

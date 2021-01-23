@@ -115,6 +115,7 @@ export class FeatureModel extends Model({
     switch (this.geojson.geometry.type) {
       case 'Point':
         switch (this.finalType) {
+          // This point is just a point
           case 'Point':
             result = [
               {
@@ -123,6 +124,7 @@ export class FeatureModel extends Model({
               },
             ];
             break;
+          // This point is going to be a line string when more vertices are added
           case 'LineString':
             result = [
               {
@@ -131,6 +133,7 @@ export class FeatureModel extends Model({
               },
             ];
             break;
+          // This point is going to be a polygon when more vertices are added
           case 'Polygon':
             result = [
               {
@@ -147,6 +150,9 @@ export class FeatureModel extends Model({
             throw new Error(
               `this.finalType is ${this.finalType}, but this.geojson.geometry.type is ${this.geojson.geometry.type}`
             );
+          /**
+           * This line string is just a line string, but its points can be extracted for display as circles
+           */
           case 'LineString':
             result = this.geojson.geometry.coordinates.map(
               (val, index, arr) => {
@@ -167,6 +173,10 @@ export class FeatureModel extends Model({
               }
             );
             break;
+          /**
+           * This line string will become a polygon when more vertices are added.
+           * Its points can be extracted for display as circles, and labelled as part of a polygon.
+           */
           case 'Polygon':
             result = this.geojson.geometry.coordinates.map((val, index) => {
               let role = CoordinateRole.PolygonInner;
@@ -187,6 +197,9 @@ export class FeatureModel extends Model({
             break;
         }
         break;
+      /**
+       * Extract the vertices of a polygon for display as circles
+       */
       case 'Polygon':
         {
           /**
@@ -254,6 +267,7 @@ export class FeatureModel extends Model({
       role: LineStringRole;
     }> = [];
     switch (this.geojson.geometry.type) {
+      // Points have no line strings
       case 'Point':
         break;
       case 'LineString':
@@ -262,6 +276,7 @@ export class FeatureModel extends Model({
             throw new Error(
               `this.finalType is ${this.finalType}, but this.geojson.geometry.type is ${this.geojson.geometry.type}`
             );
+          // A line string that is just a line string
           case 'LineString':
             result = [
               {
@@ -270,6 +285,7 @@ export class FeatureModel extends Model({
               },
             ];
             break;
+          // A line string that will turn into a polygon when more vertices are added
           case 'Polygon':
             result = [
               {
@@ -280,6 +296,10 @@ export class FeatureModel extends Model({
             break;
         }
         break;
+      /**
+       * Extract the edges from a polygon for better control over styling by displaying
+       * them separately.
+       */
       case 'Polygon':
         {
           let edges: Array<{
@@ -437,6 +457,11 @@ export class FeatureModel extends Model({
    */
   @computed
   private get renderFeatureProperties(): RenderProperties {
+    /**
+     * Determine the semantic role of the geometry as a function
+     * of the geometry's current type, and of the type of geometry
+     * that it is expected to become as more vertices are added.
+     */
     let role: GeometryRole | CoordinateRole | LineStringRole =
       GeometryRole.Other;
     switch (this.geojson.geometry.type) {
@@ -470,13 +495,17 @@ export class FeatureModel extends Model({
       case 'Polygon':
         break;
     }
+    /**
+     * Properties provided by this library for data-driven styling of map layers,
+     * and for callbacks (in the case of the model ID).
+     */
     let copyProperties: RenderProperties = {
       rnmgeID: this.$modelId,
       rnmgeStage: this.stage,
       rnmgeRole: role,
     };
     /**
-     * Merge with user properties of the GeoJSON object
+     * Merge with user-provided properties of the GeoJSON object
      */
     if (this.geojson.properties !== null) {
       copyProperties = {
@@ -509,7 +538,7 @@ export class FeatureModel extends Model({
       /**
        * The hot layers will render geometry and its vertices and edges as separate
        * objects in order to allow custom styling to be applied to
-       * individual vertices and edges within a geometry.
+       * individual vertices and edges within the geometry.
        */
       switch (this.finalType) {
         case 'Point':

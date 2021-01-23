@@ -33,6 +33,7 @@ import { FeatureLifecycleStage } from '../type/geometry';
 export class FeatureListModel extends Model({
   /**
    * Initial contents of the collection
+   * TODO remove static geometry
    */
   features: prop<Array<FeatureModel>>(() => [
     new FeatureModel({
