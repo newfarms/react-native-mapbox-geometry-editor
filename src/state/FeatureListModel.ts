@@ -35,7 +35,6 @@ import { FeatureLifecycleStage } from '../type/geometry';
 export class FeatureListModel extends Model({
   /**
    * Initial contents of the collection
-   * TODO remove static geometry
    */
   features: prop<Array<FeatureModel>>(() => []),
   /**
@@ -235,6 +234,8 @@ export class FeatureListModel extends Model({
    * Add a new GeoJSON point feature to the collection of features.
    *
    * @param position Coordinates for the new point
+   * @param finalType The desired type of geometry that the feature
+   *                  will become when more vertices are added
    */
   @modelAction
   addNewPoint(position: Position, finalType: EditableGeometryType = 'Point') {

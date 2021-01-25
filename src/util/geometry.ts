@@ -68,7 +68,7 @@ export function isGeometryEditableFeature(feature: FeatureModel) {
 }
 
 /**
- * Tests whether a feature is full-formed, such that its `finalType`
+ * Tests whether a feature is fully-formed, such that its `finalType`
  * matches its GeoJSON type.
  *
  * @param feature The feature to examine

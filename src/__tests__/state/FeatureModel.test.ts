@@ -178,8 +178,8 @@ test.each([
 );
 
 /**
- * Test that vertices can be added to any position to a three-vertex shape a longer line string
- * or a polygon
+ * Test that vertices can be added to any position to a three-vertex shape
+ * to make a larger line string or polygon
  */
 test.each([
   [-5, 'LineString'],
