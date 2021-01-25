@@ -57,6 +57,11 @@ function _ColdGeometry() {
         ]}
         style={styleGenerators.point()}
       />
+      <MapboxGL.FillLayer
+        id="cold_polygons"
+        filter={['==', ['geometry-type'], 'Polygon']}
+        style={styleGenerators.polygon()}
+      />
       <MapboxGL.CircleLayer
         id="cold_points_clusters"
         belowLayerID="cold_points_clusters_count"

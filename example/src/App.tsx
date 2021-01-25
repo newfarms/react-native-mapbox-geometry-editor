@@ -133,6 +133,25 @@ const styleGeneratorMap: StyleGeneratorMap = {
     return style;
   },
   /**
+   * Style for vertices of non-point geometry
+   */
+  vertex: defaultStyleGeneratorMap.vertex,
+  /**
+   * Style for polylines describing the edges of non-polyline geometry
+   */
+  edge: defaultStyleGeneratorMap.edge,
+  /**
+   * Style for polygon geometry
+   */
+  polygon: () => {
+    let style = defaultStyleGeneratorMap.polygon();
+    /**
+     * TODO: Data-driven styling
+     */
+    style.fillColor = '#dcdcdc'; // gainsboro
+    return style;
+  },
+  /**
    * Style for clustered point geometry
    */
   cluster: () => {

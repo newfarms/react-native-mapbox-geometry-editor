@@ -1,18 +1,20 @@
 import { computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import flatten from 'lodash/flatten';
-import { point } from '@turf/helpers';
+import { point, lineString } from '@turf/helpers';
 import type { Position } from 'geojson';
 
 import type {
   DraggablePosition,
   EditableFeature,
+  EditableGeometryType,
   RenderFeature,
   RenderProperties,
 } from '../type/geometry';
 import {
   FeatureLifecycleStage,
   CoordinateRole,
+  LineStringRole,
   GeometryRole,
 } from '../type/geometry';
 import { globalToLocalIndices } from '../util/collections';
@@ -34,6 +36,12 @@ export class FeatureModel extends Model({
    * The GeoJSON feature
    */
   geojson: prop<EditableFeature>(),
+  /**
+   * The intended type of geometry, which may not match the type of `geojson`.
+   * For example, when a polygon is being drawn and does not yet have three
+   * vertices, its `geojson` attribute will be a GeoJSON Point or LineString.
+   */
+  finalType: prop<EditableGeometryType>(),
 }) {
   /**
    * Re-position a draggable point in this feature.
@@ -91,7 +99,7 @@ export class FeatureModel extends Model({
   @computed
   private get coordinatesWithRoles(): Array<{
     /**
-     * Point coordiantes
+     * Point coordinates
      */
     coordinates: Position;
     /**
@@ -100,72 +108,245 @@ export class FeatureModel extends Model({
      */
     role: CoordinateRole;
   }> {
+    let result: Array<{
+      coordinates: Position;
+      role: CoordinateRole;
+    }> = [];
     switch (this.geojson.geometry.type) {
       case 'Point':
-        return [
-          {
-            coordinates: this.geojson.geometry.coordinates,
-            role: CoordinateRole.PointFeature,
-          },
-        ];
+        switch (this.finalType) {
+          // This point is just a point
+          case 'Point':
+            result = [
+              {
+                coordinates: this.geojson.geometry.coordinates,
+                role: CoordinateRole.PointFeature,
+              },
+            ];
+            break;
+          // This point is going to be a line string when more vertices are added
+          case 'LineString':
+            result = [
+              {
+                coordinates: this.geojson.geometry.coordinates,
+                role: CoordinateRole.LineStart,
+              },
+            ];
+            break;
+          // This point is going to be a polygon when more vertices are added
+          case 'Polygon':
+            result = [
+              {
+                coordinates: this.geojson.geometry.coordinates,
+                role: CoordinateRole.PolygonStart,
+              },
+            ];
+            break;
+        }
+        break;
       case 'LineString':
-        return this.geojson.geometry.coordinates.map((val, index, arr) => {
-          let role = CoordinateRole.LineInner;
-          if (index === 0) {
-            role = CoordinateRole.LineStart;
-          } else if (index === 1 && arr.length > 3) {
-            role = CoordinateRole.LineSecond;
-          } else if (index === arr.length - 2 && arr.length > 2) {
-            role = CoordinateRole.LineSecondLast;
-          } else if (index === arr.length - 1 && arr.length > 1) {
-            role = CoordinateRole.LineLast;
-          }
-          return {
-            coordinates: val,
-            role,
-          };
-        });
-      case 'Polygon': {
-        /**
-         * First linear ring is the exterior boundary
-         */
-        const coordinates: Array<{
-          coordinates: Position;
-          role: CoordinateRole;
-        }> = this.geojson.geometry.coordinates[0]
-          .slice(0, -1) // The last position in a GeoJSON linear ring is a repeat of the first, so exclude it
-          .map((val, index, arr) => {
-            let role = CoordinateRole.PolygonInner;
-            if (index === 0) {
-              role = CoordinateRole.PolygonStart;
-            } else if (index === arr.length - 1 && arr.length > 1) {
-              role = CoordinateRole.PolygonSecondLast;
-            }
-            return {
-              coordinates: val,
-              role,
-            };
-          });
-        /**
-         * Other linear rings are holes
-         */
-        if (this.geojson.geometry.coordinates.length > 1) {
-          const holeCoordinates = flatten(
-            this.geojson.geometry.coordinates.slice(1).map((ring) =>
-              ring.slice(0, -1).map((val) => {
+        switch (this.finalType) {
+          case 'Point':
+            throw new Error(
+              `this.finalType is ${this.finalType}, but this.geojson.geometry.type is ${this.geojson.geometry.type}`
+            );
+          /**
+           * This line string is just a line string, but its points can be extracted for display as circles
+           */
+          case 'LineString':
+            result = this.geojson.geometry.coordinates.map(
+              (val, index, arr) => {
+                let role = CoordinateRole.LineInner;
+                if (index === 0) {
+                  role = CoordinateRole.LineStart;
+                } else if (index === 1 && arr.length > 3) {
+                  role = CoordinateRole.LineSecond;
+                } else if (index === arr.length - 2 && arr.length > 2) {
+                  role = CoordinateRole.LineSecondLast;
+                } else if (index === arr.length - 1 && arr.length > 1) {
+                  role = CoordinateRole.LineLast;
+                }
                 return {
                   coordinates: val,
-                  role: CoordinateRole.PolygonHole,
+                  role,
                 };
-              })
-            )
-          );
-          return coordinates.concat(holeCoordinates);
-        } else {
-          return coordinates;
+              }
+            );
+            break;
+          /**
+           * This line string will become a polygon when more vertices are added.
+           * Its points can be extracted for display as circles, and labelled as part of a polygon.
+           */
+          case 'Polygon':
+            result = this.geojson.geometry.coordinates.map((val, index) => {
+              let role = CoordinateRole.PolygonInner;
+              if (index === 0) {
+                role = CoordinateRole.PolygonStart;
+              } else if (index === 1) {
+                role = CoordinateRole.PolygonSecondLast;
+              } else {
+                throw new Error(
+                  `A LineString representing an incomplete Polygon should contain exactly two points.`
+                );
+              }
+              return {
+                coordinates: val,
+                role,
+              };
+            });
+            break;
         }
-      }
+        break;
+      /**
+       * Extract the vertices of a polygon for display as circles
+       */
+      case 'Polygon':
+        {
+          /**
+           * First linear ring is the exterior boundary
+           */
+          const coordinates: Array<{
+            coordinates: Position;
+            role: CoordinateRole;
+          }> = this.geojson.geometry.coordinates[0]
+            .slice(0, -1) // The last position in a GeoJSON linear ring is a repeat of the first, so exclude it
+            .map((val, index, arr) => {
+              let role = CoordinateRole.PolygonInner;
+              if (index === 0) {
+                role = CoordinateRole.PolygonStart;
+              } else if (index === arr.length - 1 && arr.length > 1) {
+                role = CoordinateRole.PolygonSecondLast;
+              }
+              return {
+                coordinates: val,
+                role,
+              };
+            });
+          /**
+           * Other linear rings are holes
+           */
+          if (this.geojson.geometry.coordinates.length > 1) {
+            const holeCoordinates = flatten(
+              this.geojson.geometry.coordinates.slice(1).map((ring) =>
+                ring.slice(0, -1).map((val) => {
+                  return {
+                    coordinates: val,
+                    role: CoordinateRole.PolygonHole,
+                  };
+                })
+              )
+            );
+            result = coordinates.concat(holeCoordinates);
+          } else {
+            result = coordinates;
+          }
+        }
+        break;
     }
+    return result;
+  }
+
+  /**
+   * Helper function that lists the polylines of this
+   * feature and determines their geometrical roles
+   */
+  @computed
+  private get lineStringsWithRoles(): Array<{
+    /**
+     * Line string coordinates
+     */
+    coordinates: Array<Position>;
+    /**
+     * Information about the position of the line string
+     * in the context of the originating shape
+     */
+    role: LineStringRole;
+  }> {
+    let result: Array<{
+      coordinates: Array<Position>;
+      role: LineStringRole;
+    }> = [];
+    switch (this.geojson.geometry.type) {
+      // Points have no line strings
+      case 'Point':
+        break;
+      case 'LineString':
+        switch (this.finalType) {
+          case 'Point':
+            throw new Error(
+              `this.finalType is ${this.finalType}, but this.geojson.geometry.type is ${this.geojson.geometry.type}`
+            );
+          // A line string that is just a line string
+          case 'LineString':
+            result = [
+              {
+                coordinates: this.geojson.geometry.coordinates,
+                role: LineStringRole.LineStringFeature,
+              },
+            ];
+            break;
+          // A line string that will turn into a polygon when more vertices are added
+          case 'Polygon':
+            result = [
+              {
+                coordinates: this.geojson.geometry.coordinates,
+                role: LineStringRole.PolygonInner,
+              },
+            ];
+            break;
+        }
+        break;
+      /**
+       * Extract the edges from a polygon for better control over styling by displaying
+       * them separately.
+       */
+      case 'Polygon':
+        {
+          let edges: Array<{
+            coordinates: Array<Position>;
+            role: LineStringRole;
+          }> = [];
+          /**
+           * First linear ring is the exterior boundary. When the polygon is being created,
+           * treat the last edge as a special edge.
+           */
+          if (this.stage === FeatureLifecycleStage.NewShape) {
+            edges = [
+              {
+                coordinates: this.geojson.geometry.coordinates[0].slice(0, -1),
+                role: LineStringRole.PolygonInner,
+              },
+              {
+                coordinates: this.geojson.geometry.coordinates[0].slice(-2),
+                role: LineStringRole.PolygonLast,
+              },
+            ];
+          } else {
+            // Otherwise treat all edges as equivalent.
+            edges = [
+              {
+                coordinates: this.geojson.geometry.coordinates[0],
+                role: LineStringRole.PolygonInner,
+              },
+            ];
+          }
+          /**
+           * Other linear rings are holes
+           */
+          if (this.geojson.geometry.coordinates.length > 1) {
+            const holeEdges = this.geojson.geometry.coordinates
+              .slice(1)
+              .map((ring) => {
+                return { coordinates: ring, role: LineStringRole.PolygonHole };
+              });
+            result = edges.concat(holeEdges);
+          } else {
+            result = edges;
+          }
+        }
+        break;
+    }
+    return result;
   }
 
   /**
@@ -184,13 +365,13 @@ export class FeatureModel extends Model({
     if (this.isInHotStage && this.stage !== FeatureLifecycleStage.EditShape) {
       return this.coordinatesWithRoles.map((val) => {
         return point(
-          val.coordinates,
+          toJS(val.coordinates),
           {
             ...toJS(this.renderFeatureProperties),
             rnmgeRole: val.role,
           },
           {
-            bbox: this.geojson.bbox,
+            bbox: toJS(this.geojson.bbox),
             id: this.geojson.id,
           }
         );
@@ -213,6 +394,33 @@ export class FeatureModel extends Model({
           ...val,
           feature: this.geojson,
         };
+      });
+    } else {
+      return [];
+    }
+  }
+
+  /**
+   * Helper function that generates a list of `LineString` features to display
+   * the edges of a polygon in a "hot" lifecycle stage.
+   * Returns an empty list for a non-polygon feature, or for a feature that
+   * is not in a "hot" lifecycle stage,
+   */
+  @computed
+  private get hotEdges(): Array<RenderFeature> {
+    if (this.geojson.geometry.type === 'Polygon' && this.isInHotStage) {
+      return this.lineStringsWithRoles.map((val) => {
+        return lineString(
+          val.coordinates.map((c) => toJS(c)),
+          {
+            ...toJS(this.renderFeatureProperties),
+            rnmgeRole: val.role,
+          },
+          {
+            bbox: toJS(this.geojson.bbox),
+            id: this.geojson.id,
+          }
+        );
       });
     } else {
       return [];
@@ -249,17 +457,55 @@ export class FeatureModel extends Model({
    */
   @computed
   private get renderFeatureProperties(): RenderProperties {
-    let role: GeometryRole | CoordinateRole = GeometryRole.NonPoint;
-    if (this.geojson.geometry.type === 'Point') {
-      role = CoordinateRole.PointFeature;
+    /**
+     * Determine the semantic role of the geometry as a function
+     * of the geometry's current type, and of the type of geometry
+     * that it is expected to become as more vertices are added.
+     */
+    let role: GeometryRole | CoordinateRole | LineStringRole =
+      GeometryRole.Other;
+    switch (this.geojson.geometry.type) {
+      case 'Point':
+        switch (this.finalType) {
+          case 'Point':
+            role = CoordinateRole.PointFeature;
+            break;
+          case 'LineString':
+            role = CoordinateRole.LineStart;
+            break;
+          case 'Polygon':
+            role = CoordinateRole.PolygonStart;
+            break;
+        }
+        break;
+      case 'LineString':
+        switch (this.finalType) {
+          case 'Point':
+            throw new Error(
+              `this.finalType is ${this.finalType}, but this.geojson.geometry.type is ${this.geojson.geometry.type}`
+            );
+          case 'LineString':
+            role = LineStringRole.LineStringFeature;
+            break;
+          case 'Polygon':
+            role = LineStringRole.PolygonInner;
+            break;
+        }
+        break;
+      case 'Polygon':
+        break;
     }
+    /**
+     * Properties provided by this library for data-driven styling of map layers,
+     * and for callbacks (in the case of the model ID).
+     */
     let copyProperties: RenderProperties = {
       rnmgeID: this.$modelId,
       rnmgeStage: this.stage,
       rnmgeRole: role,
     };
     /**
-     * Merge with user properties of the GeoJSON object
+     * Merge with user-provided properties of the GeoJSON object
      */
     if (this.geojson.properties !== null) {
       copyProperties = {
@@ -289,25 +535,35 @@ export class FeatureModel extends Model({
   @computed
   get hotFeatures(): Array<RenderFeature> {
     if (this.isInHotStage) {
-      if (this.geojson.geometry.type === 'Point') {
-        if (this.stage === FeatureLifecycleStage.EditShape) {
-          // Draggable points are rendered in other layers
-          return [];
-        } else {
-          return [this.renderFeature];
-        }
-      } else {
-        if (this.stage === FeatureLifecycleStage.EditShape) {
-          // Draggable points are rendered in other layers
-          return [this.renderFeature];
-        } else {
-          /**
-           * The hot layers will render geometry and its points as separate
-           * objects in order to allow custom styling to be applied to
-           * individual points within a geometry.
-           */
-          return [this.renderFeature].concat(this.fixedPositions);
-        }
+      /**
+       * The hot layers will render geometry and its vertices and edges as separate
+       * objects in order to allow custom styling to be applied to
+       * individual vertices and edges within the geometry.
+       */
+      switch (this.finalType) {
+        case 'Point':
+          if (this.stage === FeatureLifecycleStage.EditShape) {
+            // Draggable points are rendered in other layers
+            return [];
+          } else {
+            return [this.renderFeature];
+          }
+        case 'LineString':
+          if (this.stage === FeatureLifecycleStage.EditShape) {
+            // Draggable points are rendered in other layers
+            return [this.renderFeature];
+          } else {
+            return [this.renderFeature].concat(this.fixedPositions);
+          }
+        case 'Polygon':
+          if (this.stage === FeatureLifecycleStage.EditShape) {
+            // Draggable points are rendered in other layers
+            return [this.renderFeature].concat(this.hotEdges);
+          } else {
+            return [this.renderFeature]
+              .concat(this.hotEdges)
+              .concat(this.fixedPositions);
+          }
       }
     } else {
       return [];
