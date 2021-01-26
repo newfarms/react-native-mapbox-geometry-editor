@@ -1,7 +1,7 @@
 import { computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import flatten from 'lodash/flatten';
-import { point, lineString } from '@turf/helpers';
+import { point, lineString, polygon } from '@turf/helpers';
 import type { Position } from 'geojson';
 
 import type {
@@ -18,6 +18,7 @@ import {
   GeometryRole,
 } from '../type/geometry';
 import { globalToLocalIndices } from '../util/collections';
+import { isGeometryEditableFeature } from '../util/geometry';
 
 /**
  * An editable GeoJSON feature
@@ -89,6 +90,131 @@ export class FeatureModel extends Model({
         );
         break;
       }
+    }
+  }
+
+  /**
+   * Add a vertex to this feature.
+   * Throws an error if this feature is of an inappropriate geometry type
+   * (`this.finalType`).
+   *
+   * @param vertex The new vertex
+   * @param index The index at which to insert the vertex in this feature's list of vertices.
+   *              The index is the index of the vertex after it is inserted.
+   *              Negative indices are interpreted as relative to the end of the **final** array.
+   *              For example `-1` means the vertex is inserted at the end of the array.
+   *              The length of a linear ring of coordinates is considered to be the number
+   *              of unique vertices it contains, not the actual length of the coordinates array
+   *              (which is one greater because of the duplicate of the first position).
+   */
+  @modelAction
+  addVertex(vertex: Position, index: number = -1) {
+    // Error checking
+    if (!isGeometryEditableFeature(this)) {
+      console.warn(
+        `The feature is in lifecycle stage ${this.stage}, which is not appropriate for adding vertices.`
+      );
+    }
+
+    /**
+     * Add a vertex in a way that is appropriate for the current geometry type
+     */
+    switch (this.geojson.geometry.type) {
+      case 'Point':
+        switch (this.finalType) {
+          case 'Point':
+            throw new Error(
+              `this.finalType is ${this.finalType}, so no vertices can be added`
+            );
+          case 'LineString':
+          case 'Polygon':
+            // Turn the point into a line
+            let newCoordinates = [toJS(this.geojson.geometry.coordinates)];
+            if (index === 0 || index < -1) {
+              newCoordinates.splice(0, 0, vertex);
+            } else {
+              newCoordinates.splice(1, 0, vertex);
+            }
+            this.geojson = lineString(
+              newCoordinates,
+              toJS(this.geojson.properties),
+              {
+                bbox: toJS(this.geojson.bbox),
+                id: this.geojson.id,
+              }
+            );
+            break;
+        }
+        break;
+      case 'LineString':
+        {
+          /**
+           * Handle negative indices as described
+           * in the function's interface documentation
+           */
+          let finalIndex = index;
+          if (index < 0) {
+            if (index === -1) {
+              finalIndex = this.geojson.geometry.coordinates.length;
+            } else {
+              finalIndex = index + 1;
+            }
+          }
+
+          switch (this.finalType) {
+            case 'Point':
+              throw new Error(
+                `this.finalType is ${this.finalType}, but this.geojson.geometry.type is ${this.geojson.geometry.type}`
+              );
+            case 'LineString':
+              // Add a point to a line string
+              this.geojson.geometry.coordinates.splice(finalIndex, 0, vertex);
+              break;
+            case 'Polygon':
+              // Turn the line string into a polygon
+              if (this.geojson.geometry.coordinates.length !== 2) {
+                throw new Error(
+                  `This line string has ${this.geojson.geometry.coordinates.length} coordinates, so it should already be a polygon as per its 'finalType' value, ${this.finalType}`
+                );
+              }
+              let newCoordinates = this.geojson.geometry.coordinates.map((c) =>
+                toJS(c)
+              );
+              newCoordinates.splice(finalIndex, 0, vertex);
+              // Convert the coordinates array into a linear ring
+              newCoordinates.push(newCoordinates[0]);
+              this.geojson = polygon(
+                [newCoordinates],
+                toJS(this.geojson.properties),
+                {
+                  bbox: toJS(this.geojson.bbox),
+                  id: this.geojson.id,
+                }
+              );
+              break;
+          }
+        }
+        break;
+      case 'Polygon':
+        {
+          // Add the point to the polygon's first linear ring
+          /**
+           * Handle indices as described
+           * in the function's interface documentation
+           */
+          const len = this.geojson.geometry.coordinates[0].length;
+          let finalIndex = index;
+          if (index >= len) {
+            // Insert at the logical end, before the duplicate first coordinate
+            finalIndex = -1;
+          }
+          this.geojson.geometry.coordinates[0].splice(finalIndex, 0, vertex);
+          if (index === 0 || len + index <= 0) {
+            // Fix the duplicate first coordinate
+            this.geojson.geometry.coordinates[0].splice(-1, 1, vertex);
+          }
+        }
+        break;
     }
   }
 

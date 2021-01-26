@@ -3,7 +3,9 @@ import bbox from '@turf/bbox';
 import centroid from '@turf/centroid';
 import length from '@turf/length';
 
+import { FeatureLifecycleStage } from '../type/geometry';
 import type { BBox2D, EditableFeature } from '../type/geometry';
+import type { FeatureModel } from '../state/FeatureModel';
 
 /**
  * Find the "centre" of a GeoJSON feature that is either
@@ -50,4 +52,27 @@ export function findBoundingBox(feature: EditableFeature): BBox2D | null {
           return [box[0], box[1], box[3], box[4]];
       }
   }
+}
+
+/**
+ * Tests whether a feature is in an appropriate lifecycle stage for
+ * geometry modification.
+ *
+ * @param feature The feature to examine
+ */
+export function isGeometryEditableFeature(feature: FeatureModel) {
+  return (
+    feature.stage === FeatureLifecycleStage.EditShape ||
+    feature.stage === FeatureLifecycleStage.NewShape
+  );
+}
+
+/**
+ * Tests whether a feature is fully-formed, such that its `finalType`
+ * matches its GeoJSON type.
+ *
+ * @param feature The feature to examine
+ */
+export function isCompleteFeature(feature: FeatureModel) {
+  return feature.geojson.geometry.type === feature.finalType;
 }

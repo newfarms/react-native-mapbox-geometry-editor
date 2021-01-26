@@ -17,10 +17,12 @@ import remove from 'lodash/remove';
 import type { Position, GeoJsonProperties } from 'geojson';
 
 import { globalToLocalIndices } from '../util/collections';
+import { isCompleteFeature, isGeometryEditableFeature } from '../util/geometry';
 import { FeatureModel } from './FeatureModel';
 import type {
   DraggablePosition,
   EditableFeature,
+  EditableGeometryType,
   RenderFeatureCollection,
   RnmgeID,
 } from '../type/geometry';
@@ -33,157 +35,8 @@ import { FeatureLifecycleStage } from '../type/geometry';
 export class FeatureListModel extends Model({
   /**
    * Initial contents of the collection
-   * TODO remove static geometry
    */
-  features: prop<Array<FeatureModel>>(() => [
-    new FeatureModel({
-      stage: FeatureLifecycleStage.NewShape,
-      finalType: 'Polygon',
-      geojson: {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'Point',
-          coordinates: [3.37924151661426, 6.468413221650249],
-        },
-      },
-    }),
-    new FeatureModel({
-      stage: FeatureLifecycleStage.NewShape,
-      finalType: 'Polygon',
-      geojson: {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'LineString',
-          coordinates: [
-            [3.3800570304318676, 6.468325619226564],
-            [3.380685196480704, 6.468238016787715],
-          ],
-        },
-      },
-    }),
-    new FeatureModel({
-      stage: FeatureLifecycleStage.NewShape,
-      finalType: 'Polygon',
-      geojson: {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'Polygon',
-          coordinates: [
-            [
-              [3.381677037610271, 6.468227066481739],
-              [3.382492551427853, 6.468500824058757],
-              [3.3825696946268056, 6.46743864383176],
-              [3.381677037610271, 6.468227066481739],
-            ],
-          ],
-        },
-      },
-    }),
-    new FeatureModel({
-      stage: FeatureLifecycleStage.NewShape,
-      finalType: 'Polygon',
-      geojson: {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'Polygon',
-          coordinates: [
-            [
-              [3.3833631675303577, 6.467821904995756],
-              [3.383991333578965, 6.467778103734437],
-              [3.3840023540360056, 6.466803524691268],
-              [3.3833852084444387, 6.466913028048344],
-              [3.3833631675303577, 6.467821904995756],
-            ],
-          ],
-        },
-      },
-    }),
-    new FeatureModel({
-      stage: FeatureLifecycleStage.NewShape,
-      finalType: 'Polygon',
-      geojson: {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'Polygon',
-          coordinates: [
-            [
-              [3.3840905176919724, 6.466102702644933],
-              [3.3845313359718596, 6.466310759291281],
-              [3.3850713383644995, 6.465949397692796],
-              [3.384828888310628, 6.465379978892039],
-              [3.384112558606028, 6.465445681094026],
-              [3.3840905176919724, 6.466102702644933],
-            ],
-          ],
-        },
-      },
-    }),
-    new FeatureModel({
-      stage: FeatureLifecycleStage.View,
-      finalType: 'Polygon',
-      geojson: {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'Polygon',
-          coordinates: [
-            [
-              [3.3809276465346265, 6.467263438631348],
-              [3.381456628470201, 6.467646699928203],
-              [3.3817100989811126, 6.46675972334195],
-              [3.3809276465346265, 6.467263438631348],
-            ],
-          ],
-        },
-      },
-    }),
-    new FeatureModel({
-      stage: FeatureLifecycleStage.View,
-      finalType: 'Polygon',
-      geojson: {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'Polygon',
-          coordinates: [
-            [
-              [3.3823603059437755, 6.4665407165378515],
-              [3.383175819761383, 6.4664859648218975],
-              [3.3832860243314054, 6.465774191976219],
-              [3.3825035718849192, 6.4657194401774305],
-              [3.3823603059437755, 6.4665407165378515],
-            ],
-          ],
-        },
-      },
-    }),
-    new FeatureModel({
-      stage: FeatureLifecycleStage.View,
-      finalType: 'Polygon',
-      geojson: {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'Polygon',
-          coordinates: [
-            [
-              [3.382812144680677, 6.4648872121044905],
-              [3.3832860243314054, 6.4652157233495595],
-              [3.3837488835250933, 6.464941963993416],
-              [3.3834843925574463, 6.464164486614174],
-              [3.382735001481725, 6.4640878338500745],
-              [3.382812144680677, 6.4648872121044905],
-            ],
-          ],
-        },
-      },
-    }),
-  ]),
+  features: prop<Array<FeatureModel>>(() => []),
   /**
    * Saved undo middleware state.
    * This data allows [[FeatureListModel]] to attach and dispose of undo middleware
@@ -236,6 +89,20 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Add a vertex to the feature currently being edited
+   * @param vertex The new vertex for the feature
+   * @param index The index at which to insert the vertex. See [[FeatureModel.addVertex]]
+   */
+  @modelAction
+  addVertex(vertex: Position, index: number = -1) {
+    if (this.rawGeometryEditableFeature) {
+      this.rawGeometryEditableFeature.addVertex(vertex, index);
+    } else {
+      console.warn('No editable features to modify.');
+    }
+  }
+
+  /**
    * Call this function to reset the undo/redo history at the end of
    * a geometry modification session.
    * Ensures that all geometry is marked as "finished".
@@ -247,7 +114,12 @@ export class FeatureListModel extends Model({
        * Finalize all geometry
        * Note that this step is done before clearing the undo/redo history.
        */
-      this.features.forEach((val) => {
+      this.features.forEach((val, index) => {
+        if (!isCompleteFeature(val)) {
+          console.warn(
+            `Feature at index ${index} with model ID ${val.$modelId} is not a complete ${val.finalType}.`
+          );
+        }
         val.stage = FeatureLifecycleStage.View;
       });
     });
@@ -362,18 +234,26 @@ export class FeatureListModel extends Model({
    * Add a new GeoJSON point feature to the collection of features.
    *
    * @param position Coordinates for the new point
+   * @param finalType The desired type of geometry that the feature
+   *                  will become when more vertices are added
    */
   @modelAction
-  addNewPoint(position: Position) {
-    withoutUndo(() => {
+  addNewPoint(position: Position, finalType: EditableGeometryType = 'Point') {
+    const internalAddPoint = () => {
       this.features.push(
         new FeatureModel({
           stage: FeatureLifecycleStage.NewShape,
           geojson: point(position),
-          finalType: 'Point',
+          finalType,
         })
       );
-    });
+    };
+    if (finalType === 'Point') {
+      // Point drawing mode does not have undo functionality
+      withoutUndo(internalAddPoint);
+    } else {
+      internalAddPoint();
+    }
   }
 
   /**
@@ -412,12 +292,31 @@ export class FeatureListModel extends Model({
           console.warn('There are multiple new features.');
         }
         arr.forEach((feature) => {
+          if (!isCompleteFeature(feature)) {
+            console.warn(
+              `Feature with model ID ${feature.$modelId} is not a complete ${feature.finalType}.`
+            );
+          }
           feature.stage = FeatureLifecycleStage.View;
         });
       } else {
         console.warn('There are no new features to confirm.');
       }
     });
+  }
+
+  /**
+   * Retrieve the feature whose geometry can be edited
+   */
+  @computed
+  private get rawGeometryEditableFeature(): FeatureModel | undefined {
+    const arr = filter(this.features, isGeometryEditableFeature);
+    if (arr.length > 1) {
+      console.warn(
+        'There are multiple feature in a geometry editing stage. Only the first will be returned.'
+      );
+    }
+    return arr[0];
   }
 
   /**
@@ -654,6 +553,11 @@ export class FeatureListModel extends Model({
   draftMetadataToSelected() {
     withoutUndo(() => {
       if (this.draftMetadataFeature) {
+        if (!isCompleteFeature(this.draftMetadataFeature)) {
+          console.warn(
+            `Feature with model ID ${this.draftMetadataFeature.$modelId} is not a complete ${this.draftMetadataFeature.finalType}.`
+          );
+        }
         this.draftMetadataFeature.stage = FeatureLifecycleStage.SelectSingle;
       }
     });
