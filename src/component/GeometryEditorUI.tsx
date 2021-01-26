@@ -20,8 +20,6 @@ import { PageController } from './ui/page/PageController';
 import type { MetadataSchemaGenerator } from '../type/metadata';
 import type { PageProps } from '../type/ui';
 
-import { DrawPolygonButton } from '../prototype/DrawPolygonButton';
-
 /**
  * Render properties for [[GeometryEditorUI]]
  */
@@ -70,7 +68,6 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
             </_GeometryEditor>
             <ModeToolbox />
             <ActionToolbox />
-            <DrawPolygonButton />
             <PageController pageProps={pageProps} />
             <ConfirmationDialog visibleIfPageOpen={false} />
           </MetadataContext.Provider>
