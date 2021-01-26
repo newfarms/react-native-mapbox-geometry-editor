@@ -50,7 +50,7 @@ function isGeometryModificationMode(mode: InteractionMode) {
 /**
  * The default geometry editing mode
  */
-const defaultInteractionMode = InteractionMode.SelectSingle;
+const DEFAULT_INTERACTION_MODE = InteractionMode.SelectSingle;
 
 /**
  * State of geometry editing controls and functions
@@ -61,7 +61,7 @@ export class ControlsModel extends Model({
   /**
    * The currently active editing mode
    */
-  mode: prop<InteractionMode>(defaultInteractionMode),
+  mode: prop<InteractionMode>(DEFAULT_INTERACTION_MODE),
   /**
    * A description of any operation that the user
    * is asked to confirm or cancel
@@ -213,7 +213,7 @@ export class ControlsModel extends Model({
 
     // Change the editing mode
     if (isToggle) {
-      this.mode = defaultInteractionMode;
+      this.mode = DEFAULT_INTERACTION_MODE;
     } else {
       // Execute actions specific to individual incoming editing modes
       switch (mode) {
