@@ -18,7 +18,6 @@ import {
   GeometryRole,
 } from '../type/geometry';
 import { globalToLocalIndices } from '../util/collections';
-import { isGeometryEditableFeature } from '../util/geometry';
 
 /**
  * An editable GeoJSON feature
@@ -110,7 +109,7 @@ export class FeatureModel extends Model({
   @modelAction
   addVertex(vertex: Position, index: number = -1) {
     // Error checking
-    if (!isGeometryEditableFeature(this)) {
+    if (!this.isGeometryEditableFeature) {
       console.warn(
         `The feature is in lifecycle stage ${this.stage}, which is not appropriate for adding vertices.`
       );
@@ -707,5 +706,26 @@ export class FeatureModel extends Model({
     } else {
       return [this.renderFeature];
     }
+  }
+
+  /**
+   * Tests whether this feature is in an appropriate lifecycle stage for
+   * geometry modification.
+   */
+  @computed
+  get isGeometryEditableFeature() {
+    return (
+      this.stage === FeatureLifecycleStage.EditShape ||
+      this.stage === FeatureLifecycleStage.NewShape
+    );
+  }
+
+  /**
+   * Tests whether this feature is fully-formed, such that its `finalType`
+   * matches its GeoJSON type.
+   */
+  @computed
+  get isCompleteFeature() {
+    return this.geojson.geometry.type === this.finalType;
   }
 }

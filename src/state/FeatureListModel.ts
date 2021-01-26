@@ -17,7 +17,6 @@ import remove from 'lodash/remove';
 import type { Position, GeoJsonProperties } from 'geojson';
 
 import { globalToLocalIndices } from '../util/collections';
-import { isCompleteFeature, isGeometryEditableFeature } from '../util/geometry';
 import { FeatureModel } from './FeatureModel';
 import type {
   DraggablePosition,
@@ -115,7 +114,7 @@ export class FeatureListModel extends Model({
        * Note that this step is done before clearing the undo/redo history.
        */
       this.features.forEach((val, index) => {
-        if (!isCompleteFeature(val)) {
+        if (!val.isCompleteFeature) {
           console.warn(
             `Feature at index ${index} with model ID ${val.$modelId} is not a complete ${val.finalType}.`
           );
@@ -292,7 +291,7 @@ export class FeatureListModel extends Model({
           console.warn('There are multiple new features.');
         }
         arr.forEach((feature) => {
-          if (!isCompleteFeature(feature)) {
+          if (!feature.isCompleteFeature) {
             console.warn(
               `Feature with model ID ${feature.$modelId} is not a complete ${feature.finalType}.`
             );
@@ -310,7 +309,7 @@ export class FeatureListModel extends Model({
    */
   @computed
   private get rawGeometryEditableFeature(): FeatureModel | undefined {
-    const arr = filter(this.features, isGeometryEditableFeature);
+    const arr = filter(this.features, (val) => val.isGeometryEditableFeature);
     if (arr.length > 1) {
       console.warn(
         'There are multiple feature in a geometry editing stage. Only the first will be returned.'
@@ -553,7 +552,7 @@ export class FeatureListModel extends Model({
   draftMetadataToSelected() {
     withoutUndo(() => {
       if (this.draftMetadataFeature) {
-        if (!isCompleteFeature(this.draftMetadataFeature)) {
+        if (!this.draftMetadataFeature.isCompleteFeature) {
           console.warn(
             `Feature with model ID ${this.draftMetadataFeature.$modelId} is not a complete ${this.draftMetadataFeature.finalType}.`
           );
