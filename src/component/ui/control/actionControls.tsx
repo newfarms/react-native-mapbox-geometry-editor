@@ -4,6 +4,31 @@ import { action } from 'mobx';
 
 import { ActionButton } from '../../util/ActionButton';
 import { StoreContext } from '../../../state/StoreContext';
+import { InteractionMode } from '../../../state/ControlsModel';
+
+/**
+ * A component that renders a redo control
+ */
+function _RedoControl() {
+  const { controls, features } = useContext(StoreContext);
+  // Button press callback
+  const onPress = useMemo(
+    () =>
+      action('redo_control_press', () => {
+        controls.redo();
+      }),
+    [controls]
+  );
+
+  return (
+    <ActionButton icon="redo" disabled={!features.canRedo} onPress={onPress} />
+  );
+}
+
+/**
+ * Renderable MobX wrapper for [[_RedoControl]]
+ */
+export const RedoControl = observer(_RedoControl);
 
 /**
  * A component that renders an undo control
@@ -19,9 +44,9 @@ function _UndoControl() {
     [controls]
   );
 
-  const enabled = features.canUndo;
-
-  return <ActionButton icon="undo" disabled={!enabled} onPress={onPress} />;
+  return (
+    <ActionButton icon="undo" disabled={!features.canUndo} onPress={onPress} />
+  );
 }
 
 /**
@@ -77,9 +102,24 @@ function _FinishControl() {
     [controls]
   );
 
-  const enabled = features.canUndo;
+  /**
+   * Disable when there are no changes to save or discard
+   */
+  let disabled = features.cannotUndoAndRedo;
+  switch (controls.mode) {
+    case InteractionMode.DragPoint:
+    case InteractionMode.DrawPoint:
+    case InteractionMode.DrawPolygon:
+    case InteractionMode.EditMetadata:
+      break;
+    case InteractionMode.SelectMultiple:
+    case InteractionMode.SelectSingle:
+      // The redo history is irrelevant because there is no redo action available
+      disabled = !features.canUndo;
+      break;
+  }
 
-  return <ActionButton icon="check" disabled={!enabled} onPress={onPress} />;
+  return <ActionButton icon="check" disabled={disabled} onPress={onPress} />;
 }
 
 /**
@@ -89,10 +129,11 @@ export const FinishControl = observer(_FinishControl);
 
 /**
  * A component that renders a rollback control for discarding all changes
- * at the end of a self-contained editing task.
+ * at the end of a self-contained editing task, and for discarding the redo
+ * history as well.
  */
 function _RollbackControl() {
-  const { controls, features } = useContext(StoreContext);
+  const { controls } = useContext(StoreContext);
   // Button press callback
   const onPress = useMemo(
     () =>
@@ -102,9 +143,12 @@ function _RollbackControl() {
     [controls]
   );
 
-  const enabled = features.canUndo;
-
-  return <ActionButton icon="cancel" disabled={!enabled} onPress={onPress} />;
+  /**
+   * The button is always enabled because it should always be possible for the user
+   * to escape the current editing context. The rest of the user interface is responsible
+   * for rendering this button only when it makes sense.
+   */
+  return <ActionButton icon="cancel" disabled={false} onPress={onPress} />;
 }
 
 /**

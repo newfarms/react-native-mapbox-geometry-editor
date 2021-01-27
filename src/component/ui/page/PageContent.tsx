@@ -87,6 +87,7 @@ function _PageContent() {
       case InteractionMode.DragPoint:
         break;
       case InteractionMode.DrawPoint:
+      case InteractionMode.DrawPolygon:
       case InteractionMode.EditMetadata:
         content = <MetadataEditor />;
         break;

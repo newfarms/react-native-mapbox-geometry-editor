@@ -49,7 +49,7 @@ function _MetadataView() {
   );
 
   // Whether the edit button should be enabled
-  let editEnabled = !features.canUndo;
+  let editEnabled = !features.canUndoOrRedo;
   if (editEnabled) {
     editEnabled = canUseMetadata(
       formStarter.formStructure.attributes,

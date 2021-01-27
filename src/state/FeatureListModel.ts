@@ -126,7 +126,7 @@ export class FeatureListModel extends Model({
   }
 
   /**
-   * Call this function to reset the undo/redo history at the start of
+   * Call this function to reset the undo/redo history, such as at the start of
    * a geometry modification session.
    */
   @modelAction
@@ -193,6 +193,25 @@ export class FeatureListModel extends Model({
     } else {
       console.warn('No changes to redo.');
     }
+  }
+
+  /**
+   * Whether at least one of the undo or redo history is not empty
+   */
+  @computed
+  get canUndoOrRedo(): boolean {
+    if (this.undoManager) {
+      return this.undoManager.canUndo || this.undoManager.canRedo;
+    }
+    return false;
+  }
+
+  /**
+   * Whether the undo and redo histories are both empty
+   */
+  @computed
+  get cannotUndoAndRedo(): boolean {
+    return !this.canUndo && !this.canRedo;
   }
 
   /**

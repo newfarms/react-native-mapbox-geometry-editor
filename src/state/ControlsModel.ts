@@ -172,7 +172,6 @@ export class ControlsModel extends Model({
     // Execute cleanup actions specific to individual outgoing editing modes
     switch (this.mode) {
       case InteractionMode.DragPoint:
-        break;
       case InteractionMode.DrawPoint:
       case InteractionMode.DrawPolygon:
         break;
@@ -397,6 +396,16 @@ export class ControlsModel extends Model({
           }
           break;
         case InteractionMode.DragPoint:
+          if (features?.canUndoOrRedo) {
+            this.confirmation = new ConfirmationModel({
+              message:
+                'Do you wish to save changes and clear the editing history?',
+              reason: ConfirmationReason.Commit,
+            });
+          } else {
+            console.warn(`There are no actions to confirm.`);
+          }
+          break;
         case InteractionMode.SelectMultiple:
         case InteractionMode.SelectSingle:
           if (this.mode === InteractionMode.SelectSingle && this.isPageOpen) {
@@ -432,6 +441,8 @@ export class ControlsModel extends Model({
       // Dismiss confirmation dialog
       this.confirmation = null;
     } else {
+      const features = featureListContext.get(this);
+
       switch (this.mode) {
         case InteractionMode.DrawPoint:
           this.confirmation = new ConfirmationModel({
@@ -444,9 +455,13 @@ export class ControlsModel extends Model({
             this.isPageOpen = false;
           } else {
             // User is cancelling the entire drawing operation and metadata entry
-            if (featureListContext.get(this)?.canUndo) {
+            if (features?.canUndo) {
               this.confirmation = new ConfirmationModel({
                 message: 'Discard this polygon?',
+              });
+            } else if (features?.canRedo) {
+              this.confirmation = new ConfirmationModel({
+                message: 'Discard changes that could be redone?',
               });
             } else {
               console.warn(`There are no actions to cancel.`);
@@ -464,11 +479,25 @@ export class ControlsModel extends Model({
           }
           break;
         case InteractionMode.DragPoint:
+          if (features?.canUndo) {
+            this.confirmation = new ConfirmationModel({
+              message: 'Discard all changes and clear the editing history?',
+              reason: ConfirmationReason.Discard,
+            });
+          } else if (features?.canRedo) {
+            this.confirmation = new ConfirmationModel({
+              message: 'Discard changes that could be redone?',
+              reason: ConfirmationReason.Discard,
+            });
+          } else {
+            console.warn(`There are no actions to cancel.`);
+          }
+          break;
         case InteractionMode.SelectMultiple:
         case InteractionMode.SelectSingle:
           if (this.mode === InteractionMode.SelectSingle && this.isPageOpen) {
             this.isPageOpen = false;
-          } else if (featureListContext.get(this)?.canUndo) {
+          } else if (features?.canUndo) {
             this.confirmation = new ConfirmationModel({
               message: 'Discard all changes and clear the editing history?',
               reason: ConfirmationReason.Discard,
@@ -486,6 +515,14 @@ export class ControlsModel extends Model({
       }
     }
     return !!this.confirmation;
+  }
+
+  /**
+   * Redo the last geometry modification
+   */
+  @modelAction
+  redo() {
+    featureListContext.get(this)?.redo();
   }
 
   /**
