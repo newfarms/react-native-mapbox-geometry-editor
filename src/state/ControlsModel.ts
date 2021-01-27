@@ -21,6 +21,10 @@ export enum InteractionMode {
    */
   DrawPoint = 'DRAWPOINT',
   /**
+   * Draw a new polygon
+   */
+  DrawPolygon = 'DRAWPOLYGON',
+  /**
    * Edit metadata associated with a shape
    */
   EditMetadata = 'EDITMETADATA',
@@ -96,6 +100,7 @@ export class ControlsModel extends Model({
       case InteractionMode.DragPoint:
         break;
       case InteractionMode.DrawPoint:
+      case InteractionMode.DrawPolygon:
         return MetadataInteraction.Create;
       case InteractionMode.EditMetadata:
         return MetadataInteraction.Edit;
@@ -169,6 +174,7 @@ export class ControlsModel extends Model({
       case InteractionMode.DragPoint:
         break;
       case InteractionMode.DrawPoint:
+      case InteractionMode.DrawPolygon:
         break;
       case InteractionMode.EditMetadata:
         features?.draftMetadataToSelected();
@@ -222,6 +228,7 @@ export class ControlsModel extends Model({
           features?.selectedToEditable();
           break;
         case InteractionMode.DrawPoint:
+        case InteractionMode.DrawPolygon:
           break;
         case InteractionMode.EditMetadata:
           features?.selectedToEditMetadata();
@@ -289,7 +296,8 @@ export class ControlsModel extends Model({
   /**
    * An internal version of [[confirm]] that accepts more arguments
    *
-   * @param force If `true`, skip opening any confirmation dialogs and immediately
+   * @param force If `true`, skip opening any confirmation dialogs that would
+   *              normally prevent a page from being closed, and immediately
    *              confirm the current operation.
    */
   @modelAction
@@ -304,6 +312,19 @@ export class ControlsModel extends Model({
           features?.discardNewFeatures();
           this.clearMetadata();
           this.isPageOpen = false;
+          break;
+        case InteractionMode.DrawPolygon:
+          if (this.isPageOpen) {
+            console.warn(
+              `A confirmation dialog should not be open when a page is open in editing mode ${this.mode}.`
+            );
+          } else {
+            // User is confirming a cancel dialog while drawing the polygon
+            features?.rollbackEditingSession();
+            features?.clearHistory();
+            this.clearMetadata(); // Clear any metadata entered up to now
+            this.setDefaultMode(); // Exit polygon drawing mode
+          }
           break;
         case InteractionMode.EditMetadata:
           switch (this.confirmation.reason) {
@@ -349,6 +370,21 @@ export class ControlsModel extends Model({
           this.saveMetadata();
           features?.confirmNewFeatures();
           this.isPageOpen = false;
+          break;
+        case InteractionMode.DrawPolygon:
+          if (this.isPageOpen) {
+            // User has finished entering metadata
+            this.saveMetadata();
+            this.clearMetadata(); // Clear draft metadata
+            features?.confirmNewFeatures();
+            features?.clearHistory();
+            this.isPageOpen = false;
+            // The user can only draw one polygon before returning to view mode
+            this.setDefaultMode();
+          } else {
+            // User is ready to enter metadata
+            this.openPage(); // Open the metadata creation page
+          }
           break;
         case InteractionMode.EditMetadata:
           if (!force && this.isDirty) {
@@ -401,6 +437,21 @@ export class ControlsModel extends Model({
           this.confirmation = new ConfirmationModel({
             message: 'Discard this point and its details?',
           });
+          break;
+        case InteractionMode.DrawPolygon:
+          if (this.isPageOpen) {
+            // User goes back to drawing from metadata entry
+            this.isPageOpen = false;
+          } else {
+            // User is cancelling the entire drawing operation and metadata entry
+            if (featureListContext.get(this)?.canUndo) {
+              this.confirmation = new ConfirmationModel({
+                message: 'Discard this polygon?',
+              });
+            } else {
+              console.warn(`There are no actions to cancel.`);
+            }
+          }
           break;
         case InteractionMode.EditMetadata:
           if (this.isDirty) {
@@ -469,6 +520,16 @@ export class ControlsModel extends Model({
         // Open metadata creation page
         this.isPageOpen = true;
         break;
+      case InteractionMode.DrawPolygon:
+        // Open metadata creation page if the shape is complete
+        if (featureListContext.get(this)?.hasCompleteNewFeature) {
+          this.isPageOpen = true;
+        } else {
+          console.warn(
+            `There is no complete new polygon for which to add metadata.`
+          );
+        }
+        break;
       case InteractionMode.EditMetadata:
         // This case should not occur as a page should already be open for viewing metadata
         console.warn(
@@ -518,10 +579,29 @@ export class ControlsModel extends Model({
     // Draw a new point at the location
     const features = featureListContext.get(this);
     // Do nothing if there already is a draft point
-    if (features && !features.draftMetadataGeoJSON) {
+    if (features && !features.hasNewFeature) {
       features.addNewPoint(coordinates);
       // The metadata creation page must now open
       this.openPage();
+    }
+  }
+
+  /**
+   * Add a new polygon vertex
+   * @param coordinates The coordinates of the vertex
+   */
+  @modelAction
+  private addNewPolygonVertex(coordinates: Position) {
+    const features = featureListContext.get(this);
+    if (features) {
+      if (features.hasNewFeature) {
+        // Not the first vertex
+        // TODO prevent the user from adding overlapping vertices, or close the polygon as appropriate
+        features.addVertex(coordinates);
+      } else {
+        // Add the first vertex
+        features.addNewPoint(coordinates, 'Polygon');
+      }
     }
   }
 
@@ -550,6 +630,12 @@ export class ControlsModel extends Model({
         break;
       case InteractionMode.DrawPoint:
         this.addNewPoint([e.coordinates.longitude, e.coordinates.latitude]);
+        break;
+      case InteractionMode.DrawPolygon:
+        this.addNewPolygonVertex([
+          e.coordinates.longitude,
+          e.coordinates.latitude,
+        ]);
         break;
       case InteractionMode.EditMetadata:
         // Ignore
@@ -607,6 +693,9 @@ export class ControlsModel extends Model({
       case InteractionMode.DrawPoint:
         // Draw a new point
         this.addNewPoint(e.geometry.coordinates);
+        return true;
+      case InteractionMode.DrawPolygon:
+        this.addNewPolygonVertex(e.geometry.coordinates);
         return true;
       case InteractionMode.EditMetadata:
         return false; // Ignore

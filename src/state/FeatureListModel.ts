@@ -277,27 +277,53 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Retrieve the current new feature
+   */
+  @computed
+  private get rawNewFeature(): FeatureModel | undefined {
+    const arr = filter(
+      this.features,
+      (val) => val.stage === FeatureLifecycleStage.NewShape
+    );
+    if (arr.length > 1) {
+      console.warn(
+        'There are multiple new features. Only the first will be returned.'
+      );
+    }
+    return arr[0];
+  }
+
+  /**
+   * Whether there is a new feature yet to be confirmed
+   */
+  @computed
+  get hasNewFeature(): boolean {
+    return !!this.rawNewFeature;
+  }
+
+  /**
+   * Whether there is a new feature yet to be confirmed,
+   * and it is a complete shape
+   */
+  @computed
+  get hasCompleteNewFeature(): boolean {
+    return !!this.rawNewFeature && this.rawNewFeature.isCompleteFeature;
+  }
+
+  /**
    * Put all new features into the view state
    */
   @modelAction
   confirmNewFeatures() {
     withoutUndo(() => {
-      const arr = filter(
-        this.features,
-        (val) => val.stage === FeatureLifecycleStage.NewShape
-      );
-      if (arr.length > 0) {
-        if (arr.length > 1) {
-          console.warn('There are multiple new features.');
+      const feature = this.rawNewFeature;
+      if (feature) {
+        if (!feature.isCompleteFeature) {
+          console.warn(
+            `Feature with model ID ${feature.$modelId} is not a complete ${feature.finalType}.`
+          );
         }
-        arr.forEach((feature) => {
-          if (!feature.isCompleteFeature) {
-            console.warn(
-              `Feature with model ID ${feature.$modelId} is not a complete ${feature.finalType}.`
-            );
-          }
-          feature.stage = FeatureLifecycleStage.View;
-        });
+        feature.stage = FeatureLifecycleStage.View;
       } else {
         console.warn('There are no new features to confirm.');
       }

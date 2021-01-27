@@ -560,8 +560,6 @@ export class FeatureModel extends Model({
   @computed
   private get isInHotStage(): boolean {
     switch (this.stage) {
-      case FeatureLifecycleStage.DraftShape:
-        return true;
       case FeatureLifecycleStage.EditMetadata:
         return false;
       case FeatureLifecycleStage.EditShape:

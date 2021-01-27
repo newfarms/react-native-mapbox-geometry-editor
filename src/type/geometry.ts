@@ -60,10 +60,6 @@ export enum FeatureLifecycleStage {
    */
   SelectSingle = 'SELECTSINGLE',
   /**
-   * Feature with geometry changes to be confirmed
-   */
-  DraftShape = 'DRAFTSHAPE',
-  /**
    * Feature not subject to editing at the moment
    */
   View = 'VIEW',
