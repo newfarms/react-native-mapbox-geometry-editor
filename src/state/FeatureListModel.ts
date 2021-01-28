@@ -141,9 +141,6 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   rollbackEditingSession() {
-    if (!this.undoManager?.canUndo) {
-      console.warn('No changes to rollback.');
-    }
     while (this.undoManager?.canUndo) {
       this.undoManager?.undo();
     }

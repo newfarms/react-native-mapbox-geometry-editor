@@ -322,6 +322,7 @@ export class ControlsModel extends Model({
             features?.rollbackEditingSession();
             features?.clearHistory();
             this.clearMetadata(); // Clear any metadata entered up to now
+            this.confirmation = null; // Otherwise there will be a warning about changing the editing mode while there is a confirmation request open
             this.setDefaultMode(); // Exit polygon drawing mode
           }
           break;
