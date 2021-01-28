@@ -7,6 +7,7 @@ import { ConfirmationModel, ConfirmationReason } from './ConfirmationModel';
 import { featureListContext } from './ModelContexts';
 import { MetadataInteraction } from '../type/metadata';
 import type { MapPressPayload } from '../type/events';
+import { CoordinateRole, FeatureLifecycleStage } from '../type/geometry';
 
 /**
  * Possible geometry editing modes
@@ -634,7 +635,6 @@ export class ControlsModel extends Model({
     if (features) {
       if (features.hasNewFeature) {
         // Not the first vertex
-        // TODO prevent the user from adding overlapping vertices, or close the polygon as appropriate
         features.addVertex(coordinates);
       } else {
         // Add the first vertex
@@ -698,6 +698,90 @@ export class ControlsModel extends Model({
             if (id) {
               featureListContext.get(this)?.toggleSingleSelectFeature(id);
             }
+          }
+        }
+        break;
+    }
+  }
+
+  /**
+   * Touch event handler for geometry in the hot layer. See [[HotGeometry]]
+   *
+   * @param e The features that were pressed, and information about the location pressed
+   */
+  @modelAction
+  onPressHotGeometry(e: OnPressEvent) {
+    if (this.confirmation) {
+      console.warn(
+        `Map geometry cannot be interacted with while there is an active confirmation request.`
+      );
+      return;
+    }
+    if (this.isPageOpen) {
+      console.warn(
+        `The map geometry cannot be interacted with while there is an open page.`
+      );
+      return;
+    }
+    switch (this.mode) {
+      case InteractionMode.DragPoint:
+      case InteractionMode.DrawPoint:
+      case InteractionMode.EditMetadata:
+      case InteractionMode.SelectMultiple:
+      case InteractionMode.SelectSingle:
+        // Ignore the touch
+        break;
+      case InteractionMode.DrawPolygon:
+        if (e.features.length > 0) {
+          /**
+           * Prevent creating overlapping vertices by ensuring, if the user
+           * touches the polygon to create a vertex in its interior, that
+           * a vertex is only created if the user has not also touched another vertex.
+           */
+          let pointTouched = false;
+          let polygonTouched = false;
+          for (let feature of e.features) {
+            const id = feature?.properties?.rnmgeID; // Note that Mapbox clusters do not have this property
+            if (id) {
+              if (
+                feature.properties?.rnmgeStage ===
+                FeatureLifecycleStage.NewShape
+              ) {
+                /**
+                 * For some reason, this touch handler is passed features with `null` geometry,
+                 * hence the '?' in `feature.geometry?.type`
+                 */
+                if (feature.geometry?.type === 'Point') {
+                  pointTouched = true;
+                  /**
+                   * If the first vertex of a polygon was touched, and the polygon is complete,
+                   * save the polygon.
+                   */
+                  if (
+                    feature.properties?.rnmgeRole ===
+                    CoordinateRole.PolygonStart
+                  ) {
+                    // If the polygon is fully-formed, send the user on to metadata entry
+                    if (featureListContext.get(this)?.hasCompleteNewFeature) {
+                      this.confirm();
+                    }
+                  }
+                } else if (feature.geometry?.type === 'Polygon') {
+                  polygonTouched = true;
+                }
+              } else {
+                console.warn(
+                  `Feature in the hot layer with lifecycle stage ${feature.properties?.rnmgeStage} encountered in editing mode ${this.mode}.`
+                );
+              }
+            }
+          }
+          if (polygonTouched && !pointTouched) {
+            // Allow the user to add vertices such that the polygon becomes concave
+            this.addNewPolygonVertex([
+              e.coordinates.longitude,
+              e.coordinates.latitude,
+            ]);
           }
         }
         break;

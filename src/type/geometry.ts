@@ -72,53 +72,53 @@ export enum CoordinateRole {
   /**
    * The coordinate is the point of a point feature
    */
-  PointFeature = 'POINTFEATURE',
+  PointFeature = 'POINTFEATURE_POINT',
   /**
    * The coordinate is the first point on a polyline
    */
-  LineStart = 'LINESTART',
+  LineStart = 'LINESTART_POINT',
   /**
    * The coordinate is the second point on a polyline,
    * and the polyline has more than three points
    */
-  LineSecond = 'LINESECOND',
+  LineSecond = 'LINESECOND_POINT',
   /**
    * The coordinate is an interior point on a polyline
    * and is not an endpoint, nor adjacent to an endpoint
    */
-  LineInner = 'LINEINNER',
+  LineInner = 'LINEINNER_POINT',
   /**
    * The coordinate is the second-last point on a polyline,
    * and the polyline has more than two points
    */
-  LineSecondLast = 'LINESECONDLAST',
+  LineSecondLast = 'LINESECONDLAST_POINT',
   /**
    * The coordinate is the last point on a polyline,
    * and the polyline has more than one point
    */
-  LineLast = 'LINELAST',
+  LineLast = 'LINELAST_POINT',
   /**
    * The coordinate is the first point on a polygon's
    * first linear ring
    */
-  PolygonStart = 'POLYGONSTART',
+  PolygonStart = 'POLYGONSTART_POINT',
   /**
    * The coordinate is an interior point on a polygon's first
    * linear ring (neither the first point, nor the second-last point,
    * the last point having the same coordinates as the first point)
    */
-  PolygonInner = 'POLYGONINNER',
+  PolygonInner = 'POLYGONINNER_POINT',
   /**
    * The coordinate is the second-last point on a polygon's first
    * linear ring (the last point having the same coordinates as the first point,
    * as required by the GeoJSON specification)
    */
-  PolygonSecondLast = 'POLYGONSECONDLAST',
+  PolygonSecondLast = 'POLYGONSECONDLAST_POINT',
   /**
    * The coordinate is part of a hole in a polygon
    * (i.e. not part of the first linear ring)
    */
-  PolygonHole = 'POLYGONHOLE',
+  PolygonHole = 'POLYGONHOLE_POINT',
 }
 
 /**
@@ -128,7 +128,7 @@ export enum LineStringRole {
   /**
    * The line string is a polyline feature
    */
-  LineStringFeature = 'LINESTRINGFEATURE',
+  LineStringFeature = 'LINESTRINGFEATURE_LINESTRING',
   /**
    * The line string is a series of edges in a polygon's first linear ring,
    * and does not contain the tentative edge that closes the linear ring.
@@ -137,19 +137,19 @@ export enum LineStringRole {
    * do not have a special tentative final edge, and so all edges are marked
    * with this role.
    */
-  PolygonInner = 'POLYGONINNER',
+  PolygonInner = 'POLYGONINNER_LINESTRING',
   /**
    * The line string is the edge that closes a polygon's first linear ring.
    * The linear ring therefore has at least three vertices, and is in the process
    * of being constructed. (In a finished polygon, no edge can be said to be
    * a special last edge.)
    */
-  PolygonLast = 'POLYGONLAST',
+  PolygonLast = 'POLYGONLAST_LINESTRING',
   /**
    * The line string is part of a hole in a polygon
    * (i.e. not part of the first linear ring)
    */
-  PolygonHole = 'POLYGONHOLE',
+  PolygonHole = 'POLYGONHOLE_LINESTRING',
 }
 
 /**

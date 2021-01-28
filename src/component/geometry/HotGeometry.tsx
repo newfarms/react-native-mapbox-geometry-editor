@@ -1,7 +1,8 @@
-import { toJS } from 'mobx';
+import { action, toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import MapboxGL from '@react-native-mapbox-gl/maps';
+import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
 
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
@@ -13,16 +14,29 @@ import { CoordinateRole, LineStringRole } from '../../type/geometry';
  * @return Renderable React node
  */
 function _HotGeometry() {
-  const { features } = useContext(StoreContext);
+  const { controls, features } = useContext(StoreContext);
   const featuresJS = toJS(features.hotFeatures);
 
   const { styleGenerators } = useContext(StyleContext);
+
+  // Delegate touch events to the controller
+  const onPress = useMemo(
+    () =>
+      action('hot_geometry_press', (e: OnPressEvent) => {
+        controls.onPressHotGeometry(e);
+      }),
+    [controls]
+  );
 
   /**
    * Render separate layers for each type of geometry
    */
   return (
-    <MapboxGL.ShapeSource id="hot_geometry" shape={featuresJS}>
+    <MapboxGL.ShapeSource
+      id="hot_geometry"
+      shape={featuresJS}
+      onPress={onPress}
+    >
       <MapboxGL.CircleLayer
         id="hot_points"
         filter={[
