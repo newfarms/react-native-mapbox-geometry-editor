@@ -109,8 +109,11 @@ function _FinishControl() {
   switch (controls.mode) {
     case InteractionMode.DragPoint:
     case InteractionMode.DrawPoint:
-    case InteractionMode.DrawPolygon:
     case InteractionMode.EditMetadata:
+      break;
+    case InteractionMode.DrawPolygon:
+      // Polygons cannot be saved until they are well-formed
+      disabled = disabled || !features.hasCompleteNewFeature;
       break;
     case InteractionMode.SelectMultiple:
     case InteractionMode.SelectSingle:
