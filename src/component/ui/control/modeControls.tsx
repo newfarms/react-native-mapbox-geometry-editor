@@ -47,11 +47,18 @@ export const DragPointControl = makeModeControl(
   'circle-edit-outline'
 );
 /**
- * Point addition editing mode control button
+ * Point drawing editing mode control button
  */
 export const DrawPointControl = makeModeControl(
   InteractionMode.DrawPoint,
   'plus-circle'
+);
+/**
+ * Polygon drawing editing mode control button
+ */
+export const DrawPolygonControl = makeModeControl(
+  InteractionMode.DrawPolygon,
+  'shape-polygon-plus'
 );
 /**
  * Multi-selection editing mode control button

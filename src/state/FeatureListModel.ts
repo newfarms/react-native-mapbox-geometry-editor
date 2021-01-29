@@ -17,7 +17,6 @@ import remove from 'lodash/remove';
 import type { Position, GeoJsonProperties } from 'geojson';
 
 import { globalToLocalIndices } from '../util/collections';
-import { isCompleteFeature, isGeometryEditableFeature } from '../util/geometry';
 import { FeatureModel } from './FeatureModel';
 import type {
   DraggablePosition,
@@ -115,7 +114,7 @@ export class FeatureListModel extends Model({
        * Note that this step is done before clearing the undo/redo history.
        */
       this.features.forEach((val, index) => {
-        if (!isCompleteFeature(val)) {
+        if (!val.isCompleteFeature) {
           console.warn(
             `Feature at index ${index} with model ID ${val.$modelId} is not a complete ${val.finalType}.`
           );
@@ -127,7 +126,7 @@ export class FeatureListModel extends Model({
   }
 
   /**
-   * Call this function to reset the undo/redo history at the start of
+   * Call this function to reset the undo/redo history, such as at the start of
    * a geometry modification session.
    */
   @modelAction
@@ -142,9 +141,6 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   rollbackEditingSession() {
-    if (!this.undoManager?.canUndo) {
-      console.warn('No changes to rollback.');
-    }
     while (this.undoManager?.canUndo) {
       this.undoManager?.undo();
     }
@@ -194,6 +190,25 @@ export class FeatureListModel extends Model({
     } else {
       console.warn('No changes to redo.');
     }
+  }
+
+  /**
+   * Whether at least one of the undo or redo history is not empty
+   */
+  @computed
+  get canUndoOrRedo(): boolean {
+    if (this.undoManager) {
+      return this.undoManager.canUndo || this.undoManager.canRedo;
+    }
+    return false;
+  }
+
+  /**
+   * Whether the undo and redo histories are both empty
+   */
+  @computed
+  get cannotUndoAndRedo(): boolean {
+    return !this.canUndo && !this.canRedo;
   }
 
   /**
@@ -278,27 +293,53 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Retrieve the current new feature
+   */
+  @computed
+  private get rawNewFeature(): FeatureModel | undefined {
+    const arr = filter(
+      this.features,
+      (val) => val.stage === FeatureLifecycleStage.NewShape
+    );
+    if (arr.length > 1) {
+      console.warn(
+        'There are multiple new features. Only the first will be returned.'
+      );
+    }
+    return arr[0];
+  }
+
+  /**
+   * Whether there is a new feature yet to be confirmed
+   */
+  @computed
+  get hasNewFeature(): boolean {
+    return !!this.rawNewFeature;
+  }
+
+  /**
+   * Whether there is a new feature yet to be confirmed,
+   * and it is a complete shape
+   */
+  @computed
+  get hasCompleteNewFeature(): boolean {
+    return !!this.rawNewFeature && this.rawNewFeature.isCompleteFeature;
+  }
+
+  /**
    * Put all new features into the view state
    */
   @modelAction
   confirmNewFeatures() {
     withoutUndo(() => {
-      const arr = filter(
-        this.features,
-        (val) => val.stage === FeatureLifecycleStage.NewShape
-      );
-      if (arr.length > 0) {
-        if (arr.length > 1) {
-          console.warn('There are multiple new features.');
+      const feature = this.rawNewFeature;
+      if (feature) {
+        if (!feature.isCompleteFeature) {
+          console.warn(
+            `Feature with model ID ${feature.$modelId} is not a complete ${feature.finalType}.`
+          );
         }
-        arr.forEach((feature) => {
-          if (!isCompleteFeature(feature)) {
-            console.warn(
-              `Feature with model ID ${feature.$modelId} is not a complete ${feature.finalType}.`
-            );
-          }
-          feature.stage = FeatureLifecycleStage.View;
-        });
+        feature.stage = FeatureLifecycleStage.View;
       } else {
         console.warn('There are no new features to confirm.');
       }
@@ -310,7 +351,7 @@ export class FeatureListModel extends Model({
    */
   @computed
   private get rawGeometryEditableFeature(): FeatureModel | undefined {
-    const arr = filter(this.features, isGeometryEditableFeature);
+    const arr = filter(this.features, (val) => val.isGeometryEditableFeature);
     if (arr.length > 1) {
       console.warn(
         'There are multiple feature in a geometry editing stage. Only the first will be returned.'
@@ -553,7 +594,7 @@ export class FeatureListModel extends Model({
   draftMetadataToSelected() {
     withoutUndo(() => {
       if (this.draftMetadataFeature) {
-        if (!isCompleteFeature(this.draftMetadataFeature)) {
+        if (!this.draftMetadataFeature.isCompleteFeature) {
           console.warn(
             `Feature with model ID ${this.draftMetadataFeature.$modelId} is not a complete ${this.draftMetadataFeature.finalType}.`
           );

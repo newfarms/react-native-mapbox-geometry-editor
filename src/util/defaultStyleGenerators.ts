@@ -53,8 +53,6 @@ function featureLifecycleStageColor(stage: FeatureLifecycleStage): string {
       return '#00ffff'; // Cyan
     case FeatureLifecycleStage.SelectSingle:
       return '#00ff00'; // Green
-    case FeatureLifecycleStage.DraftShape:
-      return '#ff0000'; // Red
     case FeatureLifecycleStage.View:
       return '#ffffff'; // White
   }
@@ -77,8 +75,6 @@ function featureLifecycleStrokeWidth(stage?: FeatureLifecycleStage): number {
       return 3;
     case FeatureLifecycleStage.SelectSingle:
       return 3;
-    case FeatureLifecycleStage.DraftShape:
-      return 2;
     case FeatureLifecycleStage.View:
       return 1;
     default:
@@ -190,8 +186,6 @@ function getDefaultPointStyle(): CircleLayerStyle {
       featureLifecycleStrokeWidth(FeatureLifecycleStage.SelectMultiple),
       FeatureLifecycleStage.SelectSingle,
       featureLifecycleStrokeWidth(FeatureLifecycleStage.SelectSingle),
-      FeatureLifecycleStage.DraftShape,
-      featureLifecycleStrokeWidth(FeatureLifecycleStage.DraftShape),
       FeatureLifecycleStage.View,
       featureLifecycleStrokeWidth(FeatureLifecycleStage.View),
       featureLifecycleStrokeWidth(),
@@ -210,8 +204,6 @@ function getDefaultPointStyle(): CircleLayerStyle {
       featureLifecycleStageColor(FeatureLifecycleStage.SelectMultiple),
       FeatureLifecycleStage.SelectSingle,
       featureLifecycleStageColor(FeatureLifecycleStage.SelectSingle),
-      FeatureLifecycleStage.DraftShape,
-      featureLifecycleStageColor(FeatureLifecycleStage.DraftShape),
       FeatureLifecycleStage.View,
       featureLifecycleStageColor(FeatureLifecycleStage.View),
       MISSING_COLOR,
@@ -317,8 +309,6 @@ function getDefaultPolygonStyle(): FillLayerStyle {
       featureLifecycleStageColor(FeatureLifecycleStage.SelectMultiple),
       FeatureLifecycleStage.SelectSingle,
       featureLifecycleStageColor(FeatureLifecycleStage.SelectSingle),
-      FeatureLifecycleStage.DraftShape,
-      featureLifecycleStageColor(FeatureLifecycleStage.DraftShape),
       FeatureLifecycleStage.View,
       featureLifecycleStageColor(FeatureLifecycleStage.View),
       MISSING_COLOR,
