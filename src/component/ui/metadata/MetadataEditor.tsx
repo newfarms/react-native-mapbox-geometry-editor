@@ -6,15 +6,15 @@ import { Button, Card } from 'react-native-paper';
 import { Formik } from 'formik';
 import type { FormikProps, FormikHelpers } from 'formik';
 
-import { StoreContext } from '../../state/StoreContext';
+import { StoreContext } from '../../../state/StoreContext';
 import { MetadataFieldList } from './MetadataForm';
-import { useMetadata } from '../../hooks/useMetadata';
-import { MetadataInteraction } from '../../type/metadata';
+import { useMetadata } from '../../../hooks/useMetadata';
+import { MetadataInteraction } from '../../../type/metadata';
 import type {
   Metadata,
   MetadataFormStarter,
   MetadataFormInitialValues,
-} from '../../type/metadata';
+} from '../../../type/metadata';
 
 /**
  * @ignore

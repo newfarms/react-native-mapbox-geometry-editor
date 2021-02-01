@@ -21,15 +21,15 @@ import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 import { useFormikContext } from 'formik';
 import filter from 'lodash/filter';
 
-import { canUseField } from '../../util/metadata/display';
-import { FieldType, MetadataInteraction } from '../../type/metadata';
+import { canUseField } from '../../../util/metadata/display';
+import { FieldType, MetadataInteraction } from '../../../type/metadata';
 import type {
   DisplayableFieldDescription,
   EnumFieldDescription,
   Metadata,
   MetadataFormFieldList,
   MetadataFormInitialValues,
-} from '../../type/metadata';
+} from '../../../type/metadata';
 
 /**
  * @ignore

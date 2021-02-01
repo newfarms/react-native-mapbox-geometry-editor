@@ -6,8 +6,8 @@ import { Button, Paragraph, Surface } from 'react-native-paper';
 
 import { StoreContext } from '../../../state/StoreContext';
 import { InteractionMode } from '../../../state/ControlsModel';
-import { MetadataEditor } from '../../ui/MetadataEditor';
-import { MetadataView } from '../../ui/MetadataView';
+import { MetadataEditor } from '../metadata/MetadataEditor';
+import { MetadataView } from '../metadata/MetadataView';
 import { ConfirmationPage } from './ConfirmationPage';
 
 /**

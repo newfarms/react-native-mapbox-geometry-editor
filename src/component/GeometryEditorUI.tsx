@@ -13,7 +13,7 @@ import { StoreProvider } from '../state/StoreProvider';
 import { ActionToolbox } from './ui/control/ActionToolbox';
 import { ModeToolbox } from './ui/control/ModeToolbox';
 import { ConfirmationDialog } from './ui/ConfirmationDialog';
-import { MetadataContext } from './ui/MetadataContext';
+import { MetadataContext } from './ui/metadata/MetadataContext';
 import { MetadataPreview } from './geometry/MetadataPreview';
 import { defaultMetadataSchemaGenerator } from '../util/metadata/schema';
 import { PageController } from './ui/page/PageController';
