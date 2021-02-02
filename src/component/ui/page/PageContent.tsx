@@ -6,7 +6,7 @@ import { Button, Paragraph, Surface } from 'react-native-paper';
 
 import { StoreContext } from '../../../state/StoreContext';
 import { InteractionMode } from '../../../state/ControlsModel';
-import { MetadataEditor } from '../metadata/MetadataEditor';
+import { MetadataEditorConsumer } from '../metadata/MetadataEditorConsumer';
 import { MetadataView } from '../metadata/MetadataView';
 import { ConfirmationPage } from './ConfirmationPage';
 
@@ -89,7 +89,7 @@ function _PageContent() {
       case InteractionMode.DrawPoint:
       case InteractionMode.DrawPolygon:
       case InteractionMode.EditMetadata:
-        content = <MetadataEditor />;
+        content = <MetadataEditorConsumer />;
         break;
       case InteractionMode.SelectMultiple:
         break;

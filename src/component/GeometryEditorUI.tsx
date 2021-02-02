@@ -15,6 +15,7 @@ import { ModeToolbox } from './ui/control/ModeToolbox';
 import { ConfirmationDialog } from './ui/ConfirmationDialog';
 import { MetadataContext } from './ui/metadata/MetadataContext';
 import { MetadataPreview } from './geometry/MetadataPreview';
+import { MetadataEditorProvider } from './ui/metadata/MetadataEditorProvider';
 import { defaultMetadataSchemaGenerator } from '../util/metadata/schema';
 import { PageController } from './ui/page/PageController';
 import type { MetadataSchemaGenerator } from '../type/metadata';
@@ -68,7 +69,9 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
             </_GeometryEditor>
             <ModeToolbox />
             <ActionToolbox />
-            <PageController pageProps={pageProps} />
+            <MetadataEditorProvider>
+              <PageController pageProps={pageProps} />
+            </MetadataEditorProvider>
             <ConfirmationDialog visibleIfPageOpen={false} />
           </MetadataContext.Provider>
         </StoreProvider>
