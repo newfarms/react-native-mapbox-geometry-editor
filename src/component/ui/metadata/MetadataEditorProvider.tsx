@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useMemo } from 'react';
-import { action, runInAction } from 'mobx';
+import React, { useContext, useMemo } from 'react';
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { useFormik } from 'formik';
 import type { FormikHelpers } from 'formik';
@@ -56,17 +56,6 @@ function _InnerMetadataEditorProvider({
 }) {
   const { controls } = useContext(StoreContext);
 
-  /**
-   * Immediately move geometry to the next stage if metadata editing is not permitted
-   */
-  useEffect(() => {
-    runInAction(() => {
-      if (!canUse) {
-        controls.confirm();
-      }
-    });
-  }, [canUse, controls]);
-
   // Commit on confirmation
   const onConfirm = useMemo(
     () =>
@@ -111,7 +100,7 @@ function _InnerMetadataEditorProvider({
       onSubmit: onConfirm,
       validationSchema: formStarter.schema,
     }),
-    extraData: { formStarter, data, use, isEditOperation },
+    extraData: { formStarter, data, use, canUse, isEditOperation },
   };
 
   return (

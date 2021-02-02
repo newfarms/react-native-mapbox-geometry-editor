@@ -35,6 +35,11 @@ export interface MetadataEditorContextValue {
      */
     use: MetadataInteraction.Create | MetadataInteraction.Edit;
     /**
+     * Whether the use of geometry metadata is permitted given the current
+     * metadata schema and its permission attributes
+     */
+    canUse: boolean;
+    /**
      * Whether the form was opened for editing pre-existing metadata.
      * This value is derived from `use`.
      */
@@ -115,6 +120,7 @@ const DEFAULT_CONTEXT_VALUE: MetadataEditorContextValue = {
     },
     data: null,
     use: MetadataInteraction.Create,
+    canUse: false,
     isEditOperation: false,
   },
 };

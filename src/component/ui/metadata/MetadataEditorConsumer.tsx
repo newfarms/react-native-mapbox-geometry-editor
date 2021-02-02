@@ -33,19 +33,26 @@ function _MetadataEditorConsumer() {
    */
   const { formik, extraData } = useContext(MetadataEditorContext);
   const { dirty, isSubmitting, isValid, submitForm } = formik;
-  const { formStarter, data, use, isEditOperation } = extraData;
+  const { formStarter, data, use, canUse, isEditOperation } = extraData;
 
   const { controls } = useContext(StoreContext);
 
   useEffect(() => {
     runInAction(() => {
       /**
-       * Inform the controller of whether there is dirty state.
-       * The controller will warn the user about unsaved changes.
+       * Immediately move geometry to the next stage if metadata editing is not permitted
        */
-      controls.isDirty = dirty;
+      if (!canUse) {
+        controls.confirm();
+      } else {
+        /**
+         * Inform the controller of whether there is dirty state.
+         * The controller will warn the user about unsaved changes.
+         */
+        controls.isDirty = dirty;
+      }
     });
-  }, [dirty, controls]);
+  }, [canUse, dirty, controls]);
 
   /**
    * Cancel button callback
