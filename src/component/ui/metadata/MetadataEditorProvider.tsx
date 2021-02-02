@@ -7,7 +7,11 @@ import type { FormikHelpers } from 'formik';
 import { StoreContext } from '../../../state/StoreContext';
 import { useMetadata } from '../../../hooks/useMetadata';
 import { MetadataInteraction } from '../../../type/metadata';
-import type { MetadataFormInitialValues } from '../../../type/metadata';
+import type {
+  Metadata,
+  MetadataFormInitialValues,
+  MetadataFormStarter,
+} from '../../../type/metadata';
 import { MetadataEditorContext } from './MetadataEditorContext';
 
 /**
@@ -20,7 +24,10 @@ import { MetadataEditorContext } from './MetadataEditorContext';
  */
 function _InnerMetadataEditorProvider({
   use,
+  canUse,
   isEditOperation,
+  data,
+  formStarter,
   children,
 }: {
   /**
@@ -28,28 +35,37 @@ function _InnerMetadataEditorProvider({
    */
   use: MetadataInteraction.Create | MetadataInteraction.Edit;
   /**
+   * Whether metadata editing is possible
+   * See [[useMetadata]]
+   */
+  canUse: boolean;
+  /**
    * Whether the context is needed for editing pre-existing metadata.
    * This value is derived from `use`.
    */
   isEditOperation: boolean;
+  /**
+   * Any geometry metadata currently available
+   */
+  data: Metadata | null | undefined;
+  /**
+   * Information for building metadata forms
+   */
+  formStarter: MetadataFormStarter;
   readonly children?: React.ReactNode;
 }) {
   const { controls } = useContext(StoreContext);
-  /**
-   * Metadata permissions and pre-processing
-   */
-  const { canUse, data, formStarter, featureExists } = useMetadata(use);
 
   /**
    * Immediately move geometry to the next stage if metadata editing is not permitted
    */
   useEffect(() => {
     runInAction(() => {
-      if (!canUse && featureExists) {
+      if (!canUse) {
         controls.confirm();
       }
     });
-  }, [canUse, featureExists, controls]);
+  }, [canUse, controls]);
 
   // Commit on confirmation
   const onConfirm = useMemo(
@@ -132,23 +148,38 @@ function _MetadataEditorProvider({
    * Metadata permissions and pre-processing
    */
   const use = controls.metadataInteraction;
-  let isEditOperation = false;
-  switch (use) {
-    case MetadataInteraction.Create:
-      break;
-    case MetadataInteraction.Edit:
-      isEditOperation = true;
-      break;
-    default:
-      // Metadata editing forms should not be rendered
-      return <>{children}</>;
-  }
+  const { canUse, data, formStarter, featureExists } = useMetadata(use);
 
-  return (
-    <InnerMetadataEditorProvider use={use} isEditOperation={isEditOperation}>
-      {children}
-    </InnerMetadataEditorProvider>
-  );
+  /**
+   * Render the metadata editor context when appropriate
+   */
+  if (featureExists) {
+    let isEditOperation = false;
+    switch (use) {
+      case MetadataInteraction.Create:
+        break;
+      case MetadataInteraction.Edit:
+        isEditOperation = true;
+        break;
+      default:
+        // Metadata editing forms should not be rendered
+        return <>{children}</>;
+    }
+
+    return (
+      <InnerMetadataEditorProvider
+        use={use}
+        canUse={canUse}
+        isEditOperation={isEditOperation}
+        data={data}
+        formStarter={formStarter}
+      >
+        {children}
+      </InnerMetadataEditorProvider>
+    );
+  } else {
+    return <>{children}</>;
+  }
 }
 
 /**
