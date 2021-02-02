@@ -17,11 +17,10 @@ const styles = StyleSheet.create({
  * A full-page display that serves as a container for content
  * @param props Rendering props
  */
-export function PageContainer({ onDismissRequest, onDismissed }: PageControls) {
+export function PageContainer({ onDismissRequest }: PageControls) {
   return (
     <Modal
       animationType="slide"
-      onDismiss={onDismissed}
       onRequestClose={onDismissRequest}
       presentationStyle="fullScreen"
       statusBarTranslucent={false}

@@ -15,11 +15,6 @@ export interface PageControls {
    * @return Whether or not the page will be closed
    */
   onDismissRequest: () => boolean;
-  /**
-   * A function to be called to force the library to close its page.
-   * The user may lose unsaved changes.
-   */
-  onDismissed: () => void;
 }
 
 /**
