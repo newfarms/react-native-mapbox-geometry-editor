@@ -114,9 +114,6 @@ export class ControlsModel extends Model({
           return MetadataInteraction.ViewPreview;
         }
     }
-    console.warn(
-      `Metadata interactions are irrelevant to the current interaction mode, ${this.mode}`
-    );
     return MetadataInteraction.ViewPreview;
   }
 
@@ -268,8 +265,6 @@ export class ControlsModel extends Model({
       featureListContext
         .get(this)
         ?.setDraftMetadata(toJS(this.pendingMetadata));
-    } else {
-      console.warn(`There is no pending metadata to save.`);
     }
     this.clearMetadata();
   }

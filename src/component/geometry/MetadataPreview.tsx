@@ -11,7 +11,7 @@ import { StoreContext } from '../../state/StoreContext';
 import { minDimensionPercentageToDP } from '../../util/dimensions';
 import { findCenterForAnnotation } from '../../util/geometry';
 import { getTitle } from '../../util/metadata/display';
-import { MetadataFieldList } from '../ui/MetadataList';
+import { MetadataFieldList } from '../ui/metadata/MetadataList';
 import { MetadataInteraction } from '../../type/metadata';
 import type { Metadata, MetadataFormStructure } from '../../type/metadata';
 import type { RnmgeID } from '../../type/geometry';

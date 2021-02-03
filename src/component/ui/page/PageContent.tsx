@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
@@ -6,8 +6,8 @@ import { Button, Paragraph, Surface } from 'react-native-paper';
 
 import { StoreContext } from '../../../state/StoreContext';
 import { InteractionMode } from '../../../state/ControlsModel';
-import { MetadataEditor } from '../../ui/MetadataEditor';
-import { MetadataView } from '../../ui/MetadataView';
+import { MetadataEditorConsumer } from '../metadata/MetadataEditorConsumer';
+import { MetadataView } from '../metadata/MetadataView';
 import { ConfirmationPage } from './ConfirmationPage';
 
 /**
@@ -67,18 +67,6 @@ function _PageContent() {
   );
 
   /**
-   * This effect is a failsafe mechanism that ensures that the user interface
-   * controller is notified when the page is closed, so that the controller
-   * can update its state accordingly and discard any temporary unsaved data.
-   *
-   * The page should be closed through the user interface controller,
-   * but perhaps there are exceptions to this rule.
-   */
-  useEffect(() => {
-    return closeCb;
-  }, [closeCb]);
-
-  /**
    * Render content appropriate for the current user interface state
    */
   let content = <DefaultContent closeCb={closeCb} />;
@@ -89,7 +77,7 @@ function _PageContent() {
       case InteractionMode.DrawPoint:
       case InteractionMode.DrawPolygon:
       case InteractionMode.EditMetadata:
-        content = <MetadataEditor />;
+        content = <MetadataEditorConsumer />;
         break;
       case InteractionMode.SelectMultiple:
         break;

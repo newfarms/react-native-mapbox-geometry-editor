@@ -34,9 +34,6 @@ function _PageController({
       onDismissRequest: action('page_controller_dismiss_request', () =>
         controls.cancel()
       ),
-      onDismissed: action('page_controller_dismissed', () => {
-        controls.notifyOfPageClose();
-      }),
     };
   }, [controls]);
 

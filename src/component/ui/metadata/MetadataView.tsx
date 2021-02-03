@@ -4,13 +4,13 @@ import { observer } from 'mobx-react-lite';
 import { StyleSheet } from 'react-native';
 import { Button, Card } from 'react-native-paper';
 
-import { StoreContext } from '../../state/StoreContext';
+import { StoreContext } from '../../../state/StoreContext';
 import { MetadataFieldList } from './MetadataList';
-import { DefaultContent } from './page/PageContent';
-import { useMetadata } from '../../hooks/useMetadata';
-import { canUseMetadata } from '../../util/metadata/display';
-import { InteractionMode } from '../../state/ControlsModel';
-import { MetadataInteraction } from '../../type/metadata';
+import { DefaultContent } from '../page/PageContent';
+import { useMetadata } from '../../../hooks/useMetadata';
+import { canUseMetadata } from '../../../util/metadata/display';
+import { InteractionMode } from '../../../state/ControlsModel';
+import { MetadataInteraction } from '../../../type/metadata';
 
 /**
  * @ignore

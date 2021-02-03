@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { toJS } from 'mobx';
 
 import { StoreContext } from '../state/StoreContext';
-import { MetadataContext } from '../component/ui/MetadataContext';
+import { MetadataContext } from '../component/ui/metadata/MetadataContext';
 import { makeMetadataFormStarter } from '../util/metadata/schema';
 import { canUseMetadata } from '../util/metadata/display';
 import { MetadataInteraction } from '../type/metadata';
