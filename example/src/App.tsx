@@ -24,6 +24,8 @@ LogBox.ignoreLogs(['Require cycle:']);
 import 'react-native-get-random-values';
 import {
   defaultStyleGeneratorMap,
+  FeatureLifecycleStage,
+  featureLifecycleStageColor,
   GeometryEditorUI,
   CoordinateRole,
   validateMetadata,
@@ -95,6 +97,30 @@ function vehicleTypeColor(type?: VehicleType): string {
 }
 
 /**
+ * Enumeration for data-driven styling of polygons
+ */
+enum ZoneType {
+  Parking = 'PARKING',
+  Restricted = 'RESTRICTED',
+}
+
+/**
+ * Default colours for [[ZoneType]] types
+ * @param stage The zone type
+ * @return A specific or a default colour, depending on whether `type` is defined
+ */
+function zoneTypeColor(type?: ZoneType): string {
+  switch (type) {
+    case ZoneType.Parking:
+      return '#696969'; // Dim grey
+    case ZoneType.Restricted:
+      return '#ff69b4'; // Hot pink
+    default:
+      return '#ffffff'; // White
+  }
+}
+
+/**
  * Custom rendering styles for geometry displayed on the map
  */
 const styleGeneratorMap: StyleGeneratorMap = {
@@ -146,9 +172,33 @@ const styleGeneratorMap: StyleGeneratorMap = {
   polygon: () => {
     let style = defaultStyleGeneratorMap.polygon();
     /**
-     * TODO: Data-driven styling
+     * Data-driven styling by geometry lifecycle stage and zone type
      */
-    style.fillColor = '#dcdcdc'; // gainsboro
+    style.fillColor = [
+      'match',
+      ['get', 'rnmgeStage'],
+      FeatureLifecycleStage.NewShape,
+      featureLifecycleStageColor(FeatureLifecycleStage.NewShape),
+      FeatureLifecycleStage.EditShape,
+      featureLifecycleStageColor(FeatureLifecycleStage.EditShape),
+      FeatureLifecycleStage.EditMetadata,
+      featureLifecycleStageColor(FeatureLifecycleStage.EditMetadata),
+      FeatureLifecycleStage.SelectMultiple,
+      featureLifecycleStageColor(FeatureLifecycleStage.SelectMultiple),
+      FeatureLifecycleStage.SelectSingle,
+      featureLifecycleStageColor(FeatureLifecycleStage.SelectSingle),
+      FeatureLifecycleStage.View,
+      [
+        'match',
+        ['get', 'zoneType'],
+        ZoneType.Parking,
+        zoneTypeColor(ZoneType.Parking),
+        ZoneType.Restricted,
+        zoneTypeColor(ZoneType.Restricted),
+        zoneTypeColor(), // Default
+      ],
+      zoneTypeColor(), // Default
+    ];
     return style;
   },
   /**
@@ -170,83 +220,123 @@ const styleGeneratorMap: StyleGeneratorMap = {
 };
 
 /**
- * Function defining the metadata fields available for editing.
- * The library will provide a default function if none is provided.
- * @param _feature Geometry object whose metadata will be edited
+ * Custom metadata fields for point geometry
  */
-function metadataSchemaGenerator(_feature?: EditableFeature): MetadataSchema {
-  return [
-    ['yup.object'],
-    ['yup.required'],
-    [
-      'yup.meta',
-      {
-        titleFieldKey: 'model',
-        title: 'No model',
-        showIfEmpty: false,
-      },
-    ],
-    [
-      'yup.shape',
-      {
-        vehicleType: [
-          ['yup.mixed'],
-          ['yup.label', 'Type of vehicle'],
-          ['yup.required'],
-          ['yup.oneOf', Object.values(VehicleType)],
-          [
-            'yup.meta',
-            {
-              inPreview: true,
+const POINT_SCHEMA = [
+  ['yup.object'],
+  ['yup.required'],
+  [
+    'yup.meta',
+    {
+      titleFieldKey: 'model',
+      title: 'No model',
+      showIfEmpty: false,
+    },
+  ],
+  [
+    'yup.shape',
+    {
+      vehicleType: [
+        ['yup.mixed'],
+        ['yup.label', 'Type of vehicle'],
+        ['yup.required'],
+        ['yup.oneOf', Object.values(VehicleType)],
+        [
+          'yup.meta',
+          {
+            inPreview: true,
+          },
+        ],
+      ],
+      model: [['yup.string'], ['yup.required', 'A model is required']], // An enumeration may be better, as the user could input arbitrary strings
+      age: [
+        ['yup.number'],
+        ['yup.label', 'Age (years)'],
+        ['yup.required', 'How old is it?'],
+        ['yup.positive', 'Age must be greater than zero'],
+      ],
+      description: [
+        ['yup.string'],
+        ['yup.label', 'Description'],
+        ['yup.optional'],
+        [
+          'yup.meta',
+          {
+            inPreview: true,
+          },
+        ],
+      ],
+      needsRepair: [
+        ['yup.boolean'],
+        ['yup.label', 'Needs repair?'],
+        ['yup.required'],
+      ],
+      fieldWithPermissions: [
+        ['yup.string'],
+        ['yup.label', 'Immutable comment'],
+        ['yup.optional'],
+        [
+          'yup.meta',
+          {
+            permissions: {
+              edit: false,
             },
-          ],
+            showIfEmpty: true,
+          },
         ],
-        model: [['yup.string'], ['yup.required', 'A model is required']], // An enumeration may be better, as the user could input arbitrary strings
-        age: [
-          ['yup.number'],
-          ['yup.label', 'Age (years)'],
-          ['yup.required', 'How old is it?'],
-          ['yup.positive', 'Age must be greater than zero'],
-        ],
-        description: [
-          ['yup.string'],
-          ['yup.label', 'Description'],
-          ['yup.optional'],
-          [
-            'yup.meta',
-            {
-              inPreview: true,
-            },
-          ],
-        ],
-        needsRepair: [
-          ['yup.boolean'],
-          ['yup.label', 'Needs repair?'],
-          ['yup.required'],
-        ],
-        fieldWithPermissions: [
-          ['yup.string'],
-          ['yup.label', 'Immutable comment'],
-          ['yup.optional'],
-          [
-            'yup.meta',
-            {
-              permissions: {
-                edit: false,
+      ],
+    },
+  ],
+];
+
+/**
+ * Function defining the metadata fields available for editing.
+ * The library would provide a default function if none is provided.
+ * @param feature Geometry object whose metadata will be edited
+ */
+function metadataSchemaGenerator(
+  feature: EditableFeature
+): MetadataSchema | null {
+  if (feature.geometry.type === 'Point') {
+    return POINT_SCHEMA;
+  } else if (feature.geometry.type === 'Polygon') {
+    return [
+      ['yup.object'],
+      ['yup.required'],
+      [
+        'yup.meta',
+        {
+          titleFieldKey: 'zoneType',
+          title: 'Unknown region',
+        },
+      ],
+      [
+        'yup.shape',
+        {
+          zoneType: [
+            ['yup.mixed'],
+            ['yup.label', 'Type of region'],
+            ['yup.required'],
+            ['yup.oneOf', Object.values(ZoneType)],
+            [
+              'yup.meta',
+              {
+                inPreview: true,
               },
-              showIfEmpty: true,
-            },
+            ],
           ],
-        ],
-      },
-    ],
-  ];
+        },
+      ],
+    ];
+  } else {
+    return null;
+  }
 }
 
 /**
  * For development purposes, validate the metadata schema
  */
-const validationResult = validateMetadata(metadataSchemaGenerator(), {
+const validationResult = validateMetadata(POINT_SCHEMA, {
   vehicleType: 'BICYCLE',
   model: 'classic',
   age: 'five',
