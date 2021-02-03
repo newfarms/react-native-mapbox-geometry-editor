@@ -157,6 +157,8 @@ HTML API documentation for the library can be generated using Typedoc as follows
 ### Android
 - Geometry rendering on an Android emulator may exhibit visual problems such as rendering points in grey instead of in their desired colours.
   Zooming in and out on the map may make colours randomly appear and disappear.
+- Draggable points/vertices will usually render underneath all other geometry
+  (https://github.com/react-native-mapbox-gl/maps/issues/806).
 
 ### iOS
 - To drag an editable point, it may be necessary to first tap on the point (press and release) before pressing and holding to drag the point.
