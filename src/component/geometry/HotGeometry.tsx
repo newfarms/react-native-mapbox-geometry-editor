@@ -39,11 +39,13 @@ function _HotGeometry() {
     >
       <MapboxGL.FillLayer
         id="hot_polygons"
+        aboveLayerID="cold_points"
         filter={['==', ['geometry-type'], 'Polygon']}
         style={styleGenerators.polygon()}
       />
       <MapboxGL.LineLayer
         id="hot_edges"
+        aboveLayerID="hot_polygons"
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
@@ -53,6 +55,7 @@ function _HotGeometry() {
       />
       <MapboxGL.CircleLayer
         id="hot_vertices"
+        aboveLayerID="hot_edges"
         filter={[
           'all',
           ['==', ['geometry-type'], 'Point'],
@@ -62,6 +65,7 @@ function _HotGeometry() {
       />
       <MapboxGL.CircleLayer
         id="hot_points"
+        aboveLayerID="hot_vertices"
         filter={[
           'all',
           ['==', ['geometry-type'], 'Point'],
