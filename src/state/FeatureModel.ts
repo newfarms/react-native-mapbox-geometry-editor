@@ -78,8 +78,17 @@ export class FeatureModel extends Model({
           if (i >= this.geojson.geometry.coordinates.length) {
             return null;
           }
-          return (this.geojson.geometry.coordinates[i] as Array<Position>)
-            .length;
+          if (
+            (this.geojson.geometry.coordinates[i] as Array<Position>).length > 0
+          ) {
+            // Account for the duplicate position at the end of a linear ring
+            return (
+              (this.geojson.geometry.coordinates[i] as Array<Position>).length -
+              1
+            );
+          } else {
+            return 0;
+          }
         });
         // Update the point's coordinates
         this.geojson.geometry.coordinates[outerIndex].splice(
@@ -87,6 +96,10 @@ export class FeatureModel extends Model({
           1,
           position
         );
+        // Update the duplicate coordinate if needed
+        if (innerIndex === 0) {
+          this.geojson.geometry.coordinates[outerIndex].splice(-1, 1, position);
+        }
         break;
       }
     }
