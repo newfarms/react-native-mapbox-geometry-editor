@@ -132,7 +132,7 @@ Meta information controls the circumstances under which metadata objects and met
 
 Object-level meta information is described by the `MetadataAttributes` interface in `src/type/metadata.ts`, whereas field-level meta information is described by the `FieldAttributes` interface in `src/type/metadata.ts`.
 Please read the documentation comments of these interfaces for descriptions of the available options.
-Default values for meta information are provided by the `metadataAttributesImpl` and `fieldAttributesImpl` validators in `src/util/metadata/schema.ts`, so the client applicatio only needs to provide any meta information properties whose values must differ from the defaults.
+Default values for meta information are provided by the `metadataAttributesImpl` and `fieldAttributesImpl` validators in `src/util/metadata/schema.ts`, so the client application only needs to provide any meta information properties whose values must differ from the defaults.
 
 ## API Documentation
 
