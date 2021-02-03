@@ -222,6 +222,22 @@ export type RenderFeatureCollection = FeatureCollection<
 >;
 
 /**
+ * A collection of [[RenderFeature]] point features
+ */
+export type RenderPointFeatureCollection = FeatureCollection<
+  Point,
+  RenderProperties
+>;
+
+/**
+ * A collection of [[RenderFeature]] non-point features
+ */
+export type RenderNonPointFeatureCollection = FeatureCollection<
+  LineString | Polygon,
+  RenderProperties
+>;
+
+/**
  * Data associated with a draggable point
  * Note that there are some properties of [[RenderProperties]] that do not need
  * to be included, because they have implied constant values:

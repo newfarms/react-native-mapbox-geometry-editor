@@ -2,7 +2,7 @@ import { computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import flatten from 'lodash/flatten';
 import { point, lineString, polygon } from '@turf/helpers';
-import type { Position } from 'geojson';
+import type { Position, Point, LineString, Polygon, Feature } from 'geojson';
 
 import type {
   DraggablePosition,
@@ -694,16 +694,31 @@ export class FeatureModel extends Model({
   }
 
   /**
-   * Returns any features that should be rendered in the "cold" map layer.
+   * Returns any point features that should be rendered in the "cold" map layer.
    * Otherwise returns an empty array.
    */
   @computed
-  get coldFeatures(): Array<RenderFeature> {
-    if (this.isInHotStage) {
-      return [];
-    } else {
-      return [this.renderFeature];
+  get coldPointFeatures(): Array<Feature<Point, RenderProperties>> {
+    if (!this.isInHotStage && this.geojson.geometry.type === 'Point') {
+      return [this.renderFeature as Feature<Point, RenderProperties>];
     }
+    return [];
+  }
+
+  /**
+   * Returns any non-point features that should be rendered in the "cold" map layer.
+   * Otherwise returns an empty array.
+   */
+  @computed
+  get coldNonPointFeatures(): Array<
+    Feature<LineString | Polygon, RenderProperties>
+  > {
+    if (!this.isInHotStage && this.geojson.geometry.type !== 'Point') {
+      return [
+        this.renderFeature as Feature<LineString | Polygon, RenderProperties>,
+      ];
+    }
+    return [];
   }
 
   /**

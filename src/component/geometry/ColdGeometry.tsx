@@ -16,7 +16,13 @@ import { StyleContext } from '../StyleContext';
  */
 function _ColdGeometry() {
   const { controls, features } = useContext(StoreContext);
-  const featuresJS = toJS(features.coldFeatures);
+  /**
+   * Only point geometry can be clustered, so separate point geometry
+   * from non-point geometry.
+   * See also https://github.com/mapbox/mapbox-gl-native/issues/16555
+   */
+  const pointFeaturesJS = toJS(features.coldPointFeatures);
+  const nonPointFeaturesJS = toJS(features.coldNonPointFeatures);
 
   const { styleGenerators } = useContext(StyleContext);
   // Geometry filter to prevent cluster layers from operating on other kinds of geometry
@@ -42,38 +48,47 @@ function _ColdGeometry() {
    * - Symbol layer associated with the clusters layer to render cluster metadata, for example
    */
   return (
-    <MapboxGL.ShapeSource
-      id="cold_geometry"
-      shape={featuresJS}
-      cluster={true}
-      onPress={onPress}
-    >
-      <MapboxGL.CircleLayer
-        id="cold_points"
-        filter={[
-          'all',
-          ['==', ['geometry-type'], 'Point'],
-          ['!', ['has', 'point_count']],
-        ]}
-        style={styleGenerators.point()}
-      />
-      <MapboxGL.FillLayer
-        id="cold_polygons"
-        filter={['==', ['geometry-type'], 'Polygon']}
-        style={styleGenerators.polygon()}
-      />
-      <MapboxGL.CircleLayer
-        id="cold_points_clusters"
-        belowLayerID="cold_points_clusters_count"
-        filter={clusterFilter}
-        style={styleGenerators.cluster()}
-      />
-      <MapboxGL.SymbolLayer
-        id="cold_points_clusters_count"
-        style={styleGenerators.clusterSymbol()}
-        filter={clusterFilter}
-      />
-    </MapboxGL.ShapeSource>
+    <>
+      <MapboxGL.ShapeSource
+        id="cold_geometry_noncircles"
+        shape={nonPointFeaturesJS}
+        cluster={false}
+        onPress={onPress}
+      >
+        <MapboxGL.FillLayer
+          id="cold_polygons"
+          filter={['==', ['geometry-type'], 'Polygon']}
+          style={styleGenerators.polygon()}
+        />
+      </MapboxGL.ShapeSource>
+      <MapboxGL.ShapeSource
+        id="cold_geometry_circles"
+        shape={pointFeaturesJS}
+        cluster={true}
+        onPress={onPress}
+      >
+        <MapboxGL.CircleLayer
+          id="cold_points"
+          filter={[
+            'all',
+            ['==', ['geometry-type'], 'Point'],
+            ['!', ['has', 'point_count']],
+          ]}
+          style={styleGenerators.point()}
+        />
+        <MapboxGL.CircleLayer
+          id="cold_points_clusters"
+          belowLayerID="cold_points_clusters_count"
+          filter={clusterFilter}
+          style={styleGenerators.cluster()}
+        />
+        <MapboxGL.SymbolLayer
+          id="cold_points_clusters_count"
+          style={styleGenerators.clusterSymbol()}
+          filter={clusterFilter}
+        />
+      </MapboxGL.ShapeSource>
+    </>
   );
 }
 
