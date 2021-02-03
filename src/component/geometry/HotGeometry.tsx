@@ -37,15 +37,6 @@ function _HotGeometry() {
       shape={featuresJS}
       onPress={onPress}
     >
-      <MapboxGL.CircleLayer
-        id="hot_points"
-        filter={[
-          'all',
-          ['==', ['geometry-type'], 'Point'],
-          ['==', ['get', 'rnmgeRole'], CoordinateRole.PointFeature],
-        ]}
-        style={styleGenerators.point()}
-      />
       <MapboxGL.FillLayer
         id="hot_polygons"
         filter={['==', ['geometry-type'], 'Polygon']}
@@ -68,6 +59,15 @@ function _HotGeometry() {
           ['!=', ['get', 'rnmgeRole'], CoordinateRole.PointFeature],
         ]}
         style={styleGenerators.vertex()}
+      />
+      <MapboxGL.CircleLayer
+        id="hot_points"
+        filter={[
+          'all',
+          ['==', ['geometry-type'], 'Point'],
+          ['==', ['get', 'rnmgeRole'], CoordinateRole.PointFeature],
+        ]}
+        style={styleGenerators.point()}
       />
     </MapboxGL.ShapeSource>
   );
