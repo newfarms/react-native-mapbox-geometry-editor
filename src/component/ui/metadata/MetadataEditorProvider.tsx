@@ -137,12 +137,12 @@ function _MetadataEditorProvider({
    * Metadata permissions and pre-processing
    */
   const use = controls.metadataInteraction;
-  const { canUse, data, formStarter, featureExists } = useMetadata(use);
+  const { canUse, data, formStarter, contextExists } = useMetadata(use);
 
   /**
    * Render the metadata editor context when appropriate
    */
-  if (featureExists) {
+  if (contextExists) {
     let isEditOperation = false;
     switch (use) {
       case MetadataInteraction.Create:

@@ -29,12 +29,14 @@ import {
   GeometryEditorUI,
   CoordinateRole,
   validateMetadata,
+  MetadataSchemaGeneratorMap,
 } from 'react-native-mapbox-geometry-editor';
 import type {
   CameraControls,
   DraggablePointStyle,
   EditableFeature,
   MetadataSchema,
+  SemanticGeometryType,
   StyleGeneratorMap,
 } from 'react-native-mapbox-geometry-editor';
 
@@ -292,14 +294,14 @@ const POINT_SCHEMA = [
 /**
  * Function defining the metadata fields available for editing.
  * The library would provide a default function if none is provided.
- * @param feature Geometry object whose metadata will be edited
+ * @param type Type of geometry object whose metadata will be edited
  */
 function metadataSchemaGenerator(
-  feature: EditableFeature
+  type: SemanticGeometryType
 ): MetadataSchema | null {
-  if (feature.geometry.type === 'Point') {
+  if (type === 'Point') {
     return POINT_SCHEMA;
-  } else if (feature.geometry.type === 'Polygon') {
+  } else if (type === 'Polygon') {
     return [
       ['yup.object'],
       ['yup.required'],
@@ -325,6 +327,11 @@ function metadataSchemaGenerator(
               },
             ],
           ],
+          openAtNight: [
+            ['yup.boolean'],
+            ['yup.label', 'Overnight use permitted?'],
+            ['yup.required'],
+          ],
         },
       ],
     ];
@@ -332,6 +339,15 @@ function metadataSchemaGenerator(
     return null;
   }
 }
+
+/**
+ * In this simple example, the same metadata schema generation
+ * function is used for both new and existing geometry.
+ */
+const metadataSchemaGeneratorMap: MetadataSchemaGeneratorMap = {
+  newGeometry: metadataSchemaGenerator,
+  existingGeometry: metadataSchemaGenerator,
+};
 
 /**
  * For development purposes, validate the metadata schema
@@ -397,7 +413,7 @@ export default function App() {
           style: styles.map,
           styleURL: 'mapbox://styles/mapbox/dark-v10',
         }}
-        metadataSchemaGenerator={metadataSchemaGenerator}
+        metadataSchemaGeneratorMap={metadataSchemaGeneratorMap}
         styleGenerators={styleGeneratorMap}
       >
         <MapboxGL.Camera

@@ -444,7 +444,7 @@ export class FeatureListModel extends Model({
   }
 
   /**
-   * Retrieve the feature whose metadata is currently being edited
+   * Retrieve the (complete) feature whose metadata is currently being edited
    */
   @computed
   private get draftMetadataFeature(): FeatureModel | undefined {
@@ -452,7 +452,7 @@ export class FeatureListModel extends Model({
       this.features,
       (val) =>
         val.stage === FeatureLifecycleStage.EditMetadata ||
-        val.stage === FeatureLifecycleStage.NewShape
+        (val.stage === FeatureLifecycleStage.NewShape && val.isCompleteFeature)
     );
     if (arr.length > 1) {
       console.warn(
@@ -625,11 +625,6 @@ export class FeatureListModel extends Model({
   draftMetadataToSelected() {
     withoutUndo(() => {
       if (this.draftMetadataFeature) {
-        if (!this.draftMetadataFeature.isCompleteFeature) {
-          console.warn(
-            `Feature with model ID ${this.draftMetadataFeature.$modelId} is not a complete ${this.draftMetadataFeature.finalType}.`
-          );
-        }
         this.draftMetadataFeature.stage = FeatureLifecycleStage.SelectSingle;
       }
     });

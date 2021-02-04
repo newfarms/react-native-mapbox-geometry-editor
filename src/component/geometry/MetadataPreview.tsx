@@ -92,7 +92,7 @@ function MetadataAnnotationContent({
 function _MetadataPreview() {
   const { controls, features } = useContext(StoreContext);
   const use = MetadataInteraction.ViewPreview;
-  const { canUse, data, formStarter, featureExists } = useMetadata(use);
+  const { canUse, data, formStarter, contextExists } = useMetadata(use);
 
   const featureData = features.focusedFeature;
   let featureID: RnmgeID = ''; // ID used to blur the feature when closing the tooltip
@@ -129,7 +129,7 @@ function _MetadataPreview() {
    * (the point that corresponds to its map coordinates, `coordinate`)
    * near its bottom left corner.
    */
-  if (featureExists && canUse) {
+  if (contextExists && canUse) {
     return (
       <MapboxGL.MarkerView
         coordinate={coordinates}
