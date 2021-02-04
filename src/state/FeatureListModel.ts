@@ -121,7 +121,12 @@ export class FeatureListModel extends Model({
             `Feature at index ${index} with model ID ${val.$modelId} is not a complete ${val.finalType}.`
           );
         }
-        val.stage = FeatureLifecycleStage.View;
+        if (
+          val.stage !== FeatureLifecycleStage.SelectMultiple &&
+          val.stage !== FeatureLifecycleStage.SelectSingle
+        ) {
+          val.stage = FeatureLifecycleStage.View;
+        }
       });
     });
     this.clearHistory();
@@ -582,6 +587,20 @@ export class FeatureListModel extends Model({
       this.features.forEach((val) => {
         if (val.stage === FeatureLifecycleStage.SelectMultiple) {
           val.stage = FeatureLifecycleStage.EditShape;
+        }
+      });
+    });
+  }
+
+  /**
+   * Put features in a geometry editing lifecycle stage into a selected stage
+   */
+  @modelAction
+  editableToSelectMultiple() {
+    withoutUndo(() => {
+      this.features.forEach((val) => {
+        if (val.stage === FeatureLifecycleStage.EditShape) {
+          val.stage = FeatureLifecycleStage.SelectMultiple;
         }
       });
     });
