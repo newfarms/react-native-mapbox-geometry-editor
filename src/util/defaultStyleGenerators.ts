@@ -41,7 +41,12 @@ function getDefaultDraggablePointStyle(
  * Default colours for geometry lifecycle stages
  * @param stage The lifecycle stage
  */
-function featureLifecycleStageColor(stage: FeatureLifecycleStage): string {
+export function featureLifecycleStageColor(
+  stage?: FeatureLifecycleStage
+): string {
+  if (!stage) {
+    return MISSING_COLOR;
+  }
   switch (stage) {
     case FeatureLifecycleStage.NewShape:
       return '#ffff00'; // Yellow
@@ -86,7 +91,7 @@ function featureLifecycleStrokeWidth(stage?: FeatureLifecycleStage): number {
  * Default colours for coordinate roles
  * @param role The coordinate role
  */
-function coordinateRoleColor(role?: CoordinateRole): string {
+export function coordinateRoleColor(role?: CoordinateRole): string {
   if (!role) {
     return MISSING_COLOR;
   }
@@ -118,7 +123,7 @@ function coordinateRoleColor(role?: CoordinateRole): string {
  * Default colours for line string roles
  * @param role The line string role
  */
-function lineStringRoleColor(role?: LineStringRole): string {
+export function lineStringRoleColor(role?: LineStringRole): string {
   if (!role) {
     return MISSING_COLOR;
   }

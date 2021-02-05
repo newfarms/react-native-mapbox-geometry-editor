@@ -1,5 +1,4 @@
 {
-    "inputFiles": ["./src"],
-    "mode": "file",
-    "out": "docs/src"
+  "entryPoints": ["./src/index.ts"],
+  "out": "docs/src"
 }

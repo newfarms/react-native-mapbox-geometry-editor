@@ -132,7 +132,7 @@ Meta information controls the circumstances under which metadata objects and met
 
 Object-level meta information is described by the `MetadataAttributes` interface in `src/type/metadata.ts`, whereas field-level meta information is described by the `FieldAttributes` interface in `src/type/metadata.ts`.
 Please read the documentation comments of these interfaces for descriptions of the available options.
-Default values for meta information are provided by the `metadataAttributesImpl` and `fieldAttributesImpl` validators in `src/util/metadata/schema.ts`, so the client applicatio only needs to provide any meta information properties whose values must differ from the defaults.
+Default values for meta information are provided by the `metadataAttributesImpl` and `fieldAttributesImpl` validators in `src/util/metadata/schema.ts`, so the client application only needs to provide any meta information properties whose values must differ from the defaults.
 
 ## API Documentation
 
@@ -157,6 +157,8 @@ HTML API documentation for the library can be generated using Typedoc as follows
 ### Android
 - Geometry rendering on an Android emulator may exhibit visual problems such as rendering points in grey instead of in their desired colours.
   Zooming in and out on the map may make colours randomly appear and disappear.
+- Draggable points/vertices will usually render underneath all other geometry
+  (https://github.com/react-native-mapbox-gl/maps/issues/806).
 
 ### iOS
 - To drag an editable point, it may be necessary to first tap on the point (press and release) before pressing and holding to drag the point.

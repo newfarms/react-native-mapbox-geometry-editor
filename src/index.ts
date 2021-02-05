@@ -32,7 +32,12 @@ export { GeometryEditor } from './component/GeometryEditor';
 export type { GeometryEditorProps } from './component/GeometryEditor';
 export { GeometryEditorUI } from './component/GeometryEditorUI';
 export type { GeometryEditorUIProps } from './component/GeometryEditorUI';
-export { defaultStyleGeneratorMap } from './util/defaultStyleGenerators';
+export {
+  defaultStyleGeneratorMap,
+  featureLifecycleStageColor,
+  coordinateRoleColor,
+  lineStringRoleColor,
+} from './util/defaultStyleGenerators';
 export { validateMetadata } from './util/metadata/schema';
 
 export type { CameraControls } from './component/CameraController';
@@ -43,8 +48,9 @@ export type {
 } from './type/geometry';
 export {
   CoordinateRole,
-  FeatureLifecycleStage,
+  LineStringRole,
   GeometryRole,
+  FeatureLifecycleStage,
 } from './type/geometry';
 export type {
   FieldAttributes,

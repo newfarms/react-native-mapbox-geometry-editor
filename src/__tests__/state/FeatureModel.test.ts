@@ -23,7 +23,7 @@ function makePoint(type: EditableGeometryType) {
  * Make a two-vertex line string with the desired eventual geometry type.
  * @param type The type of geometry the feature will become
  */
-function makeEdge(type: (EditableGeometryType & 'LineString') | 'Polygon') {
+function makeEdge(type: EditableGeometryType & ('LineString' | 'Polygon')) {
   return new FeatureModel({
     stage: FeatureLifecycleStage.EditShape,
     geojson: lineString([
@@ -38,7 +38,7 @@ function makeEdge(type: (EditableGeometryType & 'LineString') | 'Polygon') {
  * Make a three-vertex line string or polygon.
  * @param type The type of geometry
  */
-function makeTriplet(type: (EditableGeometryType & 'LineString') | 'Polygon') {
+function makeTriplet(type: EditableGeometryType & ('LineString' | 'Polygon')) {
   switch (type) {
     case 'LineString':
       return new FeatureModel({
@@ -143,7 +143,7 @@ test.each([
   [3, 'Polygon'],
   [4, 'Polygon'],
   [undefined, 'Polygon'],
-] as Array<[number | undefined, (EditableGeometryType & 'LineString') | 'Polygon']>)(
+] as Array<[number | undefined, EditableGeometryType & ('LineString' | 'Polygon')]>)(
   'addVertex on a feature with two vertices',
   (index, type) => {
     const e = makeEdge(type);
@@ -206,7 +206,7 @@ test.each([
   [4, 'Polygon'],
   [5, 'Polygon'],
   [undefined, 'Polygon'],
-] as Array<[number | undefined, (EditableGeometryType & 'LineString') | 'Polygon']>)(
+] as Array<[number | undefined, EditableGeometryType & ('LineString' | 'Polygon')]>)(
   'addVertex on a feature with three vertices',
   (index, type) => {
     const t = makeTriplet(type);
@@ -241,6 +241,38 @@ test.each([
         ];
       }
     }
+    if (type === 'Polygon') {
+      expected.push(expected[0]);
+      expected = [expected];
+    }
+    expect(t.geojson.geometry.coordinates).toStrictEqual(expected);
+    expect(t.geojson.geometry.type).toStrictEqual(type);
+  }
+);
+
+/**
+ * Test that each vertex in a three-vertex line string or polygon (without holes)
+ * can be dragged to a new position
+ */
+test.each([
+  [0, 'LineString'],
+  [1, 'LineString'],
+  [2, 'LineString'],
+  [0, 'Polygon'],
+  [1, 'Polygon'],
+  [2, 'Polygon'],
+] as Array<[number, EditableGeometryType & ('LineString' | 'Polygon')]>)(
+  'addVertex on a feature with three vertices',
+  (index, type) => {
+    const t = makeTriplet(type);
+    const newPosition = [0, 0];
+    t.dragPosition(newPosition, index);
+    let expected: Array<Position> | Array<Array<Position>> = [
+      [-1, -2],
+      [1, 2],
+      [3, 4],
+    ];
+    expected.splice(index, 1, newPosition);
     if (type === 'Polygon') {
       expected.push(expected[0]);
       expected = [expected];

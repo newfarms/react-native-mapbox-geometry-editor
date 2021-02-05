@@ -2,7 +2,7 @@ import { computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import flatten from 'lodash/flatten';
 import { point, lineString, polygon } from '@turf/helpers';
-import type { Position } from 'geojson';
+import type { Position, Point, LineString, Polygon, Feature } from 'geojson';
 
 import type {
   DraggablePosition,
@@ -78,8 +78,17 @@ export class FeatureModel extends Model({
           if (i >= this.geojson.geometry.coordinates.length) {
             return null;
           }
-          return (this.geojson.geometry.coordinates[i] as Array<Position>)
-            .length;
+          if (
+            (this.geojson.geometry.coordinates[i] as Array<Position>).length > 0
+          ) {
+            // Account for the duplicate position at the end of a linear ring
+            return (
+              (this.geojson.geometry.coordinates[i] as Array<Position>).length -
+              1
+            );
+          } else {
+            return 0;
+          }
         });
         // Update the point's coordinates
         this.geojson.geometry.coordinates[outerIndex].splice(
@@ -87,6 +96,10 @@ export class FeatureModel extends Model({
           1,
           position
         );
+        // Update the duplicate coordinate if needed
+        if (innerIndex === 0) {
+          this.geojson.geometry.coordinates[outerIndex].splice(-1, 1, position);
+        }
         break;
       }
     }
@@ -694,16 +707,31 @@ export class FeatureModel extends Model({
   }
 
   /**
-   * Returns any features that should be rendered in the "cold" map layer.
+   * Returns any point features that should be rendered in the "cold" map layer.
    * Otherwise returns an empty array.
    */
   @computed
-  get coldFeatures(): Array<RenderFeature> {
-    if (this.isInHotStage) {
-      return [];
-    } else {
-      return [this.renderFeature];
+  get coldPointFeatures(): Array<Feature<Point, RenderProperties>> {
+    if (!this.isInHotStage && this.geojson.geometry.type === 'Point') {
+      return [this.renderFeature as Feature<Point, RenderProperties>];
     }
+    return [];
+  }
+
+  /**
+   * Returns any non-point features that should be rendered in the "cold" map layer.
+   * Otherwise returns an empty array.
+   */
+  @computed
+  get coldNonPointFeatures(): Array<
+    Feature<LineString | Polygon, RenderProperties>
+  > {
+    if (!this.isInHotStage && this.geojson.geometry.type !== 'Point') {
+      return [
+        this.renderFeature as Feature<LineString | Polygon, RenderProperties>,
+      ];
+    }
+    return [];
   }
 
   /**

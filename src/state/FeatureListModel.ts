@@ -23,6 +23,8 @@ import type {
   EditableFeature,
   EditableGeometryType,
   RenderFeatureCollection,
+  RenderPointFeatureCollection,
+  RenderNonPointFeatureCollection,
   RnmgeID,
 } from '../type/geometry';
 import { FeatureLifecycleStage } from '../type/geometry';
@@ -236,12 +238,22 @@ export class FeatureListModel extends Model({
   }
 
   /**
-   * Returns any features that should be rendered in the "cold" map layer.
+   * Returns any point features that should be rendered in the "cold" map layer.
    */
   @computed
-  get coldFeatures(): RenderFeatureCollection {
+  get coldPointFeatures(): RenderPointFeatureCollection {
     return featureCollection(
-      flatten(this.features.map((feature) => feature.coldFeatures))
+      flatten(this.features.map((feature) => feature.coldPointFeatures))
+    );
+  }
+
+  /**
+   * Returns any non-point features that should be rendered in the "cold" map layer.
+   */
+  @computed
+  get coldNonPointFeatures(): RenderNonPointFeatureCollection {
+    return featureCollection(
+      flatten(this.features.map((feature) => feature.coldNonPointFeatures))
     );
   }
 
