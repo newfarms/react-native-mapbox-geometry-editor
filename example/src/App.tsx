@@ -134,7 +134,9 @@ const styleGeneratorMap: StyleGeneratorMap = {
     feature: EditableFeature
   ): DraggablePointStyle => {
     let style = defaultStyleGeneratorMap.draggablePoint(role, feature);
-    style.color = vehicleTypeColor(feature.properties?.vehicleType);
+    if (feature.geometry.type === 'Point') {
+      style.color = vehicleTypeColor(feature.properties?.vehicleType);
+    }
     return style;
   },
   /**
