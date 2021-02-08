@@ -37,7 +37,7 @@ function _MetadataView() {
    * Metadata permissions and pre-processing
    */
   const use = MetadataInteraction.ViewDetails;
-  const { canUse, data, formStarter, featureExists } = useMetadata(use);
+  const { canUse, data, formStarter, contextExists } = useMetadata(use);
 
   // Close button press handler
   const onDismiss = useMemo(
@@ -67,7 +67,7 @@ function _MetadataView() {
     [controls]
   );
 
-  if (featureExists) {
+  if (contextExists) {
     if (canUse) {
       return (
         <Card style={styles.card}>

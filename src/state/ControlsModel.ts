@@ -170,6 +170,11 @@ export class ControlsModel extends Model({
     // Execute cleanup actions specific to individual outgoing editing modes
     switch (this.mode) {
       case InteractionMode.DragPoint:
+        // Select the features that were being edited
+        if (mode === InteractionMode.SelectMultiple) {
+          features?.editableToSelectMultiple();
+        }
+        break;
       case InteractionMode.DrawPoint:
       case InteractionMode.DrawPolygon:
         break;
@@ -354,6 +359,11 @@ export class ControlsModel extends Model({
               features?.rollbackEditingSession();
               features?.clearHistory();
               break;
+          }
+          if (this.mode === InteractionMode.DragPoint) {
+            // Move back to multiple selection mode
+            this.confirmation = null;
+            this.toggleMode(InteractionMode.SelectMultiple);
           }
           break;
       }

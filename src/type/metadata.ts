@@ -1,4 +1,4 @@
-import type { EditableFeature } from './geometry';
+import type { EditableFeature, SemanticGeometryType } from './geometry';
 import type { ObjectSchema, ValidationError } from 'yup';
 
 /**
@@ -113,16 +113,44 @@ export interface EnumFieldDescription extends DisplayableFieldDescription {
 }
 
 /**
- * A function that generates metadata schemas
+ * A function that generates metadata schemas for existing features
  */
-export interface MetadataSchemaGenerator {
+export interface ExistingMetadataSchemaGenerator {
+  /**
+   * If the function returns `null`, metadata previews
+   * will not appear when the user inspects geometry.
+   * @param type The semantic type of the geometry (e.g. circle vs. point)
+   * @param feature The geometry feature whose metadata is to be viewed or edited
+   */
+  (type: SemanticGeometryType, feature: EditableFeature): MetadataSchema | null;
+}
+
+/**
+ * A function that generates metadata schemas for new features
+ */
+export interface NewMetadataSchemaGenerator {
   /**
    * If the function returns `null`, the metadata creation form will
-   * state that there is no metadata that can be edited, and metadata
-   * previews will not appear when the user inspects geometry.
-   * @param feature The geometry feature whose metadata is to be edited
+   * be skipped.
+   * @param type The semantic type of the geometry (e.g. circle vs. point)
+   *             whose metadata is to be created
    */
-  (feature: EditableFeature): MetadataSchema | null;
+  (type: SemanticGeometryType): MetadataSchema | null;
+}
+
+/**
+ * The set of functions needed to generate metadata schemas for all
+ * possible metadata operations.
+ */
+export interface MetadataSchemaGeneratorMap {
+  /**
+   * Metadata schema generator for new geometry
+   */
+  readonly newGeometry: NewMetadataSchemaGenerator;
+  /**
+   * Metadata schema generator for existing geometry
+   */
+  readonly existingGeometry: ExistingMetadataSchemaGenerator;
 }
 
 /**

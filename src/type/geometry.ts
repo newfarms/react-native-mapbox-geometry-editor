@@ -29,6 +29,14 @@ type EditableGeometry = Point | LineString | Polygon;
 export type EditableGeometryType = EditableGeometry['type'];
 
 /**
+ * The semantic type of geometry, which may not necessarily correspond
+ * to the GeoJSON geometry type.
+ *
+ * TODO: For future use in distinguishing circles from points.
+ */
+export type SemanticGeometryType = EditableGeometryType;
+
+/**
  * Geometry available for editing is represented
  * using features that contain only single shapes.
  * Doing so simplifies selection and editing on the user interface.

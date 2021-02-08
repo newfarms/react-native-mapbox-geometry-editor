@@ -121,7 +121,12 @@ export class FeatureListModel extends Model({
             `Feature at index ${index} with model ID ${val.$modelId} is not a complete ${val.finalType}.`
           );
         }
-        val.stage = FeatureLifecycleStage.View;
+        if (
+          val.stage !== FeatureLifecycleStage.SelectMultiple &&
+          val.stage !== FeatureLifecycleStage.SelectSingle
+        ) {
+          val.stage = FeatureLifecycleStage.View;
+        }
       });
     });
     this.clearHistory();
@@ -439,7 +444,7 @@ export class FeatureListModel extends Model({
   }
 
   /**
-   * Retrieve the feature whose metadata is currently being edited
+   * Retrieve the (complete) feature whose metadata is currently being edited
    */
   @computed
   private get draftMetadataFeature(): FeatureModel | undefined {
@@ -447,7 +452,7 @@ export class FeatureListModel extends Model({
       this.features,
       (val) =>
         val.stage === FeatureLifecycleStage.EditMetadata ||
-        val.stage === FeatureLifecycleStage.NewShape
+        (val.stage === FeatureLifecycleStage.NewShape && val.isCompleteFeature)
     );
     if (arr.length > 1) {
       console.warn(
@@ -588,6 +593,20 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Put features in a geometry editing lifecycle stage into a selected stage
+   */
+  @modelAction
+  editableToSelectMultiple() {
+    withoutUndo(() => {
+      this.features.forEach((val) => {
+        if (val.stage === FeatureLifecycleStage.EditShape) {
+          val.stage = FeatureLifecycleStage.SelectMultiple;
+        }
+      });
+    });
+  }
+
+  /**
    * Put any single selected feature into a geometry metadata editing lifecycle stage
    */
   @modelAction
@@ -606,11 +625,6 @@ export class FeatureListModel extends Model({
   draftMetadataToSelected() {
     withoutUndo(() => {
       if (this.draftMetadataFeature) {
-        if (!this.draftMetadataFeature.isCompleteFeature) {
-          console.warn(
-            `Feature with model ID ${this.draftMetadataFeature.$modelId} is not a complete ${this.draftMetadataFeature.finalType}.`
-          );
-        }
         this.draftMetadataFeature.stage = FeatureLifecycleStage.SelectSingle;
       }
     });

@@ -45,6 +45,7 @@ export type {
   EditableFeature,
   RenderFeature,
   RenderProperties,
+  SemanticGeometryType,
 } from './type/geometry';
 export {
   CoordinateRole,
@@ -57,7 +58,9 @@ export type {
   Metadata,
   MetadataAttributes,
   MetadataSchema,
-  MetadataSchemaGenerator,
+  MetadataSchemaGeneratorMap,
+  NewMetadataSchemaGenerator,
+  ExistingMetadataSchemaGenerator,
   MetadataValidationResult,
 } from './type/metadata';
 export type { DraggablePointStyle, StyleGeneratorMap } from './type/style';

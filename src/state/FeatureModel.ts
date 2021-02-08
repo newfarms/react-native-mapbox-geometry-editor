@@ -350,10 +350,13 @@ export class FeatureModel extends Model({
             .slice(0, -1) // The last position in a GeoJSON linear ring is a repeat of the first, so exclude it
             .map((val, index, arr) => {
               let role = CoordinateRole.PolygonInner;
-              if (index === 0) {
-                role = CoordinateRole.PolygonStart;
-              } else if (index === arr.length - 1 && arr.length > 1) {
-                role = CoordinateRole.PolygonSecondLast;
+              // In drawing mode, the order of the vertices is significant
+              if (this.stage === FeatureLifecycleStage.NewShape) {
+                if (index === 0) {
+                  role = CoordinateRole.PolygonStart;
+                } else if (index === arr.length - 1 && arr.length > 1) {
+                  role = CoordinateRole.PolygonSecondLast;
+                }
               }
               return {
                 coordinates: val,

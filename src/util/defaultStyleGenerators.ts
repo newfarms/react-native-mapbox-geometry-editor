@@ -26,15 +26,22 @@ const ANNOTATION_SIZE = 20;
  */
 function getDefaultDraggablePointStyle(
   role: CoordinateRole,
-  _feature: EditableFeature
+  feature: EditableFeature
 ): DraggablePointStyle {
-  let style: DraggablePointStyle = {
-    radius: ANNOTATION_SIZE * 2,
-    color: 'red',
-    strokeWidth: 3,
-    strokeColor: coordinateRoleColor(role),
-  };
-  return style;
+  if (feature.geometry.type === 'Point') {
+    return {
+      radius: ANNOTATION_SIZE * 2,
+      color: 'red',
+      strokeWidth: 3,
+      strokeColor: coordinateRoleColor(role),
+    };
+  } else {
+    return {
+      radius: ANNOTATION_SIZE,
+      color: coordinateRoleColor(role),
+      strokeWidth: 0,
+    };
+  }
 }
 
 /**
