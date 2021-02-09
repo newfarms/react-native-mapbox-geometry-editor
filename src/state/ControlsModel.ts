@@ -46,9 +46,10 @@ export enum InteractionMode {
 
 /**
  * Whether or not the editing mode can involve modifying geometry
+ * or geometry metadata.
  * @param mode An editing mode
  */
-function isGeometryModificationMode(mode: InteractionMode) {
+function isFeatureModificationMode(mode: InteractionMode) {
   return !(
     mode === InteractionMode.EditMetadata ||
     mode === InteractionMode.SelectMultiple ||
@@ -89,7 +90,7 @@ function selectionModeToSelectionStage(
  * Whether or not the editing mode involves modifying existing geometry
  * @param mode An editing mode
  */
-function isModificationMode(mode: InteractionMode) {
+function isShapeModificationMode(mode: InteractionMode) {
   return (
     mode === InteractionMode.DragPoint ||
     mode === InteractionMode.EditPolygonVertices
@@ -167,6 +168,22 @@ export class ControlsModel extends Model({
   }
 
   /**
+   * Return whether the current editing mode is a selection mode
+   */
+  @computed
+  get hasSelectionMode() {
+    return isSelectionMode(this.mode);
+  }
+
+  /**
+   * Return whether the current editing mode is a geometry modification mode
+   */
+  @computed
+  get hasShapeModificationMode() {
+    return isShapeModificationMode(this.mode);
+  }
+
+  /**
    * Set the editing mode to `mode`, or restore the default editing mode
    * if `mode` is the current editing mode
    */
@@ -233,7 +250,7 @@ export class ControlsModel extends Model({
         break;
       case InteractionMode.SelectMultiple:
         // Deselect all features unless they are to be edited
-        if (!isModificationMode(mode)) {
+        if (!isShapeModificationMode(mode)) {
           features?.deselectAll();
         }
         break;
@@ -241,7 +258,7 @@ export class ControlsModel extends Model({
         // Deselect the feature unless it is to be edited
         if (
           mode !== InteractionMode.EditMetadata &&
-          !isModificationMode(mode)
+          !isShapeModificationMode(mode)
         ) {
           features?.deselectAll();
         }
@@ -249,7 +266,7 @@ export class ControlsModel extends Model({
     }
 
     // Enclose editing sessions in "transactions"
-    if (isGeometryModificationMode(this.mode)) {
+    if (isFeatureModificationMode(this.mode)) {
       features?.endEditingSession();
     } else {
       // Make sure the redo history is clear
@@ -417,17 +434,10 @@ export class ControlsModel extends Model({
               features?.clearHistory();
               break;
           }
-          if (isModificationMode(this.mode)) {
+          if (isShapeModificationMode(this.mode)) {
             // Move back to selection mode
             this.confirmation = null;
-            if (!isSelectionMode(this.prevMode)) {
-              console.warn(
-                `Mode ${this.mode} did not follow a selection mode, but followed ${this.prevMode}.`
-              );
-              this.toggleMode(InteractionMode.SelectMultiple);
-            } else {
-              this.toggleMode(this.prevMode);
-            }
+            this.exitShapeModificationMode();
           }
           break;
       }
@@ -563,7 +573,8 @@ export class ControlsModel extends Model({
               reason: ConfirmationReason.Discard,
             });
           } else {
-            console.warn(`There are no actions to cancel.`);
+            // There are no actions to cancel
+            this.exitShapeModificationMode();
           }
           break;
         case InteractionMode.SelectMultiple:
@@ -588,6 +599,25 @@ export class ControlsModel extends Model({
       }
     }
     return !!this.confirmation;
+  }
+
+  /**
+   * Move from a shape modification mode back to a selection mode
+   */
+  @modelAction
+  private exitShapeModificationMode() {
+    if (this.hasShapeModificationMode) {
+      if (!isSelectionMode(this.prevMode)) {
+        console.warn(
+          `Mode ${this.mode} did not follow a selection mode, but followed ${this.prevMode}.`
+        );
+        this.toggleMode(InteractionMode.SelectMultiple);
+      } else {
+        this.toggleMode(this.prevMode);
+      }
+    } else {
+      console.warn(`Unexpected mode ${this.mode}.`);
+    }
   }
 
   /**

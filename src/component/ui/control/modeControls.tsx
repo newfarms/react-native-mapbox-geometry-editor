@@ -40,13 +40,6 @@ function makeModeControl(mode: InteractionMode, icon: string) {
 }
 
 /**
- * Point dragging editing mode control button
- */
-export const DragPointControl = makeModeControl(
-  InteractionMode.DragPoint,
-  'circle-edit-outline'
-);
-/**
  * Point drawing editing mode control button
  */
 export const DrawPointControl = makeModeControl(
@@ -61,16 +54,74 @@ export const DrawPolygonControl = makeModeControl(
   'shape-polygon-plus'
 );
 /**
- * Polygon geometry editing mode control button
- */
-export const EditPolygonVerticesControl = makeModeControl(
-  InteractionMode.EditPolygonVertices,
-  'vector-polygon'
-);
-/**
  * Multi-selection editing mode control button
  */
 export const SelectControl = makeModeControl(
   InteractionMode.SelectMultiple,
   'cursor-pointer'
 );
+
+/**
+ * A geometry editing mode toggle button.
+ *
+ * When the controller is in a selection mode, the button activates the
+ * appropriate editing mode for the type of selected geometry. If there
+ * is no appropriate combination of selected geometry, the button is disabled.
+ *
+ * When the controller is in an editing mode, the button acts as a cancel button.
+ *
+ * Otherwise the button is disabled.
+ */
+function _ShapeEditControl() {
+  const { controls, features } = useContext(StoreContext);
+
+  // Button enabled/disabled state
+  let enabled = false;
+  // Any editing mode that pressing the button will activate
+  let nextMode:
+    | null
+    | InteractionMode.DragPoint
+    | InteractionMode.EditPolygonVertices = null;
+  if (controls.hasSelectionMode) {
+    if (features.hasSelectedPointsOnly) {
+      nextMode = InteractionMode.DragPoint;
+      enabled = true;
+    } else if (features.hasOneSelectedPolygonOnly) {
+      nextMode = InteractionMode.EditPolygonVertices;
+      enabled = true;
+    }
+  } else if (controls.hasShapeModificationMode) {
+    enabled = true;
+  }
+
+  // Button press handler
+  const onPress = useMemo(
+    () =>
+      action('edit_control_press', () => {
+        if (nextMode) {
+          controls.toggleMode(nextMode);
+        } else {
+          controls.cancel();
+        }
+      }),
+    [controls, nextMode]
+  );
+  let status: 'unchecked' | 'checked' = 'unchecked';
+  if (controls.hasShapeModificationMode) {
+    status = 'checked';
+  }
+
+  return (
+    <ToggleButton
+      icon="circle-edit-outline"
+      onPress={onPress}
+      disabled={!enabled}
+      status={status}
+    />
+  );
+}
+
+/**
+ * Renderable MobX wrapper for [[_ShapeEditControl]]
+ */
+export const ShapeEditControl = observer(_ShapeEditControl);

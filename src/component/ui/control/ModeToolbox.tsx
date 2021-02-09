@@ -5,10 +5,9 @@ import { StyleSheet } from 'react-native';
 import { Surface } from 'react-native-paper';
 
 import {
-  DragPointControl,
   DrawPointControl,
   DrawPolygonControl,
-  EditPolygonVerticesControl,
+  ShapeEditControl,
   SelectControl,
 } from './modeControls';
 import { InteractionMode } from '../../../state/ControlsModel';
@@ -32,8 +31,7 @@ export function ModeToolboxButtons() {
     <Surface style={styles.toolbox}>
       <DrawPointControl />
       <DrawPolygonControl />
-      <DragPointControl />
-      <EditPolygonVerticesControl />
+      <ShapeEditControl />
       <SelectControl />
     </Surface>
   );
