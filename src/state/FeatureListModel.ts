@@ -14,6 +14,7 @@ import difference from 'lodash/difference';
 import flatten from 'lodash/flatten';
 import filter from 'lodash/filter';
 import remove from 'lodash/remove';
+import every from 'lodash/every';
 import type { Position, GeoJsonProperties } from 'geojson';
 
 import { globalToLocalIndices } from '../util/collections';
@@ -409,6 +410,17 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Retrieve all features in a multi-selected state
+   */
+  @computed
+  private get rawMultiSelectedFeatures(): Array<FeatureModel> {
+    return filter(
+      this.features,
+      (val) => val.stage === FeatureLifecycleStage.SelectMultiple
+    );
+  }
+
+  /**
    * Count of features in a selected state
    */
   @computed
@@ -562,33 +574,66 @@ export class FeatureListModel extends Model({
   @modelAction
   deselectAll() {
     withoutUndo(() => {
-      /**
-       * This class could be optimized in the future by storing a list
-       * of selected features, so that it is not necessary to iterate
-       * over all features when processing selected features.
-       */
-      this.features.forEach((val) => {
-        if (
-          val.stage === FeatureLifecycleStage.SelectMultiple ||
-          val.stage === FeatureLifecycleStage.SelectSingle
-        ) {
-          val.stage = FeatureLifecycleStage.View;
-        }
+      this.rawSelectedFeatures.forEach((val) => {
+        val.stage = FeatureLifecycleStage.View;
       });
     });
   }
 
   /**
-   * Put selected features into a geometry editing lifecycle stage
+   * Whether there are point features in a multiple selection mode,
+   * and no features of other types are selected
+   */
+  @computed
+  get hasSelectedPointsOnly() {
+    let arr = this.rawMultiSelectedFeatures;
+    if (arr.length > 0) {
+      return every(arr, (val) => val.finalType === 'Point');
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Put selected point features into a geometry editing lifecycle stage
    */
   @modelAction
-  selectedToEditable() {
+  selectedPointsToEditable() {
     withoutUndo(() => {
-      this.features.forEach((val) => {
-        if (val.stage === FeatureLifecycleStage.SelectMultiple) {
+      if (this.hasSelectedPointsOnly) {
+        this.rawMultiSelectedFeatures.forEach((val) => {
           val.stage = FeatureLifecycleStage.EditShape;
-        }
-      });
+        });
+      } else {
+        console.warn(
+          `Some selected features are not points or there are no selected features.`
+        );
+      }
+    });
+  }
+
+  /**
+   * Whether there is one polygon in a multiple selection mode,
+   * and no other features are selected
+   */
+  @computed
+  get hasOneSelectedPolygonOnly() {
+    let arr = this.rawMultiSelectedFeatures;
+    return arr.length === 1 && arr[0].geojson.geometry.type === 'Polygon';
+  }
+
+  /**
+   * Put a single selected polygon into a geometry editing lifecycle stage
+   */
+  @modelAction
+  selectedPolygonToEditable() {
+    withoutUndo(() => {
+      if (this.hasOneSelectedPolygonOnly) {
+        this.rawMultiSelectedFeatures[0].stage =
+          FeatureLifecycleStage.EditShape;
+      } else {
+        console.warn(`There must be one and only one selected polygon.`);
+      }
     });
   }
 

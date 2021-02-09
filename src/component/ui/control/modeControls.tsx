@@ -61,6 +61,13 @@ export const DrawPolygonControl = makeModeControl(
   'shape-polygon-plus'
 );
 /**
+ * Polygon geometry editing mode control button
+ */
+export const EditPolygonVerticesControl = makeModeControl(
+  InteractionMode.EditPolygonVertices,
+  'vector-polygon'
+);
+/**
  * Multi-selection editing mode control button
  */
 export const SelectControl = makeModeControl(

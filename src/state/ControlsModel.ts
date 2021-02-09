@@ -14,7 +14,7 @@ import { CoordinateRole, FeatureLifecycleStage } from '../type/geometry';
  */
 export enum InteractionMode {
   /**
-   * Reposition points of the shape being edited
+   * Reposition point geometry
    */
   DragPoint = 'DRAGPOINT',
   /**
@@ -29,6 +29,10 @@ export enum InteractionMode {
    * Edit metadata associated with a shape
    */
   EditMetadata = 'EDITMETADATA',
+  /**
+   * Edit polygon vertices
+   */
+  EditPolygonVertices = 'EDITPOLYGONVERTICES',
   /**
    * Add shapes to the set of shapes selected for editing
    */
@@ -99,6 +103,7 @@ export class ControlsModel extends Model({
   get metadataInteraction(): MetadataInteraction {
     switch (this.mode) {
       case InteractionMode.DragPoint:
+      case InteractionMode.EditPolygonVertices:
         break;
       case InteractionMode.DrawPoint:
       case InteractionMode.DrawPolygon:
@@ -170,6 +175,7 @@ export class ControlsModel extends Model({
     // Execute cleanup actions specific to individual outgoing editing modes
     switch (this.mode) {
       case InteractionMode.DragPoint:
+      case InteractionMode.EditPolygonVertices:
         // Select the features that were being edited
         if (mode === InteractionMode.SelectMultiple) {
           features?.editableToSelectMultiple();
@@ -183,7 +189,10 @@ export class ControlsModel extends Model({
         break;
       case InteractionMode.SelectMultiple:
         // Deselect all features unless they are to be edited
-        if (mode !== InteractionMode.DragPoint) {
+        if (
+          mode !== InteractionMode.DragPoint &&
+          mode !== InteractionMode.EditPolygonVertices
+        ) {
           features?.deselectAll();
         }
         break;
@@ -226,11 +235,13 @@ export class ControlsModel extends Model({
       // Execute actions specific to individual incoming editing modes
       switch (mode) {
         case InteractionMode.DragPoint:
-          // Make all selected shapes editable
-          features?.selectedToEditable();
+          features?.selectedPointsToEditable();
           break;
         case InteractionMode.DrawPoint:
         case InteractionMode.DrawPolygon:
+          break;
+        case InteractionMode.EditPolygonVertices:
+          features?.selectedPolygonToEditable();
           break;
         case InteractionMode.EditMetadata:
           features?.selectedToEditMetadata();
@@ -344,6 +355,7 @@ export class ControlsModel extends Model({
           this.setDefaultMode();
           break;
         case InteractionMode.DragPoint:
+        case InteractionMode.EditPolygonVertices:
         case InteractionMode.SelectMultiple:
         case InteractionMode.SelectSingle:
           switch (this.confirmation.reason) {
@@ -360,7 +372,10 @@ export class ControlsModel extends Model({
               features?.clearHistory();
               break;
           }
-          if (this.mode === InteractionMode.DragPoint) {
+          if (
+            this.mode === InteractionMode.DragPoint ||
+            this.mode === InteractionMode.EditPolygonVertices
+          ) {
             // Move back to multiple selection mode
             this.confirmation = null;
             this.toggleMode(InteractionMode.SelectMultiple);
@@ -403,6 +418,7 @@ export class ControlsModel extends Model({
           }
           break;
         case InteractionMode.DragPoint:
+        case InteractionMode.EditPolygonVertices:
           if (features?.canUndoOrRedo) {
             this.confirmation = new ConfirmationModel({
               message:
@@ -486,6 +502,7 @@ export class ControlsModel extends Model({
           }
           break;
         case InteractionMode.DragPoint:
+        case InteractionMode.EditPolygonVertices:
           if (features?.canUndo) {
             this.confirmation = new ConfirmationModel({
               message: 'Discard all changes and clear the editing history?',
@@ -558,6 +575,7 @@ export class ControlsModel extends Model({
 
     switch (this.mode) {
       case InteractionMode.DragPoint:
+      case InteractionMode.EditPolygonVertices:
         console.warn(`The current editing mode, ${this.mode}, has no pages.`);
         break;
       case InteractionMode.DrawPoint:
@@ -669,7 +687,8 @@ export class ControlsModel extends Model({
     }
     switch (this.mode) {
       case InteractionMode.DragPoint:
-        // Ignore
+      case InteractionMode.EditPolygonVertices:
+        // Ignore - Editable geometry is not rendered in the cold layers
         break;
       case InteractionMode.DrawPoint:
         this.addNewPoint([e.coordinates.longitude, e.coordinates.latitude]);
@@ -790,6 +809,9 @@ export class ControlsModel extends Model({
           }
         }
         break;
+      case InteractionMode.EditPolygonVertices:
+        console.warn(`TODO: Vertex insertion logic.`);
+        break;
     }
   }
 
@@ -816,6 +838,7 @@ export class ControlsModel extends Model({
 
     switch (this.mode) {
       case InteractionMode.DragPoint:
+      case InteractionMode.EditPolygonVertices:
         return false; // Ignore
       case InteractionMode.DrawPoint:
         // Draw a new point

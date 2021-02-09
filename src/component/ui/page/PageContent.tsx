@@ -73,6 +73,7 @@ function _PageContent() {
   if (isPageOpen) {
     switch (controls.mode) {
       case InteractionMode.DragPoint:
+      case InteractionMode.EditPolygonVertices:
         break;
       case InteractionMode.DrawPoint:
       case InteractionMode.DrawPolygon:

@@ -8,6 +8,7 @@ import {
   DragPointControl,
   DrawPointControl,
   DrawPolygonControl,
+  EditPolygonVerticesControl,
   SelectControl,
 } from './modeControls';
 import { InteractionMode } from '../../../state/ControlsModel';
@@ -32,6 +33,7 @@ export function ModeToolboxButtons() {
       <DrawPointControl />
       <DrawPolygonControl />
       <DragPointControl />
+      <EditPolygonVerticesControl />
       <SelectControl />
     </Surface>
   );
@@ -50,6 +52,7 @@ export function _ModeToolbox() {
     switch (controls.mode) {
       case InteractionMode.DragPoint:
       case InteractionMode.DrawPolygon:
+      case InteractionMode.EditPolygonVertices:
         if (features.cannotUndoAndRedo) {
           toolbox = <ModeToolboxButtons />;
         }
