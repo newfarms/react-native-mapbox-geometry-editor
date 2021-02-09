@@ -721,6 +721,7 @@ export class ControlsModel extends Model({
             const id = feature?.properties?.rnmgeID; // Clusters do not have this property
             if (id) {
               featureListContext.get(this)?.toggleSingleSelectFeature(id);
+              break;
             }
           }
         }
