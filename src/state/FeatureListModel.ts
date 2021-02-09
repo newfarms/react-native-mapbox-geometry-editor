@@ -31,6 +31,17 @@ import type {
 import { FeatureLifecycleStage } from '../type/geometry';
 
 /**
+ * Whether or not the lifecycle stage involves selecting geometry
+ * @param stage A lifecycle stage
+ */
+function isSelectionStage(stage: FeatureLifecycleStage) {
+  return (
+    stage === FeatureLifecycleStage.SelectMultiple ||
+    stage === FeatureLifecycleStage.SelectSingle
+  );
+}
+
+/**
  * A collection of editable GeoJSON features
  */
 @model('reactNativeMapboxGeometryEditor/FeatureListModel')
@@ -122,10 +133,7 @@ export class FeatureListModel extends Model({
             `Feature at index ${index} with model ID ${val.$modelId} is not a complete ${val.finalType}.`
           );
         }
-        if (
-          val.stage !== FeatureLifecycleStage.SelectMultiple &&
-          val.stage !== FeatureLifecycleStage.SelectSingle
-        ) {
+        if (!isSelectionStage(val.stage)) {
           val.stage = FeatureLifecycleStage.View;
         }
       });
@@ -400,24 +408,7 @@ export class FeatureListModel extends Model({
    */
   @computed
   private get rawSelectedFeatures(): Array<FeatureModel> {
-    const arr = filter(
-      this.features,
-      (val) =>
-        val.stage === FeatureLifecycleStage.SelectSingle ||
-        val.stage === FeatureLifecycleStage.SelectMultiple
-    );
-    return arr;
-  }
-
-  /**
-   * Retrieve all features in a multi-selected state
-   */
-  @computed
-  private get rawMultiSelectedFeatures(): Array<FeatureModel> {
-    return filter(
-      this.features,
-      (val) => val.stage === FeatureLifecycleStage.SelectMultiple
-    );
+    return filter(this.features, (val) => isSelectionStage(val.stage));
   }
 
   /**
@@ -586,7 +577,7 @@ export class FeatureListModel extends Model({
    */
   @computed
   get hasSelectedPointsOnly() {
-    let arr = this.rawMultiSelectedFeatures;
+    let arr = this.rawSelectedFeatures;
     if (arr.length > 0) {
       return every(arr, (val) => val.finalType === 'Point');
     } else {
@@ -601,7 +592,7 @@ export class FeatureListModel extends Model({
   selectedPointsToEditable() {
     withoutUndo(() => {
       if (this.hasSelectedPointsOnly) {
-        this.rawMultiSelectedFeatures.forEach((val) => {
+        this.rawSelectedFeatures.forEach((val) => {
           val.stage = FeatureLifecycleStage.EditShape;
         });
       } else {
@@ -618,7 +609,7 @@ export class FeatureListModel extends Model({
    */
   @computed
   get hasOneSelectedPolygonOnly() {
-    let arr = this.rawMultiSelectedFeatures;
+    let arr = this.rawSelectedFeatures;
     return arr.length === 1 && arr[0].geojson.geometry.type === 'Polygon';
   }
 
@@ -629,8 +620,7 @@ export class FeatureListModel extends Model({
   selectedPolygonToEditable() {
     withoutUndo(() => {
       if (this.hasOneSelectedPolygonOnly) {
-        this.rawMultiSelectedFeatures[0].stage =
-          FeatureLifecycleStage.EditShape;
+        this.rawSelectedFeatures[0].stage = FeatureLifecycleStage.EditShape;
       } else {
         console.warn(`There must be one and only one selected polygon.`);
       }
@@ -639,13 +629,18 @@ export class FeatureListModel extends Model({
 
   /**
    * Put features in a geometry editing lifecycle stage into a selected stage
+   * @param stage The selection stage to apply
    */
   @modelAction
-  editableToSelectMultiple() {
+  editableToSelected(
+    stage:
+      | FeatureLifecycleStage.SelectMultiple
+      | FeatureLifecycleStage.SelectSingle
+  ) {
     withoutUndo(() => {
       this.features.forEach((val) => {
         if (val.stage === FeatureLifecycleStage.EditShape) {
-          val.stage = FeatureLifecycleStage.SelectMultiple;
+          val.stage = stage;
         }
       });
     });

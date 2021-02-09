@@ -57,6 +57,46 @@ function isGeometryModificationMode(mode: InteractionMode) {
 }
 
 /**
+ * Whether or not the editing mode involves selecting geometry
+ * @param mode An editing mode
+ */
+function isSelectionMode(
+  mode: InteractionMode
+): mode is InteractionMode.SelectMultiple | InteractionMode.SelectSingle {
+  return (
+    mode === InteractionMode.SelectMultiple ||
+    mode === InteractionMode.SelectSingle
+  );
+}
+
+/**
+ * Map a selection editing mode to a selection geometry lifecycle stage
+ * @param mode The editing mode
+ * @return The corresponding geometry lifecycle stage
+ */
+function selectionModeToSelectionStage(
+  mode: InteractionMode.SelectMultiple | InteractionMode.SelectSingle
+): FeatureLifecycleStage.SelectMultiple | FeatureLifecycleStage.SelectSingle {
+  switch (mode) {
+    case InteractionMode.SelectMultiple:
+      return FeatureLifecycleStage.SelectMultiple;
+    case InteractionMode.SelectSingle:
+      return FeatureLifecycleStage.SelectSingle;
+  }
+}
+
+/**
+ * Whether or not the editing mode involves modifying existing geometry
+ * @param mode An editing mode
+ */
+function isModificationMode(mode: InteractionMode) {
+  return (
+    mode === InteractionMode.DragPoint ||
+    mode === InteractionMode.EditPolygonVertices
+  );
+}
+
+/**
  * The default geometry editing mode
  */
 const DEFAULT_INTERACTION_MODE = InteractionMode.SelectSingle;
@@ -71,6 +111,10 @@ export class ControlsModel extends Model({
    * The currently active editing mode
    */
   mode: prop<InteractionMode>(DEFAULT_INTERACTION_MODE),
+  /**
+   * The previous editing mode
+   */
+  prevMode: prop<InteractionMode>(DEFAULT_INTERACTION_MODE),
   /**
    * A description of any operation that the user
    * is asked to confirm or cancel
@@ -177,8 +221,8 @@ export class ControlsModel extends Model({
       case InteractionMode.DragPoint:
       case InteractionMode.EditPolygonVertices:
         // Select the features that were being edited
-        if (mode === InteractionMode.SelectMultiple) {
-          features?.editableToSelectMultiple();
+        if (isSelectionMode(mode)) {
+          features?.editableToSelected(selectionModeToSelectionStage(mode));
         }
         break;
       case InteractionMode.DrawPoint:
@@ -189,16 +233,16 @@ export class ControlsModel extends Model({
         break;
       case InteractionMode.SelectMultiple:
         // Deselect all features unless they are to be edited
-        if (
-          mode !== InteractionMode.DragPoint &&
-          mode !== InteractionMode.EditPolygonVertices
-        ) {
+        if (!isModificationMode(mode)) {
           features?.deselectAll();
         }
         break;
       case InteractionMode.SelectSingle:
-        // Deselect the feature unless its metadata is to be edited
-        if (mode !== InteractionMode.EditMetadata) {
+        // Deselect the feature unless it is to be edited
+        if (
+          mode !== InteractionMode.EditMetadata &&
+          !isModificationMode(mode)
+        ) {
           features?.deselectAll();
         }
         break;
@@ -229,6 +273,7 @@ export class ControlsModel extends Model({
     this.clearMetadata();
 
     // Change the editing mode
+    this.prevMode = this.mode;
     if (isToggle) {
       this.mode = DEFAULT_INTERACTION_MODE;
     } else {
@@ -372,13 +417,17 @@ export class ControlsModel extends Model({
               features?.clearHistory();
               break;
           }
-          if (
-            this.mode === InteractionMode.DragPoint ||
-            this.mode === InteractionMode.EditPolygonVertices
-          ) {
-            // Move back to multiple selection mode
+          if (isModificationMode(this.mode)) {
+            // Move back to selection mode
             this.confirmation = null;
-            this.toggleMode(InteractionMode.SelectMultiple);
+            if (!isSelectionMode(this.prevMode)) {
+              console.warn(
+                `Mode ${this.mode} did not follow a selection mode, but followed ${this.prevMode}.`
+              );
+              this.toggleMode(InteractionMode.SelectMultiple);
+            } else {
+              this.toggleMode(this.prevMode);
+            }
           }
           break;
       }
