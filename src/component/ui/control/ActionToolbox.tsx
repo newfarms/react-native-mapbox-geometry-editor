@@ -8,6 +8,7 @@ import {
   DeleteControl,
   FinishControl,
   RollbackControl,
+  RedoControl,
   UndoControl,
 } from './actionControls';
 import { StoreContext } from '../../../state/StoreContext';
@@ -30,6 +31,18 @@ const styles = StyleSheet.create({
 });
 
 /**
+ * Finish and rollback action buttons, which appear together
+ */
+function TopToolbox() {
+  return (
+    <Surface style={styles.topToolbox}>
+      <FinishControl />
+      <RollbackControl />
+    </Surface>
+  );
+}
+
+/**
  * A set of action buttons, the contents of which depend on the current
  * user interface state. In some cases, nothing will be rendered.
  */
@@ -37,12 +50,22 @@ function _ActionToolbox() {
   const { controls, features } = useContext(StoreContext);
 
   let bottomToolbox = null;
+  let topToolbox = null;
   switch (controls.mode) {
-    case InteractionMode.DragPoint:
-      break;
+    case InteractionMode.EditMetadata:
     case InteractionMode.DrawPoint:
       break;
-    case InteractionMode.EditMetadata:
+    case InteractionMode.DragPoint:
+    case InteractionMode.DrawPolygon:
+      if (features.canUndoOrRedo) {
+        bottomToolbox = (
+          <Surface style={styles.bottomToolbox}>
+            <RedoControl />
+            <UndoControl />
+          </Surface>
+        );
+        topToolbox = <TopToolbox />;
+      }
       break;
     case InteractionMode.SelectMultiple:
     case InteractionMode.SelectSingle:
@@ -53,16 +76,10 @@ function _ActionToolbox() {
             <DeleteControl />
           </Surface>
         );
+        if (features.canUndo) {
+          topToolbox = <TopToolbox />;
+        }
       }
-  }
-  let topToolbox = null;
-  if (features.canUndo) {
-    topToolbox = (
-      <Surface style={styles.topToolbox}>
-        <FinishControl />
-        <RollbackControl />
-      </Surface>
-    );
   }
 
   return (

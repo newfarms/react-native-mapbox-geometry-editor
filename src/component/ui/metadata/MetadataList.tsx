@@ -15,14 +15,14 @@ import {
   canUseMetadata,
   getTitle,
   hasValue,
-} from '../../util/metadata/display';
-import { FieldType, MetadataInteraction } from '../../type/metadata';
+} from '../../../util/metadata/display';
+import { FieldType, MetadataInteraction } from '../../../type/metadata';
 import type {
   DisplayableFieldDescription,
   EnumFieldDescription,
   Metadata,
   MetadataFormStructure,
-} from '../../type/metadata';
+} from '../../../type/metadata';
 
 /**
  * @ignore

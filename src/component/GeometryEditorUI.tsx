@@ -13,11 +13,12 @@ import { StoreProvider } from '../state/StoreProvider';
 import { ActionToolbox } from './ui/control/ActionToolbox';
 import { ModeToolbox } from './ui/control/ModeToolbox';
 import { ConfirmationDialog } from './ui/ConfirmationDialog';
-import { MetadataContext } from './ui/MetadataContext';
+import { MetadataContext } from './ui/metadata/MetadataContext';
 import { MetadataPreview } from './geometry/MetadataPreview';
-import { defaultMetadataSchemaGenerator } from '../util/metadata/schema';
+import { MetadataEditorProvider } from './ui/metadata/MetadataEditorProvider';
+import { defaultMetadataSchemaGeneratorMap } from '../util/metadata/schema';
 import { PageController } from './ui/page/PageController';
-import type { MetadataSchemaGenerator } from '../type/metadata';
+import type { MetadataSchemaGeneratorMap } from '../type/metadata';
 import type { PageProps } from '../type/ui';
 
 /**
@@ -30,10 +31,9 @@ export interface GeometryEditorUIProps extends GeometryEditorProps {
    */
   readonly style?: ViewStyle;
   /**
-   * A function that will generate schemas for geometry metadata editing forms.
-   * It will be passed the geometry to be edited (having any existing metadata)
+   * Functions that will generate schemas for geometry metadata view/editing forms.
    */
-  readonly metadataSchemaGenerator?: MetadataSchemaGenerator;
+  readonly metadataSchemaGeneratorMap?: MetadataSchemaGeneratorMap;
   /**
    * Callbacks that notify the client application when the library is displaying
    * full-page content, and that allow the client application to force
@@ -52,7 +52,7 @@ export interface GeometryEditorUIProps extends GeometryEditorProps {
 export function GeometryEditorUI(props: GeometryEditorUIProps) {
   const {
     style: containerStyle = {},
-    metadataSchemaGenerator = defaultMetadataSchemaGenerator,
+    metadataSchemaGeneratorMap = defaultMetadataSchemaGeneratorMap,
     pageProps,
     ...restProps
   } = props;
@@ -61,14 +61,16 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
     <View style={containerStyle}>
       <PaperProvider>
         <StoreProvider>
-          <MetadataContext.Provider value={{ metadataSchemaGenerator }}>
+          <MetadataContext.Provider value={metadataSchemaGeneratorMap}>
             <_GeometryEditor {...restProps}>
               <MetadataPreview />
               {props.children}
             </_GeometryEditor>
             <ModeToolbox />
             <ActionToolbox />
-            <PageController pageProps={pageProps} />
+            <MetadataEditorProvider>
+              <PageController pageProps={pageProps} />
+            </MetadataEditorProvider>
             <ConfirmationDialog visibleIfPageOpen={false} />
           </MetadataContext.Provider>
         </StoreProvider>

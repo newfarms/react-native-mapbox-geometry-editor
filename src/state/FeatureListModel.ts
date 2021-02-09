@@ -21,7 +21,10 @@ import { FeatureModel } from './FeatureModel';
 import type {
   DraggablePosition,
   EditableFeature,
+  EditableGeometryType,
   RenderFeatureCollection,
+  RenderPointFeatureCollection,
+  RenderNonPointFeatureCollection,
   RnmgeID,
 } from '../type/geometry';
 import { FeatureLifecycleStage } from '../type/geometry';
@@ -87,6 +90,20 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Add a vertex to the feature currently being edited
+   * @param vertex The new vertex for the feature
+   * @param index The index at which to insert the vertex. See [[FeatureModel.addVertex]]
+   */
+  @modelAction
+  addVertex(vertex: Position, index: number = -1) {
+    if (this.rawGeometryEditableFeature) {
+      this.rawGeometryEditableFeature.addVertex(vertex, index);
+    } else {
+      console.warn('No editable features to modify.');
+    }
+  }
+
+  /**
    * Call this function to reset the undo/redo history at the end of
    * a geometry modification session.
    * Ensures that all geometry is marked as "finished".
@@ -98,15 +115,25 @@ export class FeatureListModel extends Model({
        * Finalize all geometry
        * Note that this step is done before clearing the undo/redo history.
        */
-      this.features.forEach((val) => {
-        val.stage = FeatureLifecycleStage.View;
+      this.features.forEach((val, index) => {
+        if (!val.isCompleteFeature) {
+          console.warn(
+            `Feature at index ${index} with model ID ${val.$modelId} is not a complete ${val.finalType}.`
+          );
+        }
+        if (
+          val.stage !== FeatureLifecycleStage.SelectMultiple &&
+          val.stage !== FeatureLifecycleStage.SelectSingle
+        ) {
+          val.stage = FeatureLifecycleStage.View;
+        }
       });
     });
     this.clearHistory();
   }
 
   /**
-   * Call this function to reset the undo/redo history at the start of
+   * Call this function to reset the undo/redo history, such as at the start of
    * a geometry modification session.
    */
   @modelAction
@@ -121,9 +148,6 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   rollbackEditingSession() {
-    if (!this.undoManager?.canUndo) {
-      console.warn('No changes to rollback.');
-    }
     while (this.undoManager?.canUndo) {
       this.undoManager?.undo();
     }
@@ -176,6 +200,25 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Whether at least one of the undo or redo history is not empty
+   */
+  @computed
+  get canUndoOrRedo(): boolean {
+    if (this.undoManager) {
+      return this.undoManager.canUndo || this.undoManager.canRedo;
+    }
+    return false;
+  }
+
+  /**
+   * Whether the undo and redo histories are both empty
+   */
+  @computed
+  get cannotUndoAndRedo(): boolean {
+    return !this.canUndo && !this.canRedo;
+  }
+
+  /**
    * Computes the list of draggable points (points currently being edited)
    * by concatenating the coordinates of all currently editable features.
    */
@@ -200,12 +243,22 @@ export class FeatureListModel extends Model({
   }
 
   /**
-   * Returns any features that should be rendered in the "cold" map layer.
+   * Returns any point features that should be rendered in the "cold" map layer.
    */
   @computed
-  get coldFeatures(): RenderFeatureCollection {
+  get coldPointFeatures(): RenderPointFeatureCollection {
     return featureCollection(
-      flatten(this.features.map((feature) => feature.coldFeatures))
+      flatten(this.features.map((feature) => feature.coldPointFeatures))
+    );
+  }
+
+  /**
+   * Returns any non-point features that should be rendered in the "cold" map layer.
+   */
+  @computed
+  get coldNonPointFeatures(): RenderNonPointFeatureCollection {
+    return featureCollection(
+      flatten(this.features.map((feature) => feature.coldNonPointFeatures))
     );
   }
 
@@ -213,17 +266,26 @@ export class FeatureListModel extends Model({
    * Add a new GeoJSON point feature to the collection of features.
    *
    * @param position Coordinates for the new point
+   * @param finalType The desired type of geometry that the feature
+   *                  will become when more vertices are added
    */
   @modelAction
-  addNewPoint(position: Position) {
-    withoutUndo(() => {
+  addNewPoint(position: Position, finalType: EditableGeometryType = 'Point') {
+    const internalAddPoint = () => {
       this.features.push(
         new FeatureModel({
           stage: FeatureLifecycleStage.NewShape,
           geojson: point(position),
+          finalType,
         })
       );
-    });
+    };
+    if (finalType === 'Point') {
+      // Point drawing mode does not have undo functionality
+      withoutUndo(internalAddPoint);
+    } else {
+      internalAddPoint();
+    }
   }
 
   /**
@@ -248,26 +310,71 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Retrieve the current new feature
+   */
+  @computed
+  private get rawNewFeature(): FeatureModel | undefined {
+    const arr = filter(
+      this.features,
+      (val) => val.stage === FeatureLifecycleStage.NewShape
+    );
+    if (arr.length > 1) {
+      console.warn(
+        'There are multiple new features. Only the first will be returned.'
+      );
+    }
+    return arr[0];
+  }
+
+  /**
+   * Whether there is a new feature yet to be confirmed
+   */
+  @computed
+  get hasNewFeature(): boolean {
+    return !!this.rawNewFeature;
+  }
+
+  /**
+   * Whether there is a new feature yet to be confirmed,
+   * and it is a complete shape
+   */
+  @computed
+  get hasCompleteNewFeature(): boolean {
+    return !!this.rawNewFeature && this.rawNewFeature.isCompleteFeature;
+  }
+
+  /**
    * Put all new features into the view state
    */
   @modelAction
   confirmNewFeatures() {
     withoutUndo(() => {
-      const arr = filter(
-        this.features,
-        (val) => val.stage === FeatureLifecycleStage.NewShape
-      );
-      if (arr.length > 0) {
-        if (arr.length > 1) {
-          console.warn('There are multiple new features.');
+      const feature = this.rawNewFeature;
+      if (feature) {
+        if (!feature.isCompleteFeature) {
+          console.warn(
+            `Feature with model ID ${feature.$modelId} is not a complete ${feature.finalType}.`
+          );
         }
-        arr.forEach((feature) => {
-          feature.stage = FeatureLifecycleStage.View;
-        });
+        feature.stage = FeatureLifecycleStage.View;
       } else {
         console.warn('There are no new features to confirm.');
       }
     });
+  }
+
+  /**
+   * Retrieve the feature whose geometry can be edited
+   */
+  @computed
+  private get rawGeometryEditableFeature(): FeatureModel | undefined {
+    const arr = filter(this.features, (val) => val.isGeometryEditableFeature);
+    if (arr.length > 1) {
+      console.warn(
+        'There are multiple feature in a geometry editing stage. Only the first will be returned.'
+      );
+    }
+    return arr[0];
   }
 
   /**
@@ -337,7 +444,7 @@ export class FeatureListModel extends Model({
   }
 
   /**
-   * Retrieve the feature whose metadata is currently being edited
+   * Retrieve the (complete) feature whose metadata is currently being edited
    */
   @computed
   private get draftMetadataFeature(): FeatureModel | undefined {
@@ -345,7 +452,7 @@ export class FeatureListModel extends Model({
       this.features,
       (val) =>
         val.stage === FeatureLifecycleStage.EditMetadata ||
-        val.stage === FeatureLifecycleStage.NewShape
+        (val.stage === FeatureLifecycleStage.NewShape && val.isCompleteFeature)
     );
     if (arr.length > 1) {
       console.warn(
@@ -480,6 +587,20 @@ export class FeatureListModel extends Model({
       this.features.forEach((val) => {
         if (val.stage === FeatureLifecycleStage.SelectMultiple) {
           val.stage = FeatureLifecycleStage.EditShape;
+        }
+      });
+    });
+  }
+
+  /**
+   * Put features in a geometry editing lifecycle stage into a selected stage
+   */
+  @modelAction
+  editableToSelectMultiple() {
+    withoutUndo(() => {
+      this.features.forEach((val) => {
+        if (val.stage === FeatureLifecycleStage.EditShape) {
+          val.stage = FeatureLifecycleStage.SelectMultiple;
         }
       });
     });

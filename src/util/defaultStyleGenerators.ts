@@ -1,9 +1,15 @@
 import type {
   CircleLayerStyle,
+  FillLayerStyle,
+  LineLayerStyle,
   SymbolLayerStyle,
 } from '@react-native-mapbox-gl/maps';
 
-import { CoordinateRole, FeatureLifecycleStage } from '../type/geometry';
+import {
+  CoordinateRole,
+  FeatureLifecycleStage,
+  LineStringRole,
+} from '../type/geometry';
 import type { EditableFeature } from '../type/geometry';
 import type { DraggablePointStyle, StyleGeneratorMap } from '../type/style';
 
@@ -20,53 +26,34 @@ const ANNOTATION_SIZE = 20;
  */
 function getDefaultDraggablePointStyle(
   role: CoordinateRole,
-  _feature: EditableFeature
+  feature: EditableFeature
 ): DraggablePointStyle {
-  let style: DraggablePointStyle = {
-    radius: ANNOTATION_SIZE * 2,
-    color: 'red',
-    strokeWidth: 3,
-  };
-  switch (role) {
-    case CoordinateRole.PointFeature:
-      style.strokeColor = 'aquamarine';
-      break;
-    case CoordinateRole.LineStart:
-      style.strokeColor = 'cornflowerblue';
-      break;
-    case CoordinateRole.LineSecond:
-      style.strokeColor = 'darkturquoise';
-      break;
-    case CoordinateRole.LineInner:
-      style.strokeColor = 'aquamarine';
-      break;
-    case CoordinateRole.LineSecondLast:
-      style.strokeColor = 'darkkhaki';
-      break;
-    case CoordinateRole.LineLast:
-      style.strokeColor = 'darkorange';
-      break;
-    case CoordinateRole.PolygonStart:
-      style.strokeColor = 'cornflowerblue';
-      break;
-    case CoordinateRole.PolygonInner:
-      style.strokeColor = 'aquamarine';
-      break;
-    case CoordinateRole.PolygonSecondLast:
-      style.strokeColor = 'darkorange';
-      break;
-    case CoordinateRole.PolygonHole:
-      style.strokeColor = 'darkcyan';
-      break;
+  if (feature.geometry.type === 'Point') {
+    return {
+      radius: ANNOTATION_SIZE * 2,
+      color: 'red',
+      strokeWidth: 3,
+      strokeColor: coordinateRoleColor(role),
+    };
+  } else {
+    return {
+      radius: ANNOTATION_SIZE,
+      color: coordinateRoleColor(role),
+      strokeWidth: 0,
+    };
   }
-  return style;
 }
 
 /**
  * Default colours for geometry lifecycle stages
  * @param stage The lifecycle stage
  */
-function featureLifecycleStageColor(stage: FeatureLifecycleStage): string {
+export function featureLifecycleStageColor(
+  stage?: FeatureLifecycleStage
+): string {
+  if (!stage) {
+    return MISSING_COLOR;
+  }
   switch (stage) {
     case FeatureLifecycleStage.NewShape:
       return '#ffff00'; // Yellow
@@ -78,8 +65,6 @@ function featureLifecycleStageColor(stage: FeatureLifecycleStage): string {
       return '#00ffff'; // Cyan
     case FeatureLifecycleStage.SelectSingle:
       return '#00ff00'; // Green
-    case FeatureLifecycleStage.DraftShape:
-      return '#ff0000'; // Red
     case FeatureLifecycleStage.View:
       return '#ffffff'; // White
   }
@@ -102,11 +87,81 @@ function featureLifecycleStrokeWidth(stage?: FeatureLifecycleStage): number {
       return 3;
     case FeatureLifecycleStage.SelectSingle:
       return 3;
-    case FeatureLifecycleStage.DraftShape:
-      return 2;
     case FeatureLifecycleStage.View:
       return 1;
     default:
+      return MISSING_WIDTH;
+  }
+}
+
+/**
+ * Default colours for coordinate roles
+ * @param role The coordinate role
+ */
+export function coordinateRoleColor(role?: CoordinateRole): string {
+  if (!role) {
+    return MISSING_COLOR;
+  }
+  switch (role) {
+    case CoordinateRole.PointFeature:
+      return '#7fffd4'; // aquamarine
+    case CoordinateRole.LineStart:
+      return '#6495ed'; // cornflowerblue
+    case CoordinateRole.LineSecond:
+      return '#00ced1'; // darkturquoise
+    case CoordinateRole.LineInner:
+      return '#7fffd4'; // aquamarine
+    case CoordinateRole.LineSecondLast:
+      return '#bdb76b'; // darkkhaki
+    case CoordinateRole.LineLast:
+      return '#ff8c00'; // darkorange
+    case CoordinateRole.PolygonStart:
+      return '#6495ed'; // cornflowerblue
+    case CoordinateRole.PolygonInner:
+      return '#7fffd4'; // aquamarine
+    case CoordinateRole.PolygonSecondLast:
+      return '#ff8c00'; // darkorange
+    case CoordinateRole.PolygonHole:
+      return '#008b8b'; // darkcyan
+  }
+}
+
+/**
+ * Default colours for line string roles
+ * @param role The line string role
+ */
+export function lineStringRoleColor(role?: LineStringRole): string {
+  if (!role) {
+    return MISSING_COLOR;
+  }
+  switch (role) {
+    case LineStringRole.LineStringFeature:
+      return '#7fffd4'; // aquamarine
+    case LineStringRole.PolygonInner:
+      return '#8fbc8f'; // darkseagreen
+    case LineStringRole.PolygonLast:
+      return '#daa520'; // goldenrod
+    case LineStringRole.PolygonHole:
+      return '#b0c4de'; // lightsteelblue
+  }
+}
+
+/**
+ * Default widths for line string roles
+ * @param role The line string role
+ */
+function lineStringRoleWidth(role?: LineStringRole): number {
+  if (!role) {
+    return MISSING_WIDTH;
+  }
+  switch (role) {
+    case LineStringRole.LineStringFeature:
+      return 2;
+    case LineStringRole.PolygonInner:
+      return 3;
+    case LineStringRole.PolygonLast:
+      return 3;
+    case LineStringRole.PolygonHole:
       return 2;
   }
 }
@@ -114,7 +169,12 @@ function featureLifecycleStrokeWidth(stage?: FeatureLifecycleStage): number {
 /**
  * The default colour to use for missing information
  */
-const missingColor = '#000000';
+const MISSING_COLOR = '#000000';
+
+/**
+ * The default width to use for missing information
+ */
+const MISSING_WIDTH = 2;
 
 /**
  * The default style generation function for non-draggable point features
@@ -138,8 +198,6 @@ function getDefaultPointStyle(): CircleLayerStyle {
       featureLifecycleStrokeWidth(FeatureLifecycleStage.SelectMultiple),
       FeatureLifecycleStage.SelectSingle,
       featureLifecycleStrokeWidth(FeatureLifecycleStage.SelectSingle),
-      FeatureLifecycleStage.DraftShape,
-      featureLifecycleStrokeWidth(FeatureLifecycleStage.DraftShape),
       FeatureLifecycleStage.View,
       featureLifecycleStrokeWidth(FeatureLifecycleStage.View),
       featureLifecycleStrokeWidth(),
@@ -158,11 +216,114 @@ function getDefaultPointStyle(): CircleLayerStyle {
       featureLifecycleStageColor(FeatureLifecycleStage.SelectMultiple),
       FeatureLifecycleStage.SelectSingle,
       featureLifecycleStageColor(FeatureLifecycleStage.SelectSingle),
-      FeatureLifecycleStage.DraftShape,
-      featureLifecycleStageColor(FeatureLifecycleStage.DraftShape),
       FeatureLifecycleStage.View,
       featureLifecycleStageColor(FeatureLifecycleStage.View),
-      missingColor,
+      MISSING_COLOR,
+    ],
+  };
+}
+
+/**
+ * The default style generation function for vertices of non-point features
+ * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'Point'`
+ */
+function getDefaultVertexStyle(): CircleLayerStyle {
+  return {
+    circleRadius: ANNOTATION_SIZE / 2,
+    circleColor: [
+      'match',
+      ['get', 'rnmgeRole'],
+      CoordinateRole.PointFeature,
+      coordinateRoleColor(CoordinateRole.PointFeature),
+      CoordinateRole.LineStart,
+      coordinateRoleColor(CoordinateRole.LineStart),
+      CoordinateRole.LineSecond,
+      coordinateRoleColor(CoordinateRole.LineSecond),
+      CoordinateRole.LineInner,
+      coordinateRoleColor(CoordinateRole.LineInner),
+      CoordinateRole.LineSecondLast,
+      coordinateRoleColor(CoordinateRole.LineSecondLast),
+      CoordinateRole.LineLast,
+      coordinateRoleColor(CoordinateRole.LineLast),
+      CoordinateRole.PolygonStart,
+      coordinateRoleColor(CoordinateRole.PolygonStart),
+      CoordinateRole.PolygonInner,
+      coordinateRoleColor(CoordinateRole.PolygonInner),
+      CoordinateRole.PolygonSecondLast,
+      coordinateRoleColor(CoordinateRole.PolygonSecondLast),
+      CoordinateRole.PolygonHole,
+      coordinateRoleColor(CoordinateRole.PolygonHole),
+      coordinateRoleColor(),
+    ],
+    circlePitchAlignment: 'map',
+    circleStrokeWidth: 0,
+    // Circle edge colour based on geometry lifecycle stage
+    circleStrokeColor: MISSING_COLOR,
+  };
+}
+
+/**
+ * The default style generation function for edges of non-line string features
+ * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'LineString'`
+ */
+function getDefaultEdgeStyle(): LineLayerStyle {
+  return {
+    lineColor: [
+      'match',
+      ['get', 'rnmgeRole'],
+      LineStringRole.LineStringFeature,
+      lineStringRoleColor(LineStringRole.LineStringFeature),
+      LineStringRole.PolygonInner,
+      lineStringRoleColor(LineStringRole.PolygonInner),
+      LineStringRole.PolygonLast,
+      lineStringRoleColor(LineStringRole.PolygonLast),
+      LineStringRole.PolygonHole,
+      lineStringRoleColor(LineStringRole.PolygonHole),
+      lineStringRoleColor(),
+    ],
+    lineWidth: [
+      'match',
+      ['get', 'rnmgeRole'],
+      LineStringRole.LineStringFeature,
+      lineStringRoleWidth(LineStringRole.LineStringFeature),
+      LineStringRole.PolygonInner,
+      lineStringRoleWidth(LineStringRole.PolygonInner),
+      LineStringRole.PolygonLast,
+      lineStringRoleWidth(LineStringRole.PolygonLast),
+      LineStringRole.PolygonHole,
+      lineStringRoleWidth(LineStringRole.PolygonHole),
+      lineStringRoleWidth(),
+    ],
+  };
+}
+
+/**
+ * The default style generation function for polygon features
+ * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'Polygon'`
+ */
+function getDefaultPolygonStyle(): FillLayerStyle {
+  return {
+    fillColor: '#fffacd', // lemonchiffon
+    /**
+     * Outline colour based on geometry lifecycle stage
+     * The outline is very thin (1 px?) and hard to notice.
+     */
+    fillOutlineColor: [
+      'match',
+      ['get', 'rnmgeStage'],
+      FeatureLifecycleStage.NewShape,
+      featureLifecycleStageColor(FeatureLifecycleStage.NewShape),
+      FeatureLifecycleStage.EditShape,
+      featureLifecycleStageColor(FeatureLifecycleStage.EditShape),
+      FeatureLifecycleStage.EditMetadata,
+      featureLifecycleStageColor(FeatureLifecycleStage.EditMetadata),
+      FeatureLifecycleStage.SelectMultiple,
+      featureLifecycleStageColor(FeatureLifecycleStage.SelectMultiple),
+      FeatureLifecycleStage.SelectSingle,
+      featureLifecycleStageColor(FeatureLifecycleStage.SelectSingle),
+      FeatureLifecycleStage.View,
+      featureLifecycleStageColor(FeatureLifecycleStage.View),
+      MISSING_COLOR,
     ],
   };
 }
@@ -203,6 +364,9 @@ function getDefaultClusterSymbolStyle(): SymbolLayerStyle {
 export const defaultStyleGeneratorMap: StyleGeneratorMap = {
   draggablePoint: getDefaultDraggablePointStyle,
   point: getDefaultPointStyle,
+  vertex: getDefaultVertexStyle,
+  edge: getDefaultEdgeStyle,
+  polygon: getDefaultPolygonStyle,
   cluster: getDefaultClusterStyle,
   clusterSymbol: getDefaultClusterSymbolStyle,
 };

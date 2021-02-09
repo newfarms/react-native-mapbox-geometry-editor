@@ -26,6 +26,7 @@ test.each([[1], [2], [3]])(
       return new FeatureModel({
         stage: FeatureLifecycleStage.EditShape,
         geojson: val,
+        finalType: 'Point',
       });
     });
     // Collection of draggable point features

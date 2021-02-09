@@ -2,7 +2,8 @@ import { useContext } from 'react';
 import { toJS } from 'mobx';
 
 import { StoreContext } from '../state/StoreContext';
-import { MetadataContext } from '../component/ui/MetadataContext';
+import { InteractionMode } from '../state/ControlsModel';
+import { MetadataContext } from '../component/ui/metadata/MetadataContext';
 import { makeMetadataFormStarter } from '../util/metadata/schema';
 import { canUseMetadata } from '../util/metadata/display';
 import { MetadataInteraction } from '../type/metadata';
@@ -11,7 +12,7 @@ import type {
   MetadataSchema,
   MetadataFormStarter,
 } from '../type/metadata';
-import type { EditableFeature } from 'src/type/geometry';
+import type { EditableFeature, SemanticGeometryType } from 'src/type/geometry';
 
 /**
  * A React hook that integrates geometry metadata information from state stores
@@ -28,7 +29,7 @@ export function useMetadata(
   /**
    * Whether the use of geometry metadata is permitted in this context.
    * Caution: This value may be `true` in cases where there is no available metadata.
-   * Callers must also check `featureExists`.
+   * Callers must also check `contextExists`.
    */
   canUse: boolean;
   /**
@@ -44,41 +45,80 @@ export function useMetadata(
    */
   formStarter: MetadataFormStarter;
   /**
-   * Whether there is a shape that has metadata suitable for the purpose
-   * described by `use`. If this value is `false`, callers should disregard
-   * the other attributes of this object. In that case, the other attributes
-   * are output just to allow for memoization based on their values.
+   * Whether there is state (feature or editing context) that has metadata
+   * suitable for the purpose described by `use`. If this value is `false`,
+   * callers should disregard the other attributes of this object.
+   * In that case, the other attributes are output just to allow for memoization
+   * based on their values.
    */
-  featureExists: boolean;
+  contextExists: boolean;
 } {
   // Input data sources
-  const { features } = useContext(StoreContext);
-  const { metadataSchemaGenerator } = useContext(MetadataContext);
+  const { controls, features } = useContext(StoreContext);
+  const { newGeometry, existingGeometry } = useContext(MetadataContext);
+
+  // Any existing metadata
+  let data: Metadata | null | undefined = null;
+  // Whether or not there is a feature or context with which to use metadata
+  let contextExists = false;
 
   /**
-   * Obtain any feature providing metadata for rendering
-   */
-  let feature: EditableFeature | undefined;
-  switch (use) {
-    case MetadataInteraction.Create:
-    case MetadataInteraction.Edit:
-      feature = toJS(features.draftMetadataGeoJSON);
-      break;
-    case MetadataInteraction.ViewDetails:
-    case MetadataInteraction.ViewPreview:
-      feature = toJS(features.focusedFeature?.geojson);
-      break;
-  }
-  // Metadata associated with the feature
-  const data = feature?.properties as Metadata | null | undefined;
-
-  /**
-   * Process the metadata according to the metadata schema
+   * Generate the appropriate metadata schema
    */
   let schemaSource: MetadataSchema | null = null;
-  if (feature) {
-    schemaSource = metadataSchemaGenerator(feature);
+  if (use === MetadataInteraction.Create) {
+    let type: SemanticGeometryType = 'Point';
+    switch (controls.mode) {
+      case InteractionMode.DrawPoint:
+        type = 'Point';
+        break;
+      case InteractionMode.DrawPolygon:
+        type = 'Polygon';
+        break;
+      default:
+        throw new Error(
+          `The current editing mode is ${controls.mode}, but the current metadata interaction is ${use}.`
+        );
+    }
+    schemaSource = newGeometry(type);
+    /**
+     * The following is needed to reset the metadata creation form between
+     * uses (i.e. after each new geometry feature is created).
+     * The code ensures that `contextExists` always changes from `true` to
+     * `false` and back again between features.
+     */
+    switch (type) {
+      case 'Point':
+        contextExists = features.hasCompleteNewFeature;
+        break;
+      case 'Polygon':
+        contextExists = features.canUndoOrRedo;
+        break;
+    }
+  } else {
+    /**
+     * Obtain any feature providing metadata for rendering
+     */
+    let feature: EditableFeature | undefined;
+    switch (use) {
+      case MetadataInteraction.Edit:
+        feature = toJS(features.draftMetadataGeoJSON);
+        break;
+      case MetadataInteraction.ViewDetails:
+      case MetadataInteraction.ViewPreview:
+        feature = toJS(features.focusedFeature?.geojson);
+        break;
+    }
+
+    if (feature) {
+      // TODO: Update the semantic type in the future if it no longer matches the geometry type
+      schemaSource = existingGeometry(feature.geometry.type, feature);
+      // Metadata associated with the feature
+      data = feature.properties;
+      contextExists = true;
+    }
   }
+
   const formStarter = makeMetadataFormStarter(schemaSource, data);
   if (formStarter.schemaErrors) {
     console.warn(
@@ -86,15 +126,15 @@ export function useMetadata(
       formStarter.schemaErrors
     );
   }
+
   // Check access permissions
   let { canUse, exists } = canUseMetadata(
     formStarter.formStructure.attributes,
     data,
     use
   );
-
   // If no metadata schema was provided, disallow all uses of metadata
-  if (feature && !schemaSource) {
+  if (!schemaSource) {
     canUse = false;
   }
 
@@ -103,6 +143,6 @@ export function useMetadata(
     data,
     dataExists: exists,
     formStarter,
-    featureExists: !!feature,
+    contextExists,
   };
 }

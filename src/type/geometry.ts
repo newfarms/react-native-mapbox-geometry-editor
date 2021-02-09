@@ -24,6 +24,19 @@ export type BBox2D = [number, number, number, number];
 type EditableGeometry = Point | LineString | Polygon;
 
 /**
+ * The valid values for the "type" property of [[EditableGeometry]] objects.
+ */
+export type EditableGeometryType = EditableGeometry['type'];
+
+/**
+ * The semantic type of geometry, which may not necessarily correspond
+ * to the GeoJSON geometry type.
+ *
+ * TODO: For future use in distinguishing circles from points.
+ */
+export type SemanticGeometryType = EditableGeometryType;
+
+/**
  * Geometry available for editing is represented
  * using features that contain only single shapes.
  * Doing so simplifies selection and editing on the user interface.
@@ -55,10 +68,6 @@ export enum FeatureLifecycleStage {
    */
   SelectSingle = 'SELECTSINGLE',
   /**
-   * Feature with geometry changes to be confirmed
-   */
-  DraftShape = 'DRAFTSHAPE',
-  /**
    * Feature not subject to editing at the moment
    */
   View = 'VIEW',
@@ -71,66 +80,97 @@ export enum CoordinateRole {
   /**
    * The coordinate is the point of a point feature
    */
-  PointFeature = 'POINTFEATURE',
+  PointFeature = 'POINTFEATURE_POINT',
   /**
    * The coordinate is the first point on a polyline
    */
-  LineStart = 'LINESTART',
+  LineStart = 'LINESTART_POINT',
   /**
    * The coordinate is the second point on a polyline,
    * and the polyline has more than three points
    */
-  LineSecond = 'LINESECOND',
+  LineSecond = 'LINESECOND_POINT',
   /**
    * The coordinate is an interior point on a polyline
    * and is not an endpoint, nor adjacent to an endpoint
    */
-  LineInner = 'LINEINNER',
+  LineInner = 'LINEINNER_POINT',
   /**
    * The coordinate is the second-last point on a polyline,
    * and the polyline has more than two points
    */
-  LineSecondLast = 'LINESECONDLAST',
+  LineSecondLast = 'LINESECONDLAST_POINT',
   /**
    * The coordinate is the last point on a polyline,
    * and the polyline has more than one point
    */
-  LineLast = 'LINELAST',
+  LineLast = 'LINELAST_POINT',
   /**
    * The coordinate is the first point on a polygon's
    * first linear ring
    */
-  PolygonStart = 'POLYGONSTART',
+  PolygonStart = 'POLYGONSTART_POINT',
   /**
    * The coordinate is an interior point on a polygon's first
    * linear ring (neither the first point, nor the second-last point,
    * the last point having the same coordinates as the first point)
    */
-  PolygonInner = 'POLYGONINNER',
+  PolygonInner = 'POLYGONINNER_POINT',
   /**
    * The coordinate is the second-last point on a polygon's first
    * linear ring (the last point having the same coordinates as the first point,
    * as required by the GeoJSON specification)
    */
-  PolygonSecondLast = 'POLYGONSECONDLAST',
+  PolygonSecondLast = 'POLYGONSECONDLAST_POINT',
   /**
    * The coordinate is part of a hole in a polygon
    * (i.e. not part of the first linear ring)
    */
-  PolygonHole = 'POLYGONHOLE',
+  PolygonHole = 'POLYGONHOLE_POINT',
 }
 
 /**
- * The equivalent of [[CoordinateRole]] for geometrical
- * features that are not points.
+ * The possible roles of a line string in a shape
+ */
+export enum LineStringRole {
+  /**
+   * The line string is a polyline feature
+   */
+  LineStringFeature = 'LINESTRINGFEATURE_LINESTRING',
+  /**
+   * The line string is a series of edges in a polygon's first linear ring,
+   * and does not contain the tentative edge that closes the linear ring.
+   * This role is also used for line strings that have less than three vertices
+   * (i.e. incomplete polygons). Polygons that have been drawn previously
+   * do not have a special tentative final edge, and so all edges are marked
+   * with this role.
+   */
+  PolygonInner = 'POLYGONINNER_LINESTRING',
+  /**
+   * The line string is the edge that closes a polygon's first linear ring.
+   * The linear ring therefore has at least three vertices, and is in the process
+   * of being constructed. (In a finished polygon, no edge can be said to be
+   * a special last edge.)
+   */
+  PolygonLast = 'POLYGONLAST_LINESTRING',
+  /**
+   * The line string is part of a hole in a polygon
+   * (i.e. not part of the first linear ring)
+   */
+  PolygonHole = 'POLYGONHOLE_LINESTRING',
+}
+
+/**
+ * The equivalent of [[CoordinateRole]] and [[LineStringRole]] for geometrical
+ * features that are not points or line strings.
  * This enum provides a value to fill an otherwise empty
- * field when that field is relevant only to point features.
+ * field when that field is relevant only to other types of features.
  */
 export enum GeometryRole {
   /**
-   * The feature is not a point
+   * The feature is not a point or a line string
    */
-  NonPoint = 'NONPOINT',
+  Other = 'OTHER',
 }
 
 /**
@@ -162,11 +202,11 @@ export interface RenderProperties {
    */
   readonly rnmgeStage: FeatureLifecycleStage;
   /**
-   * For point features, the geometrical role of the point in its
-   * containing feature.
-   * For non-point features, it is set to [[GeometryRole.NonPoint]]
+   * For point and line string features, the geometrical role in their
+   * containing features.
+   * For other features, it is set to [[GeometryRole.Other]]
    */
-  readonly rnmgeRole: CoordinateRole | GeometryRole;
+  readonly rnmgeRole: CoordinateRole | LineStringRole | GeometryRole;
   /**
    * Client-defined properties associated with GeoJSON features.
    * These properties are set by the client, not by the library.
@@ -186,6 +226,22 @@ export type RenderFeature = Feature<EditableGeometry, RenderProperties>;
  */
 export type RenderFeatureCollection = FeatureCollection<
   EditableGeometry,
+  RenderProperties
+>;
+
+/**
+ * A collection of [[RenderFeature]] point features
+ */
+export type RenderPointFeatureCollection = FeatureCollection<
+  Point,
+  RenderProperties
+>;
+
+/**
+ * A collection of [[RenderFeature]] non-point features
+ */
+export type RenderNonPointFeatureCollection = FeatureCollection<
+  LineString | Polygon,
   RenderProperties
 >;
 

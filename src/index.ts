@@ -32,7 +32,12 @@ export { GeometryEditor } from './component/GeometryEditor';
 export type { GeometryEditorProps } from './component/GeometryEditor';
 export { GeometryEditorUI } from './component/GeometryEditorUI';
 export type { GeometryEditorUIProps } from './component/GeometryEditorUI';
-export { defaultStyleGeneratorMap } from './util/defaultStyleGenerators';
+export {
+  defaultStyleGeneratorMap,
+  featureLifecycleStageColor,
+  coordinateRoleColor,
+  lineStringRoleColor,
+} from './util/defaultStyleGenerators';
 export { validateMetadata } from './util/metadata/schema';
 
 export type { CameraControls } from './component/CameraController';
@@ -40,18 +45,22 @@ export type {
   EditableFeature,
   RenderFeature,
   RenderProperties,
+  SemanticGeometryType,
 } from './type/geometry';
 export {
   CoordinateRole,
-  FeatureLifecycleStage,
+  LineStringRole,
   GeometryRole,
+  FeatureLifecycleStage,
 } from './type/geometry';
 export type {
   FieldAttributes,
   Metadata,
   MetadataAttributes,
   MetadataSchema,
-  MetadataSchemaGenerator,
+  MetadataSchemaGeneratorMap,
+  NewMetadataSchemaGenerator,
+  ExistingMetadataSchemaGenerator,
   MetadataValidationResult,
 } from './type/metadata';
 export type { DraggablePointStyle, StyleGeneratorMap } from './type/style';

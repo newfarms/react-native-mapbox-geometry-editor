@@ -7,8 +7,10 @@ import { Surface } from 'react-native-paper';
 import {
   DragPointControl,
   DrawPointControl,
+  DrawPolygonControl,
   SelectControl,
 } from './modeControls';
+import { InteractionMode } from '../../../state/ControlsModel';
 import { StoreContext } from '../../../state/StoreContext';
 
 /**
@@ -21,24 +23,55 @@ const styles = StyleSheet.create({
 });
 
 /**
- * A component that renders editing mode controls
+ * A component that unconditionally renders editing mode controls
  * as a group of buttons.
+ */
+export function ModeToolboxButtons() {
+  return (
+    <Surface style={styles.toolbox}>
+      <DrawPointControl />
+      <DrawPolygonControl />
+      <DragPointControl />
+      <SelectControl />
+    </Surface>
+  );
+}
+
+/**
+ * A component that renders editing mode controls, as a group of buttons,
+ * when appropriate given the user interface state.
  * @return Renderable React node
  */
 export function _ModeToolbox() {
-  const { features } = useContext(StoreContext);
+  const { controls, features } = useContext(StoreContext);
 
-  if (features.canUndo) {
-    return null;
-  } else {
-    return (
-      <Surface style={styles.toolbox}>
-        <DrawPointControl />
-        <DragPointControl />
-        <SelectControl />
-      </Surface>
-    );
+  let toolbox = null;
+  if (!features.canUndo || !features.canRedo) {
+    switch (controls.mode) {
+      case InteractionMode.DragPoint:
+      case InteractionMode.DrawPolygon:
+        if (features.cannotUndoAndRedo) {
+          toolbox = <ModeToolboxButtons />;
+        }
+        break;
+      case InteractionMode.DrawPoint:
+        toolbox = <ModeToolboxButtons />;
+        break;
+      case InteractionMode.EditMetadata:
+        break;
+      case InteractionMode.SelectMultiple:
+      case InteractionMode.SelectSingle:
+        /**
+         * There is no redo button for un-deleting features,
+         * so the redo history is irrelevant.
+         */
+        if (!features.canUndo) {
+          toolbox = <ModeToolboxButtons />;
+        }
+        break;
+    }
   }
+  return toolbox;
 }
 
 /**

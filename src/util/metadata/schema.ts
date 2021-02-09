@@ -2,7 +2,10 @@ import * as yup from 'yup';
 import { transformAll } from '@demvsystems/yup-ast';
 import reduce from 'lodash/reduce';
 
-import type { EditableFeature } from '../../type/geometry';
+import type {
+  EditableFeature,
+  SemanticGeometryType,
+} from '../../type/geometry';
 import { FieldType } from '../../type/metadata';
 import type {
   EnumFieldDescription,
@@ -15,6 +18,7 @@ import type {
   MetadataFormInitialValues,
   MetadataFormStarterWithErrors,
   MetadataSchema,
+  MetadataSchemaGeneratorMap,
   MetadataValidationResult,
 } from '../../type/metadata';
 
@@ -34,14 +38,42 @@ const defaultMetadataSchema = [
 ];
 
 /**
- * The default metadata schema generation function
+ * The default metadata schema generation function for new geometry
+ * @param type The semantic type of the geometry (e.g. circle vs. point)
  * @return A schema description to be parsed by `yup-ast`
  */
-export function defaultMetadataSchemaGenerator(
+function defaultNewMetadataSchemaGenerator(
+  _type: SemanticGeometryType
+): MetadataSchema | null {
+  return defaultMetadataSchema;
+}
+
+/**
+ * The default metadata schema generation function for existing geometry
+ * @param type The semantic type of the geometry (e.g. circle vs. point)
+   @param feature The geometry feature whose metadata is to be viewed or edited
+ * @return A schema description to be parsed by `yup-ast`
+ */
+function defaultExistingMetadataSchemaGenerator(
+  _type: SemanticGeometryType,
   _feature: EditableFeature
 ): MetadataSchema | null {
   return defaultMetadataSchema;
 }
+
+/**
+ * The default set of functions used to produce metadata schemas
+ */
+export const defaultMetadataSchemaGeneratorMap: MetadataSchemaGeneratorMap = {
+  /**
+   * Default schema generator for new geometry
+   */
+  newGeometry: defaultNewMetadataSchemaGenerator,
+  /**
+   * Default schema generator for existing geometry
+   */
+  existingGeometry: defaultExistingMetadataSchemaGenerator,
+};
 
 /**
  * Parse a schema description to produce a Yup schema
