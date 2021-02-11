@@ -14,6 +14,7 @@ import difference from 'lodash/difference';
 import flatten from 'lodash/flatten';
 import filter from 'lodash/filter';
 import remove from 'lodash/remove';
+import every from 'lodash/every';
 import type { Position, GeoJsonProperties } from 'geojson';
 
 import { globalToLocalIndices } from '../util/collections';
@@ -28,6 +29,17 @@ import type {
   RnmgeID,
 } from '../type/geometry';
 import { FeatureLifecycleStage } from '../type/geometry';
+
+/**
+ * Whether or not the lifecycle stage involves selecting geometry
+ * @param stage A lifecycle stage
+ */
+function isSelectionStage(stage: FeatureLifecycleStage) {
+  return (
+    stage === FeatureLifecycleStage.SelectMultiple ||
+    stage === FeatureLifecycleStage.SelectSingle
+  );
+}
 
 /**
  * A collection of editable GeoJSON features
@@ -121,10 +133,7 @@ export class FeatureListModel extends Model({
             `Feature at index ${index} with model ID ${val.$modelId} is not a complete ${val.finalType}.`
           );
         }
-        if (
-          val.stage !== FeatureLifecycleStage.SelectMultiple &&
-          val.stage !== FeatureLifecycleStage.SelectSingle
-        ) {
+        if (!isSelectionStage(val.stage)) {
           val.stage = FeatureLifecycleStage.View;
         }
       });
@@ -399,13 +408,7 @@ export class FeatureListModel extends Model({
    */
   @computed
   private get rawSelectedFeatures(): Array<FeatureModel> {
-    const arr = filter(
-      this.features,
-      (val) =>
-        val.stage === FeatureLifecycleStage.SelectSingle ||
-        val.stage === FeatureLifecycleStage.SelectMultiple
-    );
-    return arr;
+    return filter(this.features, (val) => isSelectionStage(val.stage));
   }
 
   /**
@@ -562,45 +565,82 @@ export class FeatureListModel extends Model({
   @modelAction
   deselectAll() {
     withoutUndo(() => {
-      /**
-       * This class could be optimized in the future by storing a list
-       * of selected features, so that it is not necessary to iterate
-       * over all features when processing selected features.
-       */
-      this.features.forEach((val) => {
-        if (
-          val.stage === FeatureLifecycleStage.SelectMultiple ||
-          val.stage === FeatureLifecycleStage.SelectSingle
-        ) {
-          val.stage = FeatureLifecycleStage.View;
-        }
+      this.rawSelectedFeatures.forEach((val) => {
+        val.stage = FeatureLifecycleStage.View;
       });
     });
   }
 
   /**
-   * Put selected features into a geometry editing lifecycle stage
+   * Whether there are point features in a multiple selection mode,
+   * and no features of other types are selected
+   */
+  @computed
+  get hasSelectedPointsOnly() {
+    let arr = this.rawSelectedFeatures;
+    if (arr.length > 0) {
+      return every(arr, (val) => val.finalType === 'Point');
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Put selected point features into a geometry editing lifecycle stage
    */
   @modelAction
-  selectedToEditable() {
+  selectedPointsToEditable() {
     withoutUndo(() => {
-      this.features.forEach((val) => {
-        if (val.stage === FeatureLifecycleStage.SelectMultiple) {
+      if (this.hasSelectedPointsOnly) {
+        this.rawSelectedFeatures.forEach((val) => {
           val.stage = FeatureLifecycleStage.EditShape;
-        }
-      });
+        });
+      } else {
+        console.warn(
+          `Some selected features are not points or there are no selected features.`
+        );
+      }
+    });
+  }
+
+  /**
+   * Whether there is one polygon in a multiple selection mode,
+   * and no other features are selected
+   */
+  @computed
+  get hasOneSelectedPolygonOnly() {
+    let arr = this.rawSelectedFeatures;
+    return arr.length === 1 && arr[0].geojson.geometry.type === 'Polygon';
+  }
+
+  /**
+   * Put a single selected polygon into a geometry editing lifecycle stage
+   */
+  @modelAction
+  selectedPolygonToEditable() {
+    withoutUndo(() => {
+      if (this.hasOneSelectedPolygonOnly) {
+        this.rawSelectedFeatures[0].stage = FeatureLifecycleStage.EditShape;
+      } else {
+        console.warn(`There must be one and only one selected polygon.`);
+      }
     });
   }
 
   /**
    * Put features in a geometry editing lifecycle stage into a selected stage
+   * @param stage The selection stage to apply
    */
   @modelAction
-  editableToSelectMultiple() {
+  editableToSelected(
+    stage:
+      | FeatureLifecycleStage.SelectMultiple
+      | FeatureLifecycleStage.SelectSingle
+  ) {
     withoutUndo(() => {
       this.features.forEach((val) => {
         if (val.stage === FeatureLifecycleStage.EditShape) {
-          val.stage = FeatureLifecycleStage.SelectMultiple;
+          val.stage = stage;
         }
       });
     });
