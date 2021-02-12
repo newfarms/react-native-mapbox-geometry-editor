@@ -6,6 +6,7 @@ import pointToLineDistance from '@turf/point-to-line-distance';
 import nearestPointOnLine from '@turf/nearest-point-on-line';
 
 import { ConfirmationModel, ConfirmationReason } from './ConfirmationModel';
+import { DelayedLockModel } from './util/DelayedLockModel';
 import { featureListContext } from './ModelContexts';
 import { MetadataInteraction } from '../type/metadata';
 import type { MapPressPayload } from '../type/events';
@@ -146,6 +147,12 @@ export class ControlsModel extends Model({
   pendingMetadata: prop<GeoJsonProperties>(() => null, {
     setterAction: true,
   }),
+  /**
+   * A lock that prevents touch events from being handled while the user is dragging
+   * something on the map. For some reason, a fast drag action on Android sometimes
+   * generates both drag and touch events in Mapbox.
+   */
+  draggingLock: prop<DelayedLockModel>(() => new DelayedLockModel({})),
 }) {
   /**
    * Retrieve the [[MetadataInteraction]] corresponding to current user interface state
@@ -192,6 +199,8 @@ export class ControlsModel extends Model({
   /**
    * Set the editing mode to `mode`, or restore the default editing mode
    * if `mode` is the current editing mode
+   *
+   * @param mode The next editing mode
    */
   @modelAction
   toggleMode(mode: InteractionMode) {
@@ -718,6 +727,25 @@ export class ControlsModel extends Model({
   }
 
   /**
+   * Signal that the user has started a drag interaction,
+   * and so touch events should be ignored.
+   */
+  @modelAction
+  startDrag() {
+    this.draggingLock.lockNow();
+  }
+
+  /**
+   * Signal that the user has stopped a drag interaction,
+   * and so touch events can be handled after a delay
+   * during which previously queued spurious touch events are ignored.
+   */
+  @modelAction
+  endDrag() {
+    this.draggingLock.unlockAfterDelay(200);
+  }
+
+  /**
    * Add a new point feature
    * @param coordinates The coordinates of the feature
    */
@@ -758,6 +786,9 @@ export class ControlsModel extends Model({
    */
   @modelAction
   onPressColdGeometry(e: OnPressEvent) {
+    if (this.draggingLock.isLocked) {
+      return;
+    }
     if (this.confirmation) {
       console.warn(
         `Map geometry cannot be interacted with while there is an active confirmation request.`
@@ -823,6 +854,9 @@ export class ControlsModel extends Model({
    */
   @modelAction
   onPressHotGeometry(e: OnPressEvent) {
+    if (this.draggingLock.isLocked) {
+      return;
+    }
     if (this.confirmation) {
       console.warn(
         `Map geometry cannot be interacted with while there is an active confirmation request.`
@@ -996,6 +1030,9 @@ export class ControlsModel extends Model({
    */
   @modelAction
   handleMapPress(e: MapPressPayload) {
+    if (this.draggingLock.isLocked) {
+      return;
+    }
     if (this.confirmation) {
       console.warn(
         `The map cannot be interacted with while there is an active confirmation request.`

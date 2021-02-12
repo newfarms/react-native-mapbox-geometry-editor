@@ -7,7 +7,6 @@ import MapboxGL from '@react-native-mapbox-gl/maps';
 
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
-import type { FeatureListModel } from '../../state/FeatureListModel';
 import type { PointAnnotationPayload } from '../../type/events';
 import type { DraggablePointStyle } from '../../type/style';
 
@@ -47,17 +46,24 @@ function pointStyleToPointAnnotationStyle(
  */
 function _SinglePoint(props: {
   /**
-   * The store used to get the draggable point to render
-   */
-  readonly features: FeatureListModel;
-  /**
    * The index of the draggable point to render
    */
   readonly index: number;
 }) {
-  const { features, index } = props;
+  const { controls, features } = useContext(StoreContext);
+  const { index } = props;
   // Layer ID for Mapbox
   const id = `pointAnnotation${index}`;
+  /**
+   * While the point is being dragged, touch events must be ignored.
+   */
+  const onDragStart = useMemo(
+    () =>
+      action('draggable_points_drag_start', () => {
+        controls.startDrag();
+      }),
+    [controls]
+  );
   /**
    * When the point is dragged, its new coordinates need to be saved to the store
    */
@@ -65,8 +71,9 @@ function _SinglePoint(props: {
     () =>
       action('draggable_points_drag_end', (e: PointAnnotationPayload) => {
         features.dragPosition(e.geometry.coordinates, index);
+        controls.endDrag();
       }),
-    [features, index]
+    [controls, features, index]
   );
 
   /**
@@ -85,6 +92,7 @@ function _SinglePoint(props: {
       id={id}
       coordinate={toJS(features.draggablePositions[index].coordinates)}
       draggable={true}
+      onDragStart={onDragStart}
       onDragEnd={onDragEndWithIndex as () => void}
     >
       <View
@@ -117,9 +125,9 @@ function _DraggablePoints() {
    */
   const renderSinglePoint = useCallback(
     (_point: unknown, index: number) => (
-      <SinglePoint features={features} index={index} key={index} />
+      <SinglePoint index={index} key={index} />
     ),
-    [features]
+    []
   );
   return <>{features.draggablePositions.map(renderSinglePoint)}</>;
 }
