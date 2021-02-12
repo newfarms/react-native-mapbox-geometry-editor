@@ -1,13 +1,19 @@
 import { computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
-import type { Position, GeoJsonProperties } from 'geojson';
+import type { Feature, LineString, Position, GeoJsonProperties } from 'geojson';
+import pointToLineDistance from '@turf/point-to-line-distance';
+import nearestPointOnLine from '@turf/nearest-point-on-line';
 
 import { ConfirmationModel, ConfirmationReason } from './ConfirmationModel';
 import { featureListContext } from './ModelContexts';
 import { MetadataInteraction } from '../type/metadata';
 import type { MapPressPayload } from '../type/events';
-import { CoordinateRole, FeatureLifecycleStage } from '../type/geometry';
+import {
+  CoordinateRole,
+  FeatureLifecycleStage,
+  LineStringRole,
+} from '../type/geometry';
 
 /**
  * Possible geometry editing modes
@@ -764,6 +770,8 @@ export class ControlsModel extends Model({
       );
       return;
     }
+    const features = featureListContext.get(this);
+
     switch (this.mode) {
       case InteractionMode.DragPoint:
       case InteractionMode.EditPolygonVertices:
@@ -788,7 +796,7 @@ export class ControlsModel extends Model({
           for (let feature of e.features) {
             const id = feature?.properties?.rnmgeID; // Clusters do not have this property
             if (id) {
-              featureListContext.get(this)?.toggleMultiSelectFeature(id);
+              features?.toggleMultiSelectFeature(id);
             }
           }
         }
@@ -799,7 +807,7 @@ export class ControlsModel extends Model({
           for (let feature of e.features) {
             const id = feature?.properties?.rnmgeID; // Clusters do not have this property
             if (id) {
-              featureListContext.get(this)?.toggleSingleSelectFeature(id);
+              features?.toggleSingleSelectFeature(id);
               break;
             }
           }
@@ -827,6 +835,8 @@ export class ControlsModel extends Model({
       );
       return;
     }
+    const features = featureListContext.get(this);
+
     switch (this.mode) {
       case InteractionMode.DragPoint:
       case InteractionMode.DrawPoint:
@@ -836,6 +846,7 @@ export class ControlsModel extends Model({
         // Ignore the touch
         break;
       case InteractionMode.DrawPolygon:
+        // Add new vertices to a new polygon or close the polygon
         if (e.features.length > 0) {
           /**
            * Prevent creating overlapping vertices by ensuring, if the user
@@ -866,7 +877,7 @@ export class ControlsModel extends Model({
                     CoordinateRole.PolygonStart
                   ) {
                     // If the polygon is fully-formed, send the user on to metadata entry
-                    if (featureListContext.get(this)?.hasCompleteNewFeature) {
+                    if (features?.hasCompleteNewFeature) {
                       this.confirm();
                     }
                   }
@@ -890,7 +901,89 @@ export class ControlsModel extends Model({
         }
         break;
       case InteractionMode.EditPolygonVertices:
-        console.warn(`TODO: Vertex insertion logic.`);
+        // Split an edge of an existing polygon by adding a new vertex
+        if (e.features.length > 0) {
+          /**
+           * Prevent creating overlapping vertices by ensuring that a vertex
+           * is only created if the user has not also touched an existing vertex.
+           */
+          let pointTouched = false;
+          /**
+           * The new vertex will be added to the edge closest to the touch
+           */
+          let closestLineString: Feature<LineString> | null = null;
+          let closestLineStringDistance = 0;
+          let point = [e.coordinates.longitude, e.coordinates.latitude];
+          for (let feature of e.features) {
+            // Filter to features that were created by this library
+            const id = feature?.properties?.rnmgeID;
+            if (id) {
+              // Filter to parts of the polygon being edited
+              if (
+                feature.properties?.rnmgeStage ===
+                FeatureLifecycleStage.EditShape
+              ) {
+                /**
+                 * For some reason, this touch handler is passed features with `null` geometry,
+                 * hence the '?' in `feature.geometry?.type`
+                 */
+                if (feature.geometry?.type === 'Point') {
+                  // Touched a vertex of the polygon that is being edited
+                  pointTouched = true;
+                  break;
+                } else if (feature.geometry?.type === 'LineString') {
+                  // Touched an edge of the polygon that is being edited
+                  // Filter out holes
+                  if (
+                    feature.properties?.rnmgeRole ===
+                      LineStringRole.PolygonInner ||
+                    feature.properties?.rnmgeRole === LineStringRole.PolygonLast
+                  ) {
+                    const lineFeature = feature as Feature<LineString>;
+                    const distance = pointToLineDistance(point, lineFeature);
+                    if (
+                      !closestLineString ||
+                      (closestLineString &&
+                        distance < closestLineStringDistance)
+                    ) {
+                      closestLineString = lineFeature;
+                      closestLineStringDistance = distance;
+                    }
+                  }
+                }
+              } else {
+                console.warn(
+                  `Feature in the hot layer with lifecycle stage ${feature.properties?.rnmgeStage} encountered in editing mode ${this.mode}.`
+                );
+              }
+            }
+          }
+          if (closestLineString && !pointTouched) {
+            // Insert the vertex
+            const insertionPoint = nearestPointOnLine(closestLineString, point);
+            if (
+              closestLineString.properties?.rnmgeRole ===
+              LineStringRole.PolygonInner
+            ) {
+              if (insertionPoint.properties.index) {
+                /**
+                 * The index into the line string is also the index into the polygon's linear ring.
+                 * But the `addVertex()` function needs the index after the vertex is inserted.
+                 */
+                features?.addVertex(
+                  insertionPoint.geometry.coordinates,
+                  insertionPoint.properties.index + 1
+                );
+              }
+            } else if (
+              closestLineString.properties?.rnmgeRole ===
+              LineStringRole.PolygonLast
+            ) {
+              // The vertex will split the last edge of the polygon's linear ring
+              features?.addVertex(insertionPoint.geometry.coordinates, -2);
+            }
+          }
+        }
         break;
     }
   }

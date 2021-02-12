@@ -1839,6 +1839,13 @@
     "@turf/helpers" "^6.3.0"
     "@turf/meta" "^6.3.0"
 
+"@turf/clone@^6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@turf/clone/-/clone-6.3.0.tgz#2703557024f3222185d3c54ce926c57bdbe6d628"
+  integrity sha512-GAgN89/9GCqUKECB1oY2hcTs0K2rZj+a2tY6VfM0ef9wwckuQZCKi+kKGUzhKVrmHee15jKV8n6DY0er8OndKg==
+  dependencies:
+    "@turf/helpers" "^6.3.0"
+
 "@turf/destination@^6.3.0":
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/@turf/destination/-/destination-6.3.0.tgz#7032eeb0ec5d1a035d98faaddac039eea96abb04"
@@ -1903,7 +1910,7 @@
   dependencies:
     "@turf/helpers" "^6.3.0"
 
-"@turf/nearest-point-on-line@>= 4.0.0 <7.0.0":
+"@turf/nearest-point-on-line@>= 4.0.0 <7.0.0", "@turf/nearest-point-on-line@^6.3.0":
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/@turf/nearest-point-on-line/-/nearest-point-on-line-6.3.0.tgz#a33f14fb099c292777de136f8c96ef4a7cad8ae2"
   integrity sha512-b4C9Md1VbGn9chMgdSj2grJD4w4t0owEWOKEBwOZfdhrcksyOedVvKB7XqOFdj/8Jitel40EKAC5LQTNu24kEQ==
@@ -1915,6 +1922,45 @@
     "@turf/invariant" "^6.3.0"
     "@turf/line-intersect" "^6.3.0"
     "@turf/meta" "^6.3.0"
+
+"@turf/point-to-line-distance@^6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@turf/point-to-line-distance/-/point-to-line-distance-6.3.0.tgz#0d63efb8295f6a6e66fe0d431491d6b75aecc0be"
+  integrity sha512-AqCcj4A0GPzKb3w+q+C9ex0r5mC+u+Ee6VN2jY1p25dxBQJNpMZKDE5LcWtaXeD+pAk3ZGmvea8LR5S0AJukxA==
+  dependencies:
+    "@turf/bearing" "^6.3.0"
+    "@turf/distance" "^6.3.0"
+    "@turf/helpers" "^6.3.0"
+    "@turf/invariant" "^6.3.0"
+    "@turf/meta" "^6.3.0"
+    "@turf/projection" "^6.3.0"
+    "@turf/rhumb-bearing" "^6.3.0"
+    "@turf/rhumb-distance" "^6.3.0"
+
+"@turf/projection@^6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@turf/projection/-/projection-6.3.0.tgz#4ec279670330164750cace9cdf8cbad73755f3eb"
+  integrity sha512-IpSs7Q6G6xi47ynVlYYVegPLy6Jc0yo3/DcIm83jaJa4NnzPFXIFZT0v9Fe1N8MraHZqiqaSPbVnJXCGwR12lg==
+  dependencies:
+    "@turf/clone" "^6.3.0"
+    "@turf/helpers" "^6.3.0"
+    "@turf/meta" "^6.3.0"
+
+"@turf/rhumb-bearing@^6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@turf/rhumb-bearing/-/rhumb-bearing-6.3.0.tgz#a426fe8aec4c3853f685e806372f32deb2663917"
+  integrity sha512-/c/BE3huEUrwN6gx7Bg2FzfJqeU+TWk/slQPDHpbVunlIPbS6L28brqSVD+KXfMG8HQIzynz6Pm4Y+j5Iv4aWA==
+  dependencies:
+    "@turf/helpers" "^6.3.0"
+    "@turf/invariant" "^6.3.0"
+
+"@turf/rhumb-distance@^6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@turf/rhumb-distance/-/rhumb-distance-6.3.0.tgz#269c9a724058cebcecc85728184513e5a34f8032"
+  integrity sha512-wMIQVvznusonnp/POeucFdA4Rubn0NrkcEMdxdcCgFK7OmTz0zU4CEnNONF2IUGkQ5WwoKiuS7MOTQ8OuCjSfQ==
+  dependencies:
+    "@turf/helpers" "^6.3.0"
+    "@turf/invariant" "^6.3.0"
 
 "@types/babel__core@^7.0.0", "@types/babel__core@^7.1.7":
   version "7.1.12"
