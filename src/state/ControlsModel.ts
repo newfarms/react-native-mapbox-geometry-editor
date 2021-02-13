@@ -999,7 +999,7 @@ export class ControlsModel extends Model({
               closestLineString.properties?.rnmgeRole ===
               LineStringRole.PolygonInner
             ) {
-              if (insertionPoint.properties.index) {
+              if (typeof insertionPoint.properties.index === 'number') {
                 /**
                  * The index into the line string is also the index into the polygon's linear ring.
                  * But the `addVertex()` function needs the index after the vertex is inserted.
@@ -1007,6 +1007,10 @@ export class ControlsModel extends Model({
                 features?.addVertex(
                   insertionPoint.geometry.coordinates,
                   insertionPoint.properties.index + 1
+                );
+              } else {
+                console.warn(
+                  'No index in insertionPoint to use for inserting a vertex into the polygon.'
                 );
               }
             } else if (
