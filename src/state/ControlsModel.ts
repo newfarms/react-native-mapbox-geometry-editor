@@ -1,9 +1,16 @@
 import { computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
-import type { Feature, LineString, Position, GeoJsonProperties } from 'geojson';
+import type {
+  Feature,
+  LineString,
+  Position,
+  Polygon,
+  GeoJsonProperties,
+} from 'geojson';
 import pointToLineDistance from '@turf/point-to-line-distance';
 import nearestPointOnLine from '@turf/nearest-point-on-line';
+import { lineString } from '@turf/helpers';
 
 import { ConfirmationModel, ConfirmationReason } from './ConfirmationModel';
 import { DelayedLockModel } from './util/DelayedLockModel';
@@ -965,15 +972,34 @@ export class ControlsModel extends Model({
                   // Touched a vertex of the polygon that is being edited
                   pointTouched = true;
                   break;
-                } else if (feature.geometry?.type === 'LineString') {
-                  // Touched an edge of the polygon that is being edited
+                } else if (
+                  feature.geometry?.type === 'LineString' ||
+                  feature.geometry?.type === 'Polygon'
+                ) {
+                  // Touched an edge or the interior of the polygon
+                  let lineOrPolygonFeature:
+                    | Feature<Polygon | LineString, GeoJsonProperties>
+                    | undefined = feature as Feature<
+                    Polygon | LineString,
+                    GeoJsonProperties
+                  >;
+
+                  // Interpret a touch of the polygon interior as a touch of its boundary
+                  if (lineOrPolygonFeature?.geometry.type === 'Polygon') {
+                    lineOrPolygonFeature = lineString(
+                      lineOrPolygonFeature.geometry.coordinates[0],
+                      { rnmgeRole: LineStringRole.PolygonInner }
+                    );
+                  }
+
                   // Filter out holes
                   if (
-                    feature.properties?.rnmgeRole ===
+                    lineOrPolygonFeature?.properties?.rnmgeRole ===
                       LineStringRole.PolygonInner ||
-                    feature.properties?.rnmgeRole === LineStringRole.PolygonLast
+                    lineOrPolygonFeature?.properties?.rnmgeRole ===
+                      LineStringRole.PolygonLast
                   ) {
-                    const lineFeature = feature as Feature<LineString>;
+                    const lineFeature = lineOrPolygonFeature as Feature<LineString>;
                     const distance = pointToLineDistance(point, lineFeature);
                     if (
                       !closestLineString ||
