@@ -156,6 +156,7 @@
     "@turf/centroid": "^6.3.0",
     "@turf/helpers": "^6.3.0",
     "@turf/length": "^6.3.0",
+    "@turf/meta": "^6.3.0",
     "@turf/nearest-point-on-line": "^6.3.0",
     "@turf/point-to-line-distance": "^6.3.0",
     "formik": "^2.2.6",

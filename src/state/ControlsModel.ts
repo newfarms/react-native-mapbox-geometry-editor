@@ -1,4 +1,4 @@
-import { computed, toJS } from 'mobx';
+import { comparer, computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
 import type {
@@ -11,6 +11,7 @@ import type {
 import pointToLineDistance from '@turf/point-to-line-distance';
 import nearestPointOnLine from '@turf/nearest-point-on-line';
 import { lineString } from '@turf/helpers';
+import { coordReduce } from '@turf/meta';
 
 import { ConfirmationModel, ConfirmationReason } from './ConfirmationModel';
 import { DelayedLockModel } from './util/DelayedLockModel';
@@ -1019,32 +1020,54 @@ export class ControlsModel extends Model({
             }
           }
           if (closestLineString && !pointTouched) {
-            // Insert the vertex
+            // Find the point at which to insert the new vertex
             const insertionPoint = nearestPointOnLine(closestLineString, point);
+            const insertionPointCoordinates =
+              insertionPoint.geometry.coordinates;
+            /**
+             * Only insert the vertex if it does not overlap an existing vertex.
+             * This case occurs with concave shapes.
+             */
             if (
-              closestLineString.properties?.rnmgeRole ===
-              LineStringRole.PolygonInner
+              !coordReduce(
+                closestLineString,
+                (containsPoint, currentCoordinates) => {
+                  return (
+                    containsPoint ||
+                    comparer.structural(
+                      currentCoordinates,
+                      insertionPointCoordinates
+                    )
+                  );
+                },
+                false
+              )
             ) {
-              if (typeof insertionPoint.properties.index === 'number') {
-                /**
-                 * The index into the line string is also the index into the polygon's linear ring.
-                 * But the `addVertex()` function needs the index after the vertex is inserted.
-                 */
-                features?.addVertex(
-                  insertionPoint.geometry.coordinates,
-                  insertionPoint.properties.index + 1
-                );
-              } else {
-                console.warn(
-                  'No index in insertionPoint to use for inserting a vertex into the polygon.'
-                );
+              if (
+                closestLineString.properties?.rnmgeRole ===
+                LineStringRole.PolygonInner
+              ) {
+                if (typeof insertionPoint.properties.index === 'number') {
+                  /**
+                   * The index into the line string is also the index into the polygon's linear ring.
+                   * But the `addVertex()` function needs the index after the vertex is inserted.
+                   */
+                  features?.addVertex(
+                    insertionPointCoordinates,
+                    insertionPoint.properties.index + 1
+                  );
+                } else {
+                  console.warn(
+                    'No index in insertionPoint to use for inserting a vertex into the polygon.'
+                  );
+                }
+              } else if (
+                closestLineString.properties?.rnmgeRole ===
+                LineStringRole.PolygonLast
+              ) {
+                // The vertex will split the last edge of the polygon's linear ring
+                features?.addVertex(insertionPointCoordinates, -2);
               }
-            } else if (
-              closestLineString.properties?.rnmgeRole ===
-              LineStringRole.PolygonLast
-            ) {
-              // The vertex will split the last edge of the polygon's linear ring
-              features?.addVertex(insertionPoint.geometry.coordinates, -2);
             }
           }
         }
