@@ -116,6 +116,20 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Add a vertex to split an edge of the feature currently being edited
+   * See [[FeatureModel.addVertexToNearestSegment]]
+   * @param position The position for which a closest edge position will be found for the new vertex
+   */
+  @modelAction
+  addVertexToNearestSegment(position: Position) {
+    if (this.rawGeometryEditableFeature) {
+      this.rawGeometryEditableFeature.addVertexToNearestSegment(position);
+    } else {
+      console.warn('No editable features to modify.');
+    }
+  }
+
+  /**
    * Call this function to reset the undo/redo history at the end of
    * a geometry modification session.
    * Ensures that all geometry is marked as "finished".

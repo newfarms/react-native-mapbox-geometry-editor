@@ -1,8 +1,10 @@
-import { computed, toJS } from 'mobx';
+import { comparer, computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import flatten from 'lodash/flatten';
 import { point, lineString, polygon } from '@turf/helpers';
 import type { Position, Point, LineString, Polygon, Feature } from 'geojson';
+import { coordReduce } from '@turf/meta';
+import nearestPointOnLine from '@turf/nearest-point-on-line';
 
 import type {
   DraggablePosition,
@@ -109,6 +111,7 @@ export class FeatureModel extends Model({
    * Add a vertex to this feature.
    * Throws an error if this feature is of an inappropriate geometry type
    * (`this.finalType`).
+   * Does nothing if the vertex is exactly equal to an existing vertex.
    *
    * @param vertex The new vertex
    * @param index The index at which to insert the vertex in this feature's list of vertices.
@@ -127,7 +130,20 @@ export class FeatureModel extends Model({
         `The feature is in lifecycle stage ${this.stage}, which is not appropriate for adding vertices.`
       );
     }
-
+    // Avoid duplicating an existing vertex
+    if (
+      coordReduce(
+        this.geojson,
+        (containsPoint, currentCoordinates) => {
+          return (
+            containsPoint || comparer.structural(currentCoordinates, vertex)
+          );
+        },
+        false
+      )
+    ) {
+      return;
+    }
     /**
      * Add a vertex in a way that is appropriate for the current geometry type
      */
@@ -227,6 +243,58 @@ export class FeatureModel extends Model({
           }
         }
         break;
+    }
+  }
+
+  /**
+   * Add a vertex to this feature at the index between the two closest vertices
+   * to the given position, and along the edge between those vertices.
+   * Throws an error if this feature is of an inappropriate geometry type
+   * (`this.finalType`).
+   * Does nothing if the position is exactly equal to an existing vertex.
+   *
+   * For an incomplete line string, the vertex is always added after the single existing vertex
+   * to create the first edge.
+   * For a complete line string, the vertex always splits an interior edge.
+   *
+   * @param position The point that the new vertex will be closer to than any other point along
+   *                 the shape's edges.
+   */
+  @modelAction
+  addVertexToNearestSegment(position: Position) {
+    /**
+     * Add a vertex immediately to a point, or find the edges of a non-point shape
+     */
+    let lineFeature: Feature<LineString> | null = null;
+    switch (this.geojson.geometry.type) {
+      case 'Point':
+        // Add the vertex as a second vertex
+        this.addVertex(position);
+        return;
+      case 'LineString':
+        lineFeature = this.geojson as Feature<LineString>;
+        break;
+      case 'Polygon':
+        // Note: Holes are ignored
+        lineFeature = lineString(this.geojson.geometry.coordinates[0]);
+        break;
+    }
+
+    // Find the point at which to insert the new vertex
+    const insertionPoint = nearestPointOnLine(lineFeature, position);
+    const insertionPointCoordinates = insertionPoint.geometry.coordinates;
+    if (typeof insertionPoint.properties.index === 'number') {
+      /**
+       * The `addVertex()` function needs the index after the vertex is inserted.
+       */
+      this.addVertex(
+        insertionPointCoordinates,
+        insertionPoint.properties.index + 1
+      );
+    } else {
+      console.warn(
+        'No index in insertionPoint to use for inserting a vertex into the shape.'
+      );
     }
   }
 

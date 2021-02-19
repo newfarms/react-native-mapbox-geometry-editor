@@ -1,17 +1,7 @@
-import { comparer, computed, toJS } from 'mobx';
+import { computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
-import type {
-  Feature,
-  LineString,
-  Position,
-  Polygon,
-  GeoJsonProperties,
-} from 'geojson';
-import pointToLineDistance from '@turf/point-to-line-distance';
-import nearestPointOnLine from '@turf/nearest-point-on-line';
-import { lineString } from '@turf/helpers';
-import { coordReduce } from '@turf/meta';
+import type { Position, GeoJsonProperties } from 'geojson';
 
 import { ConfirmationModel, ConfirmationReason } from './ConfirmationModel';
 import { DelayedLockModel } from './util/DelayedLockModel';
@@ -22,6 +12,7 @@ import {
   CoordinateRole,
   FeatureLifecycleStage,
   LineStringRole,
+  RnmgeID,
 } from '../type/geometry';
 
 /**
@@ -950,11 +941,8 @@ export class ControlsModel extends Model({
            * is only created if the user has not also touched an existing vertex.
            */
           let pointTouched = false;
-          /**
-           * The new vertex will be added to the edge closest to the touch
-           */
-          let closestLineString: Feature<LineString> | null = null;
-          let closestLineStringDistance = 0;
+          // ID of the polygon that was touched, or whose edge was touched
+          let polygonID: RnmgeID | null = null;
           let point = [e.coordinates.longitude, e.coordinates.latitude];
           for (let feature of e.features) {
             // Filter to features that were created by this library
@@ -977,38 +965,19 @@ export class ControlsModel extends Model({
                   feature.geometry?.type === 'LineString' ||
                   feature.geometry?.type === 'Polygon'
                 ) {
-                  // Touched an edge or the interior of the polygon
-                  let lineOrPolygonFeature:
-                    | Feature<Polygon | LineString, GeoJsonProperties>
-                    | undefined = feature as Feature<
-                    Polygon | LineString,
-                    GeoJsonProperties
-                  >;
-
-                  // Interpret a touch of the polygon interior as a touch of its boundary
-                  if (lineOrPolygonFeature?.geometry.type === 'Polygon') {
-                    lineOrPolygonFeature = lineString(
-                      lineOrPolygonFeature.geometry.coordinates[0],
-                      { rnmgeRole: LineStringRole.PolygonInner }
-                    );
-                  }
-
                   // Filter out holes
                   if (
-                    lineOrPolygonFeature?.properties?.rnmgeRole ===
-                      LineStringRole.PolygonInner ||
-                    lineOrPolygonFeature?.properties?.rnmgeRole ===
-                      LineStringRole.PolygonLast
+                    feature?.properties?.rnmgeRole !==
+                    LineStringRole.PolygonHole
                   ) {
-                    const lineFeature = lineOrPolygonFeature as Feature<LineString>;
-                    const distance = pointToLineDistance(point, lineFeature);
-                    if (
-                      !closestLineString ||
-                      (closestLineString &&
-                        distance < closestLineStringDistance)
-                    ) {
-                      closestLineString = lineFeature;
-                      closestLineStringDistance = distance;
+                    if (polygonID) {
+                      if (id !== polygonID) {
+                        console.warn(
+                          `Multiple editable features with IDs ${polygonID} and ${id}.`
+                        );
+                      }
+                    } else {
+                      polygonID = id;
                     }
                   }
                 }
@@ -1019,56 +988,8 @@ export class ControlsModel extends Model({
               }
             }
           }
-          if (closestLineString && !pointTouched) {
-            // Find the point at which to insert the new vertex
-            const insertionPoint = nearestPointOnLine(closestLineString, point);
-            const insertionPointCoordinates =
-              insertionPoint.geometry.coordinates;
-            /**
-             * Only insert the vertex if it does not overlap an existing vertex.
-             * This case occurs with concave shapes.
-             */
-            if (
-              !coordReduce(
-                closestLineString,
-                (containsPoint, currentCoordinates) => {
-                  return (
-                    containsPoint ||
-                    comparer.structural(
-                      currentCoordinates,
-                      insertionPointCoordinates
-                    )
-                  );
-                },
-                false
-              )
-            ) {
-              if (
-                closestLineString.properties?.rnmgeRole ===
-                LineStringRole.PolygonInner
-              ) {
-                if (typeof insertionPoint.properties.index === 'number') {
-                  /**
-                   * The index into the line string is also the index into the polygon's linear ring.
-                   * But the `addVertex()` function needs the index after the vertex is inserted.
-                   */
-                  features?.addVertex(
-                    insertionPointCoordinates,
-                    insertionPoint.properties.index + 1
-                  );
-                } else {
-                  console.warn(
-                    'No index in insertionPoint to use for inserting a vertex into the polygon.'
-                  );
-                }
-              } else if (
-                closestLineString.properties?.rnmgeRole ===
-                LineStringRole.PolygonLast
-              ) {
-                // The vertex will split the last edge of the polygon's linear ring
-                features?.addVertex(insertionPointCoordinates, -2);
-              }
-            }
+          if (polygonID && !pointTouched) {
+            features?.addVertexToNearestSegment(point);
           }
         }
         break;
