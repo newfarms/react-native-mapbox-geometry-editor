@@ -152,6 +152,10 @@ export class ControlsModel extends Model({
    * generates both drag and touch events in Mapbox.
    */
   draggingLock: prop<DelayedLockModel>(() => new DelayedLockModel({})),
+  /**
+   * The index of any currently selected vertex
+   */
+  selectedVertexIndex: prop<number | null>(() => null),
 }) {
   /**
    * Retrieve the [[MetadataInteraction]] corresponding to current user interface state
@@ -193,6 +197,14 @@ export class ControlsModel extends Model({
   @computed
   get hasShapeModificationMode() {
     return isShapeModificationMode(this.mode);
+  }
+
+  /**
+   * Return whether there is a selected vertex
+   */
+  @computed
+  get hasSelectedVertex() {
+    return typeof this.selectedVertexIndex === 'number';
   }
 
   /**
@@ -303,6 +315,8 @@ export class ControlsModel extends Model({
     }
     this.clearMetadata();
 
+    this.deselectVertex();
+
     // Change the editing mode
     this.prevMode = this.mode;
     if (isToggle) {
@@ -339,6 +353,36 @@ export class ControlsModel extends Model({
   @modelAction
   private setDefaultMode() {
     this.toggleMode(this.mode);
+  }
+
+  /**
+   * Select the given vertex, if this object is in an appropriate editing mode
+   *
+   * @param index The index of the vertex in the list of points being edited.
+   *              See [[FeatureListModel.draggablePositions]]
+   */
+  @modelAction
+  selectVertex(index: number) {
+    switch (this.mode) {
+      case InteractionMode.EditPolygonVertices:
+        this.selectedVertexIndex = index;
+        break;
+      case InteractionMode.DragPoint:
+      case InteractionMode.DrawPoint:
+      case InteractionMode.DrawPolygon:
+      case InteractionMode.EditMetadata:
+      case InteractionMode.SelectMultiple:
+      case InteractionMode.SelectSingle:
+        break;
+    }
+  }
+
+  /**
+   * Clear the selected vertex
+   */
+  @modelAction
+  deselectVertex() {
+    this.selectedVertexIndex = null;
   }
 
   /**
@@ -639,6 +683,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   redo() {
+    this.deselectVertex();
     featureListContext.get(this)?.redo();
   }
 
@@ -647,6 +692,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   undo() {
+    this.deselectVertex();
     featureListContext.get(this)?.undo();
   }
 
@@ -718,11 +764,29 @@ export class ControlsModel extends Model({
   }
 
   /**
-   * Delete selected geometry
+   * Delete selected geometry or vertices
    */
   @modelAction
   delete() {
-    featureListContext.get(this)?.deleteSelected();
+    const features = featureListContext.get(this);
+    switch (this.mode) {
+      case InteractionMode.EditPolygonVertices:
+        console.warn('TODO: Delete vertex');
+        this.deselectVertex();
+        break;
+      case InteractionMode.SelectMultiple:
+      case InteractionMode.SelectSingle:
+        features?.deleteSelected();
+        break;
+      case InteractionMode.DragPoint:
+      case InteractionMode.DrawPoint:
+      case InteractionMode.DrawPolygon:
+      case InteractionMode.EditMetadata:
+        console.warn(
+          `The current editing mode, ${this.mode} does not have a delete action.`
+        );
+        break;
+    }
   }
 
   /**
@@ -731,6 +795,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   startDrag() {
+    this.deselectVertex();
     this.draggingLock.lockNow();
   }
 
@@ -800,6 +865,7 @@ export class ControlsModel extends Model({
       );
       return;
     }
+    this.deselectVertex();
     const features = featureListContext.get(this);
 
     switch (this.mode) {
@@ -868,6 +934,7 @@ export class ControlsModel extends Model({
       );
       return;
     }
+    this.deselectVertex();
     const features = featureListContext.get(this);
 
     switch (this.mode) {
@@ -1036,6 +1103,7 @@ export class ControlsModel extends Model({
       );
       return;
     }
+    this.deselectVertex();
 
     switch (this.mode) {
       case InteractionMode.DragPoint:
