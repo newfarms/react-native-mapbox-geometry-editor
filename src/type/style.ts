@@ -119,6 +119,10 @@ export interface StyleGeneratorMap {
    */
   readonly draggablePoint: DraggablePointStyleGenerator;
   /**
+   * Style generator for user-selected editable vertices within shapes
+   */
+  readonly selectedVertex: DraggablePointStyleGenerator;
+  /**
    * Style generator for non-draggable point features.
    * Features will be of type [[RenderFeature]] and will have a geometry
    * of type `'Point'`

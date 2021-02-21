@@ -45,6 +45,23 @@ function getDefaultDraggablePointStyle(
 }
 
 /**
+ * The default style generation function for selected vertices
+ * @param role The role of the vertex in the underlying geometry feature
+ * @param feature The feature corresponding to the vertex
+ * @return The style attributes for the input style type and feature combination
+ */
+function getSelectedVertexPointStyle(
+  _role: CoordinateRole,
+  _feature: EditableFeature
+): DraggablePointStyle {
+  return {
+    radius: (ANNOTATION_SIZE * 3) / 2,
+    color: featureLifecycleStageColor(FeatureLifecycleStage.SelectSingle),
+    strokeWidth: 0,
+  };
+}
+
+/**
  * Default colours for geometry lifecycle stages
  * @param stage The lifecycle stage
  */
@@ -363,6 +380,7 @@ function getDefaultClusterSymbolStyle(): SymbolLayerStyle {
  */
 export const defaultStyleGeneratorMap: StyleGeneratorMap = {
   draggablePoint: getDefaultDraggablePointStyle,
+  selectedVertex: getSelectedVertexPointStyle,
   point: getDefaultPointStyle,
   vertex: getDefaultVertexStyle,
   edge: getDefaultEdgeStyle,
