@@ -795,7 +795,6 @@ export class ControlsModel extends Model({
    */
   @modelAction
   startDrag() {
-    this.deselectVertex();
     this.draggingLock.lockNow();
   }
 
