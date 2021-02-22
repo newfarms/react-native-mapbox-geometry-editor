@@ -989,6 +989,23 @@ export class ControlsModel extends Model({
             }
           }
           if (polygonID && !pointTouched) {
+            /**
+             * We allow vertices to be added when the user touched the interior
+             * of the polygon, and did not touch any of its edges, because it can
+             * be difficult for the user to trigger a touch event on a thin edge.
+             *
+             * The drawback is that the user might sometimes be confused when they touch
+             * the interior of the polygon and their touch causes a change to the polygon
+             * far away from the location that they touch. The nearest edge to their touch,
+             * where the new vertex is placed, may even be outside of the screen area.
+             *
+             * Another approach is to either increase the width of rendered polygon edges,
+             * or to create a hit zone within the polygon that is restricted to areas closer
+             * to the edges. Wide edges may be unattractive, and an invisible hit zone
+             * may be confusing. From an implementation standpoint, a screen-space hit zone
+             * is more difficult to implement, because world space to screen space
+             * conversion functions are only accessible through the `MapboxGL.MapView` object.
+             */
             features?.addVertexToNearestSegment(point);
           }
         }
