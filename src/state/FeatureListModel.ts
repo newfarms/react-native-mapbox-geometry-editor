@@ -78,6 +78,33 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Look up the underlying feature in the list of features,
+   * corresponding to the index into the list of draggable points
+   * @param index The index of the point in the list of points being edited.
+   *              See [[draggablePositions]]
+   */
+  private getFeatureForDraggablePoint(
+    index: number
+  ): {
+    /**
+     * The feature corresponding to the input index
+     */
+    feature: FeatureModel;
+    /**
+     * The index of the point within `feature`
+     */
+    index: number;
+  } {
+    const { innerIndex, outerIndex } = globalToLocalIndices(index, (i) => {
+      if (i >= this.features.length) {
+        return null;
+      }
+      return this.features[i].draggablePositions.length;
+    });
+    return { feature: this.features[outerIndex], index: innerIndex };
+  }
+
+  /**
    * Re-position a point in the list of points currently being edited
    * @param position The new position for the point
    * @param index The index of the point in the list of points being edited. See [[draggablePositions]]
@@ -88,17 +115,14 @@ export class FeatureListModel extends Model({
      * Look up the underlying feature in the list of features,
      * corresponding to the index into the list of draggable points
      */
-    const { innerIndex, outerIndex } = globalToLocalIndices(index, (i) => {
-      if (i >= this.features.length) {
-        return null;
-      }
-      return this.features[i].draggablePositions.length;
-    });
+    const { index: innerIndex, feature } = this.getFeatureForDraggablePoint(
+      index
+    );
     /**
      * Ask the feature to update the point, given the computed index
      * of the point in that feature.
      */
-    this.features[outerIndex].dragPosition(position, innerIndex);
+    feature.dragPosition(position, innerIndex);
   }
 
   /**
@@ -127,6 +151,34 @@ export class FeatureListModel extends Model({
     } else {
       console.warn('No editable features to modify.');
     }
+  }
+
+  /**
+   * Delete a point that is in the list of points currently being edited
+   *
+   * This function is intended to be used to delete vertices from non-point
+   * features, and will do nothing to point features. Use [[deleteSelected]]
+   * to delete a point feature. The current [[InteractionMode]] of [[ControlsModel]]
+   * determines what types of features are used to create the list of points
+   * currently being edited.
+   *
+   * @param index The index of the point in the list of points being edited.
+   *              See [[draggablePositions]]
+   */
+  @modelAction
+  removeVertex(index: number) {
+    /**
+     * Look up the underlying feature in the list of features,
+     * corresponding to the index into the list of draggable points
+     */
+    const { index: innerIndex, feature } = this.getFeatureForDraggablePoint(
+      index
+    );
+    /**
+     * Ask the feature to remove the vertex, given the local index
+     * of its vertex. The feature will check whether vertex removal is possible.
+     */
+    feature.removeVertex(innerIndex);
   }
 
   /**
