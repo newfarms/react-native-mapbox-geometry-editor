@@ -208,6 +208,32 @@ export class ControlsModel extends Model({
   }
 
   /**
+   * Return whether the [[delete]] action can be performed
+   */
+  @computed
+  get canDelete() {
+    const features = featureListContext.get(this);
+    switch (this.mode) {
+      case InteractionMode.EditPolygonVertices:
+        return this.hasSelectedVertex && features?.canRemoveVertex;
+      case InteractionMode.SelectMultiple:
+      case InteractionMode.SelectSingle: {
+        let count = features?.selectedFeaturesCount;
+        if (count) {
+          return count > 0;
+        } else {
+          return false;
+        }
+      }
+      case InteractionMode.DragPoint:
+      case InteractionMode.DrawPoint:
+      case InteractionMode.DrawPolygon:
+      case InteractionMode.EditMetadata:
+        return false;
+    }
+  }
+
+  /**
    * Set the editing mode to `mode`, or restore the default editing mode
    * if `mode` is the current editing mode
    *
@@ -771,8 +797,12 @@ export class ControlsModel extends Model({
     const features = featureListContext.get(this);
     switch (this.mode) {
       case InteractionMode.EditPolygonVertices:
-        console.warn('TODO: Delete vertex');
-        this.deselectVertex();
+        if (this.hasSelectedVertex) {
+          features?.removeVertex(this.selectedVertexIndex as number);
+          this.deselectVertex();
+        } else {
+          console.warn(`No vertex is selected.`);
+        }
         break;
       case InteractionMode.SelectMultiple:
       case InteractionMode.SelectSingle:

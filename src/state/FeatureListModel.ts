@@ -154,6 +154,19 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Whether there is a feature being edited, and that feature can have
+   * vertices removed.
+   */
+  @computed
+  get canRemoveVertex(): boolean {
+    if (this.rawGeometryEditableFeature?.canRemoveVertices) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
    * Delete a point that is in the list of points currently being edited
    *
    * This function is intended to be used to delete vertices from non-point
@@ -174,11 +187,20 @@ export class FeatureListModel extends Model({
     const { index: innerIndex, feature } = this.getFeatureForDraggablePoint(
       index
     );
-    /**
-     * Ask the feature to remove the vertex, given the local index
-     * of its vertex. The feature will check whether vertex removal is possible.
-     */
-    feature.removeVertex(innerIndex);
+    if (
+      this.rawGeometryEditableFeature &&
+      this.rawGeometryEditableFeature.$modelId === feature.$modelId
+    ) {
+      /**
+       * Ask the feature to remove the vertex, given the local index
+       * of its vertex. The feature will check whether vertex removal is possible.
+       */
+      feature.removeVertex(innerIndex);
+    } else {
+      console.warn(
+        `The feature with model ID ${feature.$modelId} associated with the vertex to remove is not the editable feature.`
+      );
+    }
   }
 
   /**
