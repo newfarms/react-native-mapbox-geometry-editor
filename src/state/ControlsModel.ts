@@ -873,28 +873,48 @@ export class ControlsModel extends Model({
   }
 
   /**
+   * Common error-checking and editing mode-independent control flow
+   * for touch handler functions
+   * @return `true` if the touch event has been fully-handled
+   */
+  @modelAction
+  private onPressCommonHandling() {
+    if (this.draggingLock.isLocked) {
+      return true;
+    }
+    if (this.confirmation) {
+      console.warn(
+        `The map or geometry cannot be interacted with while there is an active confirmation request.`
+      );
+      return true;
+    }
+    if (this.isPageOpen) {
+      console.warn(
+        `The map or geometry cannot be interacted with while there is an open page.`
+      );
+      return true;
+    }
+    /**
+     * If a vertex is selected, just deselect it rather than also performing
+     * another action
+     */
+    if (this.hasSelectedVertex) {
+      this.deselectVertex();
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Touch event handler for geometry in the cold layer. See [[ColdGeometry]]
    *
    * @param e The features that were pressed, and information about the location pressed
    */
   @modelAction
   onPressColdGeometry(e: OnPressEvent) {
-    if (this.draggingLock.isLocked) {
+    if (this.onPressCommonHandling()) {
       return;
     }
-    if (this.confirmation) {
-      console.warn(
-        `Map geometry cannot be interacted with while there is an active confirmation request.`
-      );
-      return;
-    }
-    if (this.isPageOpen) {
-      console.warn(
-        `The map geometry cannot be interacted with while there is an open page.`
-      );
-      return;
-    }
-    this.deselectVertex();
     const features = featureListContext.get(this);
 
     switch (this.mode) {
@@ -948,22 +968,9 @@ export class ControlsModel extends Model({
    */
   @modelAction
   onPressHotGeometry(e: OnPressEvent) {
-    if (this.draggingLock.isLocked) {
+    if (this.onPressCommonHandling()) {
       return;
     }
-    if (this.confirmation) {
-      console.warn(
-        `Map geometry cannot be interacted with while there is an active confirmation request.`
-      );
-      return;
-    }
-    if (this.isPageOpen) {
-      console.warn(
-        `The map geometry cannot be interacted with while there is an open page.`
-      );
-      return;
-    }
-    this.deselectVertex();
     const features = featureListContext.get(this);
 
     switch (this.mode) {
@@ -1116,23 +1123,10 @@ export class ControlsModel extends Model({
    * @return A boolean indicating whether or not the event was fully-handled
    */
   @modelAction
-  handleMapPress(e: MapPressPayload) {
-    if (this.draggingLock.isLocked) {
-      return;
-    }
-    if (this.confirmation) {
-      console.warn(
-        `The map cannot be interacted with while there is an active confirmation request.`
-      );
+  handleMapPress(e: MapPressPayload): boolean {
+    if (this.onPressCommonHandling()) {
       return true;
     }
-    if (this.isPageOpen) {
-      console.warn(
-        `The map cannot be interacted with while there is an open page.`
-      );
-      return;
-    }
-    this.deselectVertex();
 
     switch (this.mode) {
       case InteractionMode.DragPoint:
