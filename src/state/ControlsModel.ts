@@ -4,17 +4,23 @@ import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
 import type { Position, GeoJsonProperties } from 'geojson';
 
 import { ConfirmationModel, ConfirmationReason } from './ConfirmationModel';
+import { DelayedLockModel } from './util/DelayedLockModel';
 import { featureListContext } from './ModelContexts';
 import { MetadataInteraction } from '../type/metadata';
 import type { MapPressPayload } from '../type/events';
-import { CoordinateRole, FeatureLifecycleStage } from '../type/geometry';
+import {
+  CoordinateRole,
+  FeatureLifecycleStage,
+  LineStringRole,
+  RnmgeID,
+} from '../type/geometry';
 
 /**
  * Possible geometry editing modes
  */
 export enum InteractionMode {
   /**
-   * Reposition points of the shape being edited
+   * Reposition point geometry
    */
   DragPoint = 'DRAGPOINT',
   /**
@@ -30,6 +36,10 @@ export enum InteractionMode {
    */
   EditMetadata = 'EDITMETADATA',
   /**
+   * Edit polygon vertices
+   */
+  EditPolygonVertices = 'EDITPOLYGONVERTICES',
+  /**
    * Add shapes to the set of shapes selected for editing
    */
   SelectMultiple = 'SELECTMULTIPLE',
@@ -42,13 +52,54 @@ export enum InteractionMode {
 
 /**
  * Whether or not the editing mode can involve modifying geometry
+ * or geometry metadata.
  * @param mode An editing mode
  */
-function isGeometryModificationMode(mode: InteractionMode) {
+function isFeatureModificationMode(mode: InteractionMode) {
   return !(
     mode === InteractionMode.EditMetadata ||
     mode === InteractionMode.SelectMultiple ||
     mode === InteractionMode.SelectSingle
+  );
+}
+
+/**
+ * Whether or not the editing mode involves selecting geometry
+ * @param mode An editing mode
+ */
+function isSelectionMode(
+  mode: InteractionMode
+): mode is InteractionMode.SelectMultiple | InteractionMode.SelectSingle {
+  return (
+    mode === InteractionMode.SelectMultiple ||
+    mode === InteractionMode.SelectSingle
+  );
+}
+
+/**
+ * Map a selection editing mode to a selection geometry lifecycle stage
+ * @param mode The editing mode
+ * @return The corresponding geometry lifecycle stage
+ */
+function selectionModeToSelectionStage(
+  mode: InteractionMode.SelectMultiple | InteractionMode.SelectSingle
+): FeatureLifecycleStage.SelectMultiple | FeatureLifecycleStage.SelectSingle {
+  switch (mode) {
+    case InteractionMode.SelectMultiple:
+      return FeatureLifecycleStage.SelectMultiple;
+    case InteractionMode.SelectSingle:
+      return FeatureLifecycleStage.SelectSingle;
+  }
+}
+
+/**
+ * Whether or not the editing mode involves modifying existing geometry
+ * @param mode An editing mode
+ */
+function isShapeModificationMode(mode: InteractionMode) {
+  return (
+    mode === InteractionMode.DragPoint ||
+    mode === InteractionMode.EditPolygonVertices
   );
 }
 
@@ -67,6 +118,10 @@ export class ControlsModel extends Model({
    * The currently active editing mode
    */
   mode: prop<InteractionMode>(DEFAULT_INTERACTION_MODE),
+  /**
+   * The previous editing mode
+   */
+  prevMode: prop<InteractionMode>(DEFAULT_INTERACTION_MODE),
   /**
    * A description of any operation that the user
    * is asked to confirm or cancel
@@ -91,6 +146,12 @@ export class ControlsModel extends Model({
   pendingMetadata: prop<GeoJsonProperties>(() => null, {
     setterAction: true,
   }),
+  /**
+   * A lock that prevents touch events from being handled while the user is dragging
+   * something on the map. For some reason, a fast drag action on Android sometimes
+   * generates both drag and touch events in Mapbox.
+   */
+  draggingLock: prop<DelayedLockModel>(() => new DelayedLockModel({})),
 }) {
   /**
    * Retrieve the [[MetadataInteraction]] corresponding to current user interface state
@@ -99,6 +160,7 @@ export class ControlsModel extends Model({
   get metadataInteraction(): MetadataInteraction {
     switch (this.mode) {
       case InteractionMode.DragPoint:
+      case InteractionMode.EditPolygonVertices:
         break;
       case InteractionMode.DrawPoint:
       case InteractionMode.DrawPolygon:
@@ -118,8 +180,26 @@ export class ControlsModel extends Model({
   }
 
   /**
+   * Return whether the current editing mode is a selection mode
+   */
+  @computed
+  get hasSelectionMode() {
+    return isSelectionMode(this.mode);
+  }
+
+  /**
+   * Return whether the current editing mode is a geometry modification mode
+   */
+  @computed
+  get hasShapeModificationMode() {
+    return isShapeModificationMode(this.mode);
+  }
+
+  /**
    * Set the editing mode to `mode`, or restore the default editing mode
    * if `mode` is the current editing mode
+   *
+   * @param mode The next editing mode
    */
   @modelAction
   toggleMode(mode: InteractionMode) {
@@ -170,9 +250,10 @@ export class ControlsModel extends Model({
     // Execute cleanup actions specific to individual outgoing editing modes
     switch (this.mode) {
       case InteractionMode.DragPoint:
+      case InteractionMode.EditPolygonVertices:
         // Select the features that were being edited
-        if (mode === InteractionMode.SelectMultiple) {
-          features?.editableToSelectMultiple();
+        if (isSelectionMode(mode)) {
+          features?.editableToSelected(selectionModeToSelectionStage(mode));
         }
         break;
       case InteractionMode.DrawPoint:
@@ -183,20 +264,23 @@ export class ControlsModel extends Model({
         break;
       case InteractionMode.SelectMultiple:
         // Deselect all features unless they are to be edited
-        if (mode !== InteractionMode.DragPoint) {
+        if (!isShapeModificationMode(mode)) {
           features?.deselectAll();
         }
         break;
       case InteractionMode.SelectSingle:
-        // Deselect the feature unless its metadata is to be edited
-        if (mode !== InteractionMode.EditMetadata) {
+        // Deselect the feature unless it is to be edited
+        if (
+          mode !== InteractionMode.EditMetadata &&
+          !isShapeModificationMode(mode)
+        ) {
           features?.deselectAll();
         }
         break;
     }
 
     // Enclose editing sessions in "transactions"
-    if (isGeometryModificationMode(this.mode)) {
+    if (isFeatureModificationMode(this.mode)) {
       features?.endEditingSession();
     } else {
       // Make sure the redo history is clear
@@ -220,17 +304,20 @@ export class ControlsModel extends Model({
     this.clearMetadata();
 
     // Change the editing mode
+    this.prevMode = this.mode;
     if (isToggle) {
       this.mode = DEFAULT_INTERACTION_MODE;
     } else {
       // Execute actions specific to individual incoming editing modes
       switch (mode) {
         case InteractionMode.DragPoint:
-          // Make all selected shapes editable
-          features?.selectedToEditable();
+          features?.selectedPointsToEditable();
           break;
         case InteractionMode.DrawPoint:
         case InteractionMode.DrawPolygon:
+          break;
+        case InteractionMode.EditPolygonVertices:
+          features?.selectedPolygonToEditable();
           break;
         case InteractionMode.EditMetadata:
           features?.selectedToEditMetadata();
@@ -344,6 +431,7 @@ export class ControlsModel extends Model({
           this.setDefaultMode();
           break;
         case InteractionMode.DragPoint:
+        case InteractionMode.EditPolygonVertices:
         case InteractionMode.SelectMultiple:
         case InteractionMode.SelectSingle:
           switch (this.confirmation.reason) {
@@ -360,10 +448,10 @@ export class ControlsModel extends Model({
               features?.clearHistory();
               break;
           }
-          if (this.mode === InteractionMode.DragPoint) {
-            // Move back to multiple selection mode
+          if (isShapeModificationMode(this.mode)) {
+            // Move back to selection mode
             this.confirmation = null;
-            this.toggleMode(InteractionMode.SelectMultiple);
+            this.exitShapeModificationMode();
           }
           break;
       }
@@ -403,6 +491,7 @@ export class ControlsModel extends Model({
           }
           break;
         case InteractionMode.DragPoint:
+        case InteractionMode.EditPolygonVertices:
           if (features?.canUndoOrRedo) {
             this.confirmation = new ConfirmationModel({
               message:
@@ -486,6 +575,7 @@ export class ControlsModel extends Model({
           }
           break;
         case InteractionMode.DragPoint:
+        case InteractionMode.EditPolygonVertices:
           if (features?.canUndo) {
             this.confirmation = new ConfirmationModel({
               message: 'Discard all changes and clear the editing history?',
@@ -497,7 +587,8 @@ export class ControlsModel extends Model({
               reason: ConfirmationReason.Discard,
             });
           } else {
-            console.warn(`There are no actions to cancel.`);
+            // There are no actions to cancel
+            this.exitShapeModificationMode();
           }
           break;
         case InteractionMode.SelectMultiple:
@@ -522,6 +613,25 @@ export class ControlsModel extends Model({
       }
     }
     return !!this.confirmation;
+  }
+
+  /**
+   * Move from a shape modification mode back to a selection mode
+   */
+  @modelAction
+  private exitShapeModificationMode() {
+    if (this.hasShapeModificationMode) {
+      if (!isSelectionMode(this.prevMode)) {
+        console.warn(
+          `Mode ${this.mode} did not follow a selection mode, but followed ${this.prevMode}.`
+        );
+        this.toggleMode(InteractionMode.SelectMultiple);
+      } else {
+        this.toggleMode(this.prevMode);
+      }
+    } else {
+      console.warn(`Unexpected mode ${this.mode}.`);
+    }
   }
 
   /**
@@ -558,6 +668,7 @@ export class ControlsModel extends Model({
 
     switch (this.mode) {
       case InteractionMode.DragPoint:
+      case InteractionMode.EditPolygonVertices:
         console.warn(`The current editing mode, ${this.mode}, has no pages.`);
         break;
       case InteractionMode.DrawPoint:
@@ -615,6 +726,25 @@ export class ControlsModel extends Model({
   }
 
   /**
+   * Signal that the user has started a drag interaction,
+   * and so touch events should be ignored.
+   */
+  @modelAction
+  startDrag() {
+    this.draggingLock.lockNow();
+  }
+
+  /**
+   * Signal that the user has stopped a drag interaction,
+   * and so touch events can be handled after a delay
+   * during which previously queued spurious touch events are ignored.
+   */
+  @modelAction
+  endDrag() {
+    this.draggingLock.unlockAfterDelay(200);
+  }
+
+  /**
    * Add a new point feature
    * @param coordinates The coordinates of the feature
    */
@@ -655,6 +785,9 @@ export class ControlsModel extends Model({
    */
   @modelAction
   onPressColdGeometry(e: OnPressEvent) {
+    if (this.draggingLock.isLocked) {
+      return;
+    }
     if (this.confirmation) {
       console.warn(
         `Map geometry cannot be interacted with while there is an active confirmation request.`
@@ -667,9 +800,12 @@ export class ControlsModel extends Model({
       );
       return;
     }
+    const features = featureListContext.get(this);
+
     switch (this.mode) {
       case InteractionMode.DragPoint:
-        // Ignore
+      case InteractionMode.EditPolygonVertices:
+        // Ignore - Editable geometry is not rendered in the cold layers
         break;
       case InteractionMode.DrawPoint:
         this.addNewPoint([e.coordinates.longitude, e.coordinates.latitude]);
@@ -690,7 +826,7 @@ export class ControlsModel extends Model({
           for (let feature of e.features) {
             const id = feature?.properties?.rnmgeID; // Clusters do not have this property
             if (id) {
-              featureListContext.get(this)?.toggleMultiSelectFeature(id);
+              features?.toggleMultiSelectFeature(id);
             }
           }
         }
@@ -701,7 +837,8 @@ export class ControlsModel extends Model({
           for (let feature of e.features) {
             const id = feature?.properties?.rnmgeID; // Clusters do not have this property
             if (id) {
-              featureListContext.get(this)?.toggleSingleSelectFeature(id);
+              features?.toggleSingleSelectFeature(id);
+              break;
             }
           }
         }
@@ -716,6 +853,9 @@ export class ControlsModel extends Model({
    */
   @modelAction
   onPressHotGeometry(e: OnPressEvent) {
+    if (this.draggingLock.isLocked) {
+      return;
+    }
     if (this.confirmation) {
       console.warn(
         `Map geometry cannot be interacted with while there is an active confirmation request.`
@@ -728,6 +868,8 @@ export class ControlsModel extends Model({
       );
       return;
     }
+    const features = featureListContext.get(this);
+
     switch (this.mode) {
       case InteractionMode.DragPoint:
       case InteractionMode.DrawPoint:
@@ -737,6 +879,7 @@ export class ControlsModel extends Model({
         // Ignore the touch
         break;
       case InteractionMode.DrawPolygon:
+        // Add new vertices to a new polygon or close the polygon
         if (e.features.length > 0) {
           /**
            * Prevent creating overlapping vertices by ensuring, if the user
@@ -767,7 +910,7 @@ export class ControlsModel extends Model({
                     CoordinateRole.PolygonStart
                   ) {
                     // If the polygon is fully-formed, send the user on to metadata entry
-                    if (featureListContext.get(this)?.hasCompleteNewFeature) {
+                    if (features?.hasCompleteNewFeature) {
                       this.confirm();
                     }
                   }
@@ -790,6 +933,83 @@ export class ControlsModel extends Model({
           }
         }
         break;
+      case InteractionMode.EditPolygonVertices:
+        // Split an edge of an existing polygon by adding a new vertex
+        if (e.features.length > 0) {
+          /**
+           * Prevent creating overlapping vertices by ensuring that a vertex
+           * is only created if the user has not also touched an existing vertex.
+           */
+          let pointTouched = false;
+          // ID of the polygon that was touched, or whose edge was touched
+          let polygonID: RnmgeID | null = null;
+          let point = [e.coordinates.longitude, e.coordinates.latitude];
+          for (let feature of e.features) {
+            // Filter to features that were created by this library
+            const id = feature?.properties?.rnmgeID;
+            if (id) {
+              // Filter to parts of the polygon being edited
+              if (
+                feature.properties?.rnmgeStage ===
+                FeatureLifecycleStage.EditShape
+              ) {
+                /**
+                 * For some reason, this touch handler is passed features with `null` geometry,
+                 * hence the '?' in `feature.geometry?.type`
+                 */
+                if (feature.geometry?.type === 'Point') {
+                  // Touched a vertex of the polygon that is being edited
+                  pointTouched = true;
+                  break;
+                } else if (
+                  feature.geometry?.type === 'LineString' ||
+                  feature.geometry?.type === 'Polygon'
+                ) {
+                  // Filter out holes
+                  if (
+                    feature?.properties?.rnmgeRole !==
+                    LineStringRole.PolygonHole
+                  ) {
+                    if (polygonID) {
+                      if (id !== polygonID) {
+                        console.warn(
+                          `Multiple editable features with IDs ${polygonID} and ${id}.`
+                        );
+                      }
+                    } else {
+                      polygonID = id;
+                    }
+                  }
+                }
+              } else {
+                console.warn(
+                  `Feature in the hot layer with lifecycle stage ${feature.properties?.rnmgeStage} encountered in editing mode ${this.mode}.`
+                );
+              }
+            }
+          }
+          if (polygonID && !pointTouched) {
+            /**
+             * We allow vertices to be added when the user touched the interior
+             * of the polygon, and did not touch any of its edges, because it can
+             * be difficult for the user to trigger a touch event on a thin edge.
+             *
+             * The drawback is that the user might sometimes be confused when they touch
+             * the interior of the polygon and their touch causes a change to the polygon
+             * far away from the location that they touch. The nearest edge to their touch,
+             * where the new vertex is placed, may even be outside of the screen area.
+             *
+             * Another approach is to either increase the width of rendered polygon edges,
+             * or to create a hit zone within the polygon that is restricted to areas closer
+             * to the edges. Wide edges may be unattractive, and an invisible hit zone
+             * may be confusing. From an implementation standpoint, a screen-space hit zone
+             * is more difficult to implement, because world space to screen space
+             * conversion functions are only accessible through the `MapboxGL.MapView` object.
+             */
+            features?.addVertexToNearestSegment(point);
+          }
+        }
+        break;
     }
   }
 
@@ -801,6 +1021,9 @@ export class ControlsModel extends Model({
    */
   @modelAction
   handleMapPress(e: MapPressPayload) {
+    if (this.draggingLock.isLocked) {
+      return;
+    }
     if (this.confirmation) {
       console.warn(
         `The map cannot be interacted with while there is an active confirmation request.`
@@ -816,6 +1039,7 @@ export class ControlsModel extends Model({
 
     switch (this.mode) {
       case InteractionMode.DragPoint:
+      case InteractionMode.EditPolygonVertices:
         return false; // Ignore
       case InteractionMode.DrawPoint:
         // Draw a new point
