@@ -140,6 +140,10 @@ const styleGeneratorMap: StyleGeneratorMap = {
     return style;
   },
   /**
+   * Style for selected vertices of shapes being edited
+   */
+  selectedVertex: defaultStyleGeneratorMap.selectedVertex,
+  /**
    * Style for point geometry, non-clusters
    */
   point: () => {

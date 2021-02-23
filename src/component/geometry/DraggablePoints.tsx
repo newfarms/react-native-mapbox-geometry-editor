@@ -9,6 +9,7 @@ import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
 import type { PointAnnotationPayload } from '../../type/events';
 import type { DraggablePointStyle } from '../../type/style';
+import { InteractionMode } from '../../state/ControlsModel';
 
 /**
  * Generate additional style parameters needed to create a circular point annotation
@@ -52,6 +53,7 @@ function _SinglePoint(props: {
 }) {
   const { controls, features } = useContext(StoreContext);
   const { index } = props;
+  const isSelected = controls.selectedVertexIndex === index;
   // Layer ID for Mapbox
   const id = `pointAnnotation${index}`;
   /**
@@ -75,6 +77,16 @@ function _SinglePoint(props: {
       }),
     [controls, features, index]
   );
+  /**
+   * When the point is selected, inform the controller
+   */
+  const onSelectWithIndex = useMemo(
+    () =>
+      action('draggable_points_select', () => {
+        controls.selectVertex(index);
+      }),
+    [controls, index]
+  );
 
   /**
    * Choose styles for points based on the current user interaction
@@ -83,26 +95,41 @@ function _SinglePoint(props: {
   const { styleGenerators } = useContext(StyleContext);
 
   /**
+   * Dynamic styling depending on whether the point is a selected vertex
+   */
+  const draggablePosition = features.draggablePositions[index];
+  let protoStyle: DraggablePointStyle | null = null;
+  if (isSelected) {
+    protoStyle = styleGenerators.selectedVertex(
+      draggablePosition.role,
+      draggablePosition.feature
+    );
+  } else {
+    protoStyle = styleGenerators.draggablePoint(
+      draggablePosition.role,
+      draggablePosition.feature
+    );
+  }
+
+  /**
    * Render a map point annotation.
    * `toJS` is needed here because `MapboxGL.PointAnnotation` is not an observer.
    * See https://mobx.js.org/react-integration.html#dont-pass-observables-into-components-that-arent-observer
+   *
+   * Note that there is no need to use the `onDeselected` prop of
+   * `MapboxGL.PointAnnotation`, because `ControlsModel` will take care of
+   * deselecting vertices following user interactions with other objects.
    */
   return (
     <MapboxGL.PointAnnotation
       id={id}
-      coordinate={toJS(features.draggablePositions[index].coordinates)}
-      draggable={true}
+      coordinate={toJS(draggablePosition.coordinates)}
+      draggable={isSelected || controls.mode === InteractionMode.DragPoint}
       onDragStart={onDragStart}
       onDragEnd={onDragEndWithIndex as () => void}
+      onSelected={onSelectWithIndex}
     >
-      <View
-        style={pointStyleToPointAnnotationStyle(
-          styleGenerators.draggablePoint(
-            features.draggablePositions[index].role,
-            features.draggablePositions[index].feature
-          )
-        )}
-      />
+      <View style={pointStyleToPointAnnotationStyle(protoStyle)} />
     </MapboxGL.PointAnnotation>
   );
 }

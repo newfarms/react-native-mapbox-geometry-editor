@@ -299,6 +299,81 @@ export class FeatureModel extends Model({
   }
 
   /**
+   * Remove a vertex from this feature.
+   * Throws an error if this feature is of an inappropriate geometry type.
+   * Does nothing if the feature would become malformed without the vertex.
+   *
+   * @param index The index of the vertex to remove in this feature's list of vertices.
+   *              Negative indices are interpreted as relative to the end of the list.
+   *              For example `-1` means the last vertex is removed.
+   *              The length of a linear ring of coordinates is considered to be the number
+   *              of unique vertices it contains, not the actual length of the coordinates array
+   *              (which is one greater because of the duplicate of the first position).
+   */
+  @modelAction
+  removeVertex(index: number = -1) {
+    // Error checking
+    if (!this.isGeometryEditableFeature) {
+      console.warn(
+        `The feature is in lifecycle stage ${this.stage}, which is not appropriate for removing vertices.`
+      );
+    }
+    if (!this.canRemoveVertices) {
+      console.warn(
+        `The feature with ID ${this.$modelId}, cannot lose vertices without degenerating.`
+      );
+      return;
+    }
+    /**
+     * Remove a vertex in a way that is appropriate for the current geometry type
+     */
+    switch (this.geojson.geometry.type) {
+      case 'Point':
+        throw new Error(`No vertices can be removed from a point`);
+      case 'LineString':
+        this.geojson.geometry.coordinates.splice(index, 1);
+        break;
+      case 'Polygon':
+        {
+          // Remove the point from the polygon's first linear ring
+          /**
+           * Handle indices as described
+           * in the function's interface documentation
+           */
+          const len = this.geojson.geometry.coordinates[0].length;
+          let finalIndex = index;
+          let fixLast = false; // Whether to fix the duplicate first coordinate
+          if (index <= -(len - 1)) {
+            // Remove the first vertex
+            fixLast = true;
+            finalIndex = 0;
+          } else if (index < 0) {
+            // Remove an intermediate vertex
+            finalIndex = index - 1;
+          } else if (index === 0) {
+            // Remove the first vertex
+            fixLast = true;
+          } else if (index < len - 1) {
+            // Remove an intermediate vertex or the last vertex
+          } else {
+            // Remove the last vertex
+            finalIndex = -2;
+          }
+          this.geojson.geometry.coordinates[0].splice(finalIndex, 1);
+          if (fixLast) {
+            // Fix the duplicate first coordinate
+            this.geojson.geometry.coordinates[0].splice(
+              -1,
+              1,
+              toJS(this.geojson.geometry.coordinates[0][0])
+            );
+          }
+        }
+        break;
+    }
+  }
+
+  /**
    * Helper function that lists the renderable coordinates of this
    * feature and determines their geometrical roles
    */
@@ -824,5 +899,30 @@ export class FeatureModel extends Model({
   @computed
   get isCompleteFeature() {
     return this.geojson.geometry.type === this.finalType;
+  }
+
+  /**
+   * Returns `false` if this feature cannot have any vertices remoed
+   * without becoming a different type of geometry.
+   * Also returns `false` if this feature is not complete.
+   * See [[isCompleteFeature]].
+   */
+  @computed
+  get canRemoveVertices() {
+    if (this.isCompleteFeature) {
+      switch (this.geojson.geometry.type) {
+        case 'Point':
+          return false;
+        case 'LineString':
+          return this.geojson.geometry.coordinates.length > 2;
+        case 'Polygon':
+          return (
+            this.geojson.geometry.coordinates.length > 0 &&
+            this.geojson.geometry.coordinates[0].length > 4
+          );
+      }
+    } else {
+      return false;
+    }
   }
 }

@@ -55,10 +55,10 @@ function _UndoControl() {
 export const UndoControl = observer(_UndoControl);
 
 /**
- * A component that renders a control for deleting geometry
+ * A component that renders a control for deleting geometry or pieces of geometry
  */
 function _DeleteControl() {
-  const { controls, features } = useContext(StoreContext);
+  const { controls } = useContext(StoreContext);
   // Button press callback
   const onPress = useMemo(
     () =>
@@ -68,10 +68,7 @@ function _DeleteControl() {
     [controls]
   );
 
-  /**
-   * The control is enabled only if geometry is selected
-   */
-  const enabled = features.selectedFeaturesCount > 0;
+  const enabled = controls.canDelete;
 
   // Choose the icon based on the enabled/disabled status
   let icon = 'delete-outline';

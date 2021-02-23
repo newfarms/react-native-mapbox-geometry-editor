@@ -63,7 +63,15 @@ export type {
   ExistingMetadataSchemaGenerator,
   MetadataValidationResult,
 } from './type/metadata';
-export type { DraggablePointStyle, StyleGeneratorMap } from './type/style';
+export type {
+  CircleLayerStyleGenerator,
+  ClusterSymbolLayerStyleGenerator,
+  DraggablePointStyle,
+  DraggablePointStyleGenerator,
+  LineLayerStyleGenerator,
+  PolygonLayerStyleGenerator,
+  StyleGeneratorMap,
+} from './type/style';
 export type {
   PageProps,
   PageOpenCb,
