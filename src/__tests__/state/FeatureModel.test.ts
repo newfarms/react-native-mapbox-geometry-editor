@@ -1,4 +1,5 @@
 import { point, lineString, polygon } from '@turf/helpers';
+import cloneDeep from 'lodash/cloneDeep';
 import type { Position } from 'geojson';
 
 import { FeatureModel } from '../../state/FeatureModel';
@@ -69,21 +70,15 @@ function makeTriplet(type: EditableGeometryType & ('LineString' | 'Polygon')) {
 /**
  * Test that no vertices can be added to a point
  */
-test('addVertex on a point', () => {
-  const p = makePoint('Point');
-  expect(() => {
-    p.addVertex([0, 0]);
-  }).toThrow('Point');
-  expect(() => {
-    p.addVertex([0, 0], -1);
-  }).toThrow('Point');
-  expect(() => {
-    p.addVertex([0, 0], 0);
-  }).toThrow('Point');
-  expect(() => {
-    p.addVertex([0, 0], 1);
-  }).toThrow('Point');
-});
+test.each([[undefined], [-1], [0], [1]] as Array<[number | undefined]>)(
+  'addVertex on a point',
+  (index) => {
+    const p = makePoint('Point');
+    expect(() => {
+      p.addVertex([0, 0], index);
+    }).toThrow('Point');
+  }
+);
 
 /**
  * Test that vertices can be added to any position to a point to make a line string
@@ -279,5 +274,204 @@ test.each([
     }
     expect(t.geojson.geometry.coordinates).toStrictEqual(expected);
     expect(t.geojson.geometry.type).toStrictEqual(type);
+  }
+);
+
+/**
+ * Test that no vertices can be removed from a point
+ */
+test.each([[undefined], [-1], [0], [1]] as Array<[number | undefined]>)(
+  'removeVertex on a point',
+  (index) => {
+    const p = makePoint('Point');
+    const expected = cloneDeep(p);
+    p.removeVertex(index);
+    expect(p).toStrictEqual(expected);
+  }
+);
+
+/**
+ * Test that no vertices can be removed from a minimal line string
+ */
+test.each([[undefined], [-2], [-1], [0], [1], [2]] as Array<
+  [number | undefined]
+>)('removeVertex on a one-segment line string', (index) => {
+  const p = makeEdge('LineString');
+  const expected = cloneDeep(p);
+  p.removeVertex(index);
+  expect(p).toStrictEqual(expected);
+});
+
+/**
+ * Test that no vertices can be removed from a minimal polygon
+ */
+test.each([
+  [undefined],
+  [-5],
+  [-4],
+  [-3],
+  [-2],
+  [-1],
+  [0],
+  [1],
+  [2],
+  [3],
+  [4],
+  [5],
+] as Array<[number | undefined]>)('removeVertex on a triangle', (index) => {
+  const p = makeTriplet('Polygon');
+  const expected = cloneDeep(p);
+  p.removeVertex(index);
+  expect(p).toStrictEqual(expected);
+});
+
+/**
+ * Test that no vertices can be removed from an incomplete line string
+ */
+test.each([[undefined], [-2], [-1], [0], [1], [2]] as Array<
+  [number | undefined]
+>)('removeVertex on an incomplete line string', (index) => {
+  const p = makePoint('LineString');
+  const expected = cloneDeep(p);
+  p.removeVertex(index);
+  expect(p).toStrictEqual(expected);
+});
+
+/**
+ * Test that no vertices can be removed from an incomplete polygon
+ */
+test.each([
+  [undefined],
+  [-5],
+  [-4],
+  [-3],
+  [-2],
+  [-1],
+  [0],
+  [1],
+  [2],
+  [3],
+  [4],
+  [5],
+] as Array<[number | undefined]>)(
+  'removeVertex on an incomplete polygon',
+  (index) => {
+    const e = makeEdge('Polygon');
+    const expectedEdge = cloneDeep(e);
+    e.removeVertex(index);
+    expect(e).toStrictEqual(expectedEdge);
+    const p = makePoint('Polygon');
+    const expectedPoint = cloneDeep(p);
+    p.removeVertex(index);
+    expect(p).toStrictEqual(expectedPoint);
+  }
+);
+
+/**
+ * Remove any vertex from a three-vertex line string
+ */
+test.each([
+  [undefined],
+  [-5],
+  [-4],
+  [-3],
+  [-2],
+  [-1],
+  [0],
+  [1],
+  [2],
+  [3],
+  [4],
+  [5],
+] as Array<[number | undefined]>)(
+  'removeVertex on a line string with three vertices',
+  (index = -1) => {
+    const p = makeTriplet('LineString');
+    const expected = cloneDeep(p);
+    expected.geojson.geometry.coordinates.splice(index, 1);
+    p.removeVertex(index);
+    expect(p).toStrictEqual(expected);
+  }
+);
+
+/**
+ * Remove any vertex from a four-vertex polygon
+ */
+test.each([
+  [undefined],
+  [-6],
+  [-5],
+  [-4],
+  [-3],
+  [-2],
+  [-1],
+  [0],
+  [1],
+  [2],
+  [3],
+  [4],
+  [5],
+  [6],
+] as Array<[number | undefined]>)(
+  'removeVertex on a polygon with four vertices',
+  (index) => {
+    let expected = [
+      [-1, -2],
+      [1, 2],
+      [3, 4],
+      [5, 6],
+      [-1, -2],
+    ];
+    const p = new FeatureModel({
+      stage: FeatureLifecycleStage.EditShape,
+      geojson: polygon([cloneDeep(expected)]),
+      finalType: 'Polygon',
+    });
+    switch (index) {
+      case -6:
+      case -5:
+      case -4:
+      case 0:
+        expected = [
+          [1, 2],
+          [3, 4],
+          [5, 6],
+          [1, 2],
+        ];
+        break;
+      case -3:
+      case 1:
+        expected = [
+          [-1, -2],
+          [3, 4],
+          [5, 6],
+          [-1, -2],
+        ];
+        break;
+      case -2:
+      case 2:
+        expected = [
+          [-1, -2],
+          [1, 2],
+          [5, 6],
+          [-1, -2],
+        ];
+        break;
+      case -1:
+      case 3:
+      case 4:
+      case 5:
+      case 6:
+      default:
+        expected = [
+          [-1, -2],
+          [1, 2],
+          [3, 4],
+          [-1, -2],
+        ];
+        break;
+    }
+    p.removeVertex(index);
+    expect(p.geojson.geometry.coordinates).toStrictEqual([expected]);
   }
 );

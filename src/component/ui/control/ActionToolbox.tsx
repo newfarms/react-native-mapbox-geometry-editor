@@ -57,7 +57,6 @@ function _ActionToolbox() {
       break;
     case InteractionMode.DragPoint:
     case InteractionMode.DrawPolygon:
-    case InteractionMode.EditPolygonVertices:
       if (features.canUndoOrRedo) {
         bottomToolbox = (
           <Surface style={styles.bottomToolbox}>
@@ -68,9 +67,21 @@ function _ActionToolbox() {
         topToolbox = <TopToolbox />;
       }
       break;
+    case InteractionMode.EditPolygonVertices:
+      bottomToolbox = (
+        <Surface style={styles.bottomToolbox}>
+          <RedoControl />
+          <UndoControl />
+          <DeleteControl />
+        </Surface>
+      );
+      if (features.canUndoOrRedo) {
+        topToolbox = <TopToolbox />;
+      }
+      break;
     case InteractionMode.SelectMultiple:
     case InteractionMode.SelectSingle:
-      if (features.selectedFeaturesCount > 0 || features.canUndo) {
+      if (controls.canDelete || features.canUndo) {
         bottomToolbox = (
           <Surface style={styles.bottomToolbox}>
             <UndoControl />

@@ -152,6 +152,10 @@ export class ControlsModel extends Model({
    * generates both drag and touch events in Mapbox.
    */
   draggingLock: prop<DelayedLockModel>(() => new DelayedLockModel({})),
+  /**
+   * The index of any currently selected vertex
+   */
+  selectedVertexIndex: prop<number | null>(() => null),
 }) {
   /**
    * Retrieve the [[MetadataInteraction]] corresponding to current user interface state
@@ -193,6 +197,40 @@ export class ControlsModel extends Model({
   @computed
   get hasShapeModificationMode() {
     return isShapeModificationMode(this.mode);
+  }
+
+  /**
+   * Return whether there is a selected vertex
+   */
+  @computed
+  get hasSelectedVertex() {
+    return typeof this.selectedVertexIndex === 'number';
+  }
+
+  /**
+   * Return whether the [[delete]] action can be performed
+   */
+  @computed
+  get canDelete() {
+    const features = featureListContext.get(this);
+    switch (this.mode) {
+      case InteractionMode.EditPolygonVertices:
+        return this.hasSelectedVertex && features?.canRemoveVertex;
+      case InteractionMode.SelectMultiple:
+      case InteractionMode.SelectSingle: {
+        let count = features?.selectedFeaturesCount;
+        if (count) {
+          return count > 0;
+        } else {
+          return false;
+        }
+      }
+      case InteractionMode.DragPoint:
+      case InteractionMode.DrawPoint:
+      case InteractionMode.DrawPolygon:
+      case InteractionMode.EditMetadata:
+        return false;
+    }
   }
 
   /**
@@ -303,6 +341,8 @@ export class ControlsModel extends Model({
     }
     this.clearMetadata();
 
+    this.deselectVertex();
+
     // Change the editing mode
     this.prevMode = this.mode;
     if (isToggle) {
@@ -339,6 +379,36 @@ export class ControlsModel extends Model({
   @modelAction
   private setDefaultMode() {
     this.toggleMode(this.mode);
+  }
+
+  /**
+   * Select the given vertex, if this object is in an appropriate editing mode
+   *
+   * @param index The index of the vertex in the list of points being edited.
+   *              See [[FeatureListModel.draggablePositions]]
+   */
+  @modelAction
+  selectVertex(index: number) {
+    switch (this.mode) {
+      case InteractionMode.EditPolygonVertices:
+        this.selectedVertexIndex = index;
+        break;
+      case InteractionMode.DragPoint:
+      case InteractionMode.DrawPoint:
+      case InteractionMode.DrawPolygon:
+      case InteractionMode.EditMetadata:
+      case InteractionMode.SelectMultiple:
+      case InteractionMode.SelectSingle:
+        break;
+    }
+  }
+
+  /**
+   * Clear the selected vertex
+   */
+  @modelAction
+  deselectVertex() {
+    this.selectedVertexIndex = null;
   }
 
   /**
@@ -639,6 +709,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   redo() {
+    this.deselectVertex();
     featureListContext.get(this)?.redo();
   }
 
@@ -647,6 +718,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   undo() {
+    this.deselectVertex();
     featureListContext.get(this)?.undo();
   }
 
@@ -718,11 +790,33 @@ export class ControlsModel extends Model({
   }
 
   /**
-   * Delete selected geometry
+   * Delete selected geometry or vertices
    */
   @modelAction
   delete() {
-    featureListContext.get(this)?.deleteSelected();
+    const features = featureListContext.get(this);
+    switch (this.mode) {
+      case InteractionMode.EditPolygonVertices:
+        if (this.hasSelectedVertex) {
+          features?.removeVertex(this.selectedVertexIndex as number);
+          this.deselectVertex();
+        } else {
+          console.warn(`No vertex is selected.`);
+        }
+        break;
+      case InteractionMode.SelectMultiple:
+      case InteractionMode.SelectSingle:
+        features?.deleteSelected();
+        break;
+      case InteractionMode.DragPoint:
+      case InteractionMode.DrawPoint:
+      case InteractionMode.DrawPolygon:
+      case InteractionMode.EditMetadata:
+        console.warn(
+          `The current editing mode, ${this.mode} does not have a delete action.`
+        );
+        break;
+    }
   }
 
   /**
@@ -779,25 +873,46 @@ export class ControlsModel extends Model({
   }
 
   /**
+   * Common error-checking and editing mode-independent control flow
+   * for touch handler functions
+   * @return `true` if the touch event has been fully-handled
+   */
+  @modelAction
+  private onPressCommonHandling() {
+    if (this.draggingLock.isLocked) {
+      return true;
+    }
+    if (this.confirmation) {
+      console.warn(
+        `The map or geometry cannot be interacted with while there is an active confirmation request.`
+      );
+      return true;
+    }
+    if (this.isPageOpen) {
+      console.warn(
+        `The map or geometry cannot be interacted with while there is an open page.`
+      );
+      return true;
+    }
+    /**
+     * If a vertex is selected, just deselect it rather than also performing
+     * another action
+     */
+    if (this.hasSelectedVertex) {
+      this.deselectVertex();
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Touch event handler for geometry in the cold layer. See [[ColdGeometry]]
    *
    * @param e The features that were pressed, and information about the location pressed
    */
   @modelAction
   onPressColdGeometry(e: OnPressEvent) {
-    if (this.draggingLock.isLocked) {
-      return;
-    }
-    if (this.confirmation) {
-      console.warn(
-        `Map geometry cannot be interacted with while there is an active confirmation request.`
-      );
-      return;
-    }
-    if (this.isPageOpen) {
-      console.warn(
-        `The map geometry cannot be interacted with while there is an open page.`
-      );
+    if (this.onPressCommonHandling()) {
       return;
     }
     const features = featureListContext.get(this);
@@ -853,19 +968,7 @@ export class ControlsModel extends Model({
    */
   @modelAction
   onPressHotGeometry(e: OnPressEvent) {
-    if (this.draggingLock.isLocked) {
-      return;
-    }
-    if (this.confirmation) {
-      console.warn(
-        `Map geometry cannot be interacted with while there is an active confirmation request.`
-      );
-      return;
-    }
-    if (this.isPageOpen) {
-      console.warn(
-        `The map geometry cannot be interacted with while there is an open page.`
-      );
+    if (this.onPressCommonHandling()) {
       return;
     }
     const features = featureListContext.get(this);
@@ -1020,21 +1123,9 @@ export class ControlsModel extends Model({
    * @return A boolean indicating whether or not the event was fully-handled
    */
   @modelAction
-  handleMapPress(e: MapPressPayload) {
-    if (this.draggingLock.isLocked) {
-      return;
-    }
-    if (this.confirmation) {
-      console.warn(
-        `The map cannot be interacted with while there is an active confirmation request.`
-      );
+  handleMapPress(e: MapPressPayload): boolean {
+    if (this.onPressCommonHandling()) {
       return true;
-    }
-    if (this.isPageOpen) {
-      console.warn(
-        `The map cannot be interacted with while there is an open page.`
-      );
-      return;
     }
 
     switch (this.mode) {
