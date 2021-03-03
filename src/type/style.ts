@@ -149,6 +149,12 @@ export interface StyleGeneratorMap {
    */
   readonly polygon: PolygonLayerStyleGenerator;
   /**
+   * Style generator for polyline features.
+   * Features will be of type [[RenderFeature]] and will have a geometry
+   * of type `'LineString'`
+   */
+  readonly polyline: LineLayerStyleGenerator;
+  /**
    * Style generator for clustered point features
    */
   readonly cluster: CircleLayerStyleGenerator;

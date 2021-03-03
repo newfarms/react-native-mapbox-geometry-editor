@@ -123,6 +123,14 @@ function zoneTypeColor(type?: ZoneType): string {
 }
 
 /**
+ * Limits for custom line widths
+ */
+const LINE_WIDTH_LIMITS = {
+  min: 1,
+  max: 12,
+};
+
+/**
  * Custom rendering styles for geometry displayed on the map
  */
 const styleGeneratorMap: StyleGeneratorMap = {
@@ -206,6 +214,26 @@ const styleGeneratorMap: StyleGeneratorMap = {
         zoneTypeColor(), // Default
       ],
       zoneTypeColor(), // Default
+    ];
+    return style;
+  },
+  /**
+   * Style for polyline geometry
+   */
+  polyline: () => {
+    let style = defaultStyleGeneratorMap.polyline();
+    /**
+     * Data-driven styling: Set the width of the line to the value given
+     * by its custom 'width' property, clipped to the range 1-12.
+     */
+    style.lineWidth = [
+      'interpolate',
+      ['linear'],
+      ['get', 'width'],
+      LINE_WIDTH_LIMITS.min,
+      LINE_WIDTH_LIMITS.min,
+      LINE_WIDTH_LIMITS.max,
+      LINE_WIDTH_LIMITS.max,
     ];
     return style;
   },
@@ -337,6 +365,45 @@ function metadataSchemaGenerator(
             ['yup.boolean'],
             ['yup.label', 'Overnight use permitted?'],
             ['yup.required'],
+          ],
+        },
+      ],
+    ];
+  } else if (type === 'LineString') {
+    return [
+      ['yup.object'],
+      ['yup.required'],
+      [
+        'yup.meta',
+        {
+          titleFieldKey: 'name',
+          title: 'Unnamed polyline',
+        },
+      ],
+      [
+        'yup.shape',
+        {
+          name: [
+            ['yup.string'],
+            ['yup.label', 'Name'],
+            ['yup.optional'],
+            [
+              'yup.meta',
+              {
+                inPreview: true,
+              },
+            ],
+          ],
+          width: [
+            ['yup.number'],
+            ['yup.label', 'Width (pixels)'],
+            ['yup.required', 'Line width is required'],
+            [
+              'yup.min',
+              LINE_WIDTH_LIMITS.min,
+              'Width must be at least ${min}.',
+            ],
+            ['yup.max', LINE_WIDTH_LIMITS.max, 'Width must be at most ${max}.'],
           ],
         },
       ],

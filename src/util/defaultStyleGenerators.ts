@@ -346,6 +346,17 @@ function getDefaultPolygonStyle(): FillLayerStyle {
 }
 
 /**
+ * The default style generation function for line string features
+ * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'LineString'`
+ */
+function getDefaultPolylineStyle(): LineLayerStyle {
+  return {
+    lineColor: '#ffff00', // yellow
+    lineWidth: lineStringRoleWidth(LineStringRole.LineStringFeature),
+  };
+}
+
+/**
  * The default style generation function for clusters of point features
  * @return Mapbox style JSON for a cluster feature
  */
@@ -385,6 +396,7 @@ export const defaultStyleGeneratorMap: StyleGeneratorMap = {
   vertex: getDefaultVertexStyle,
   edge: getDefaultEdgeStyle,
   polygon: getDefaultPolygonStyle,
+  polyline: getDefaultPolylineStyle,
   cluster: getDefaultClusterStyle,
   clusterSymbol: getDefaultClusterSymbolStyle,
 };
