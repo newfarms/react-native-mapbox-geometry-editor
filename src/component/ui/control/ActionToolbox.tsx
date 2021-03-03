@@ -57,6 +57,7 @@ function _ActionToolbox() {
       break;
     case InteractionMode.DragPoint:
     case InteractionMode.DrawPolygon:
+    case InteractionMode.DrawPolyline:
       if (features.canUndoOrRedo) {
         bottomToolbox = (
           <Surface style={styles.bottomToolbox}>

@@ -32,6 +32,10 @@ export enum InteractionMode {
    */
   DrawPolygon = 'DRAWPOLYGON',
   /**
+   * Draw a new polyline (line string)
+   */
+  DrawPolyline = 'DRAWPOLYLINE',
+  /**
    * Edit metadata associated with a shape
    */
   EditMetadata = 'EDITMETADATA',
@@ -168,6 +172,7 @@ export class ControlsModel extends Model({
         break;
       case InteractionMode.DrawPoint:
       case InteractionMode.DrawPolygon:
+      case InteractionMode.DrawPolyline:
         return MetadataInteraction.Create;
       case InteractionMode.EditMetadata:
         return MetadataInteraction.Edit;
@@ -228,6 +233,7 @@ export class ControlsModel extends Model({
       case InteractionMode.DragPoint:
       case InteractionMode.DrawPoint:
       case InteractionMode.DrawPolygon:
+      case InteractionMode.DrawPolyline:
       case InteractionMode.EditMetadata:
         return false;
     }
@@ -296,6 +302,7 @@ export class ControlsModel extends Model({
         break;
       case InteractionMode.DrawPoint:
       case InteractionMode.DrawPolygon:
+      case InteractionMode.DrawPolyline:
         break;
       case InteractionMode.EditMetadata:
         features?.draftMetadataToSelected();
@@ -355,6 +362,7 @@ export class ControlsModel extends Model({
           break;
         case InteractionMode.DrawPoint:
         case InteractionMode.DrawPolygon:
+        case InteractionMode.DrawPolyline:
           break;
         case InteractionMode.EditPolygonVertices:
           features?.selectedPolygonToEditable();
@@ -396,6 +404,7 @@ export class ControlsModel extends Model({
       case InteractionMode.DragPoint:
       case InteractionMode.DrawPoint:
       case InteractionMode.DrawPolygon:
+      case InteractionMode.DrawPolyline:
       case InteractionMode.EditMetadata:
       case InteractionMode.SelectMultiple:
       case InteractionMode.SelectSingle:
@@ -471,17 +480,18 @@ export class ControlsModel extends Model({
           this.isPageOpen = false;
           break;
         case InteractionMode.DrawPolygon:
+        case InteractionMode.DrawPolyline:
           if (this.isPageOpen) {
             console.warn(
               `A confirmation dialog should not be open when a page is open in editing mode ${this.mode}.`
             );
           } else {
-            // User is confirming a cancel dialog while drawing the polygon
+            // User is confirming a cancel dialog while drawing the shape
             features?.rollbackEditingSession();
             features?.clearHistory();
             this.clearMetadata(); // Clear any metadata entered up to now
             this.confirmation = null; // Otherwise there will be a warning about changing the editing mode while there is a confirmation request open
-            this.setDefaultMode(); // Exit polygon drawing mode
+            this.setDefaultMode(); // Exit shape drawing mode
           }
           break;
         case InteractionMode.EditMetadata:
@@ -536,6 +546,7 @@ export class ControlsModel extends Model({
           this.isPageOpen = false;
           break;
         case InteractionMode.DrawPolygon:
+        case InteractionMode.DrawPolyline:
           if (this.isPageOpen) {
             // User has finished entering metadata
             this.saveMetadata();
@@ -543,7 +554,7 @@ export class ControlsModel extends Model({
             features?.confirmNewFeatures();
             features?.clearHistory();
             this.isPageOpen = false;
-            // The user can only draw one polygon before returning to view mode
+            // The user can only draw one shape before returning to view mode
             this.setDefaultMode();
           } else {
             // User is ready to enter metadata
@@ -616,15 +627,26 @@ export class ControlsModel extends Model({
           });
           break;
         case InteractionMode.DrawPolygon:
+        case InteractionMode.DrawPolyline:
           if (this.isPageOpen) {
             // User goes back to drawing from metadata entry
             this.isPageOpen = false;
           } else {
             // User is cancelling the entire drawing operation and metadata entry
             if (features?.canUndo) {
-              this.confirmation = new ConfirmationModel({
-                message: 'Discard this polygon?',
-              });
+              if (this.mode === InteractionMode.DrawPolygon) {
+                this.confirmation = new ConfirmationModel({
+                  message: 'Discard this polygon?',
+                });
+              } else if (this.mode === InteractionMode.DrawPolyline) {
+                this.confirmation = new ConfirmationModel({
+                  message: 'Discard this polyline?',
+                });
+              } else {
+                throw new Error(
+                  `There is no branch for the current editing mode, ${this.mode}, for customizing the confirmation dialog.`
+                );
+              }
             } else if (features?.canRedo) {
               this.confirmation = new ConfirmationModel({
                 message: 'Discard changes that could be redone?',
@@ -748,12 +770,13 @@ export class ControlsModel extends Model({
         this.isPageOpen = true;
         break;
       case InteractionMode.DrawPolygon:
+      case InteractionMode.DrawPolyline:
         // Open metadata creation page if the shape is complete
         if (featureListContext.get(this)?.hasCompleteNewFeature) {
           this.isPageOpen = true;
         } else {
           console.warn(
-            `There is no complete new polygon for which to add metadata.`
+            `There is no complete new shape for which to add metadata.`
           );
         }
         break;
@@ -811,6 +834,7 @@ export class ControlsModel extends Model({
       case InteractionMode.DragPoint:
       case InteractionMode.DrawPoint:
       case InteractionMode.DrawPolygon:
+      case InteractionMode.DrawPolyline:
       case InteractionMode.EditMetadata:
         console.warn(
           `The current editing mode, ${this.mode} does not have a delete action.`
@@ -931,6 +955,9 @@ export class ControlsModel extends Model({
           e.coordinates.latitude,
         ]);
         break;
+      case InteractionMode.DrawPolyline:
+        console.warn('TODO: Add new polyline vertex.');
+        break;
       case InteractionMode.EditMetadata:
         // Ignore
         // This case shouldn't occur unless a metadata editing interface is slow to open
@@ -1036,6 +1063,9 @@ export class ControlsModel extends Model({
           }
         }
         break;
+      case InteractionMode.DrawPolyline:
+        console.warn('TODO: Touch handling for polyline drawing.');
+        break;
       case InteractionMode.EditPolygonVertices:
         // Split an edge of an existing polygon by adding a new vertex
         if (e.features.length > 0) {
@@ -1138,6 +1168,9 @@ export class ControlsModel extends Model({
         return true;
       case InteractionMode.DrawPolygon:
         this.addNewPolygonVertex(e.geometry.coordinates);
+        return true;
+      case InteractionMode.DrawPolyline:
+        console.warn('TODO: Map touch handling for polyline drawing.');
         return true;
       case InteractionMode.EditMetadata:
         return false; // Ignore
