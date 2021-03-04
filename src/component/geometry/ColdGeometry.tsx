@@ -60,6 +60,12 @@ function _ColdGeometry() {
           filter={['==', ['geometry-type'], 'Polygon']}
           style={styleGenerators.polygon()}
         />
+        <MapboxGL.LineLayer
+          id="cold_linestrings"
+          aboveLayerID="cold_polygons"
+          filter={['==', ['geometry-type'], 'LineString']}
+          style={styleGenerators.polyline()}
+        />
       </MapboxGL.ShapeSource>
       <MapboxGL.ShapeSource
         id="cold_geometry_circles"
@@ -69,7 +75,7 @@ function _ColdGeometry() {
       >
         <MapboxGL.CircleLayer
           id="cold_points"
-          aboveLayerID="cold_polygons"
+          aboveLayerID="cold_linestrings"
           filter={[
             'all',
             ['==', ['geometry-type'], 'Point'],
@@ -85,7 +91,7 @@ function _ColdGeometry() {
         />
         <MapboxGL.SymbolLayer
           id="cold_points_clusters_count"
-          aboveLayerID="cold_polygons"
+          aboveLayerID="cold_linestrings"
           style={styleGenerators.clusterSymbol()}
           filter={clusterFilter}
         />
