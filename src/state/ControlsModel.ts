@@ -879,11 +879,15 @@ export class ControlsModel extends Model({
   }
 
   /**
-   * Add a new polygon vertex
+   * Add a new vertex to a shape, or as the first vertex of a new shape
    * @param coordinates The coordinates of the vertex
+   * @param finalType The type of shape to be created, if a new shape does not exist
    */
   @modelAction
-  private addNewPolygonVertex(coordinates: Position) {
+  private addNewVertex(
+    coordinates: Position,
+    finalType: 'LineString' | 'Polygon'
+  ) {
     const features = featureListContext.get(this);
     if (features) {
       if (features.hasNewFeature) {
@@ -891,7 +895,7 @@ export class ControlsModel extends Model({
         features.addVertex(coordinates);
       } else {
         // Add the first vertex
-        features.addNewPoint(coordinates, 'Polygon');
+        features.addNewPoint(coordinates, finalType);
       }
     }
   }
@@ -950,13 +954,16 @@ export class ControlsModel extends Model({
         this.addNewPoint([e.coordinates.longitude, e.coordinates.latitude]);
         break;
       case InteractionMode.DrawPolygon:
-        this.addNewPolygonVertex([
-          e.coordinates.longitude,
-          e.coordinates.latitude,
-        ]);
+        this.addNewVertex(
+          [e.coordinates.longitude, e.coordinates.latitude],
+          'Polygon'
+        );
         break;
       case InteractionMode.DrawPolyline:
-        console.warn('TODO: Add new polyline vertex.');
+        this.addNewVertex(
+          [e.coordinates.longitude, e.coordinates.latitude],
+          'LineString'
+        );
         break;
       case InteractionMode.EditMetadata:
         // Ignore
@@ -1056,15 +1063,15 @@ export class ControlsModel extends Model({
           }
           if (polygonTouched && !pointTouched) {
             // Allow the user to add vertices such that the polygon becomes concave
-            this.addNewPolygonVertex([
-              e.coordinates.longitude,
-              e.coordinates.latitude,
-            ]);
+            this.addNewVertex(
+              [e.coordinates.longitude, e.coordinates.latitude],
+              'Polygon'
+            );
           }
         }
         break;
       case InteractionMode.DrawPolyline:
-        console.warn('TODO: Touch handling for polyline drawing.');
+        // Ignore the touch to avoid creating overlapping vertices or self-intersections in a polyline
         break;
       case InteractionMode.EditPolygonVertices:
         // Split an edge of an existing polygon by adding a new vertex
@@ -1167,10 +1174,10 @@ export class ControlsModel extends Model({
         this.addNewPoint(e.geometry.coordinates);
         return true;
       case InteractionMode.DrawPolygon:
-        this.addNewPolygonVertex(e.geometry.coordinates);
+        this.addNewVertex(e.geometry.coordinates, 'Polygon');
         return true;
       case InteractionMode.DrawPolyline:
-        console.warn('TODO: Map touch handling for polyline drawing.');
+        this.addNewVertex(e.geometry.coordinates, 'LineString');
         return true;
       case InteractionMode.EditMetadata:
         return false; // Ignore
