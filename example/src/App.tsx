@@ -383,17 +383,7 @@ function metadataSchemaGenerator(
       [
         'yup.shape',
         {
-          name: [
-            ['yup.string'],
-            ['yup.label', 'Name'],
-            ['yup.optional'],
-            [
-              'yup.meta',
-              {
-                inPreview: true,
-              },
-            ],
-          ],
+          name: [['yup.string'], ['yup.label', 'Name'], ['yup.optional']],
           width: [
             ['yup.number'],
             ['yup.label', 'Width (pixels)'],

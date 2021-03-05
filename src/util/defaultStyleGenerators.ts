@@ -351,8 +351,25 @@ function getDefaultPolygonStyle(): FillLayerStyle {
  */
 function getDefaultPolylineStyle(): LineLayerStyle {
   return {
-    lineColor: '#ffff00', // yellow
+    lineColor: [
+      'match',
+      ['get', 'rnmgeStage'],
+      FeatureLifecycleStage.NewShape,
+      featureLifecycleStageColor(FeatureLifecycleStage.NewShape),
+      FeatureLifecycleStage.EditShape,
+      featureLifecycleStageColor(FeatureLifecycleStage.EditShape),
+      FeatureLifecycleStage.EditMetadata,
+      featureLifecycleStageColor(FeatureLifecycleStage.EditMetadata),
+      FeatureLifecycleStage.SelectMultiple,
+      featureLifecycleStageColor(FeatureLifecycleStage.SelectMultiple),
+      FeatureLifecycleStage.SelectSingle,
+      featureLifecycleStageColor(FeatureLifecycleStage.SelectSingle),
+      FeatureLifecycleStage.View,
+      featureLifecycleStageColor(FeatureLifecycleStage.View),
+      MISSING_COLOR,
+    ],
     lineWidth: lineStringRoleWidth(LineStringRole.LineStringFeature),
+    lineCap: 'round',
   };
 }
 
