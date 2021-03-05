@@ -95,6 +95,7 @@ export function useMetadata(
         contextExists = features.hasCompleteNewFeature;
         break;
       case 'Polygon':
+      case 'LineString':
         contextExists = features.canUndoOrRedo;
         break;
     }
