@@ -110,7 +110,8 @@ function _FinishControl() {
     case InteractionMode.EditMetadata:
       break;
     case InteractionMode.DrawPolygon:
-      // Polygons cannot be saved until they are well-formed
+    case InteractionMode.DrawPolyline:
+      // Complex shapes cannot be saved until they are well-formed
       disabled = disabled || !features.hasCompleteNewFeature;
       break;
     case InteractionMode.SelectMultiple:

@@ -75,6 +75,9 @@ export function useMetadata(
       case InteractionMode.DrawPolygon:
         type = 'Polygon';
         break;
+      case InteractionMode.DrawPolyline:
+        type = 'LineString';
+        break;
       default:
         throw new Error(
           `The current editing mode is ${controls.mode}, but the current metadata interaction is ${use}.`
@@ -92,6 +95,7 @@ export function useMetadata(
         contextExists = features.hasCompleteNewFeature;
         break;
       case 'Polygon':
+      case 'LineString':
         contextExists = features.canUndoOrRedo;
         break;
     }
