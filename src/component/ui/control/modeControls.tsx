@@ -54,6 +54,13 @@ export const DrawPolygonControl = makeModeControl(
   'shape-polygon-plus'
 );
 /**
+ * Polyline drawing editing mode control button
+ */
+export const DrawPolylineControl = makeModeControl(
+  InteractionMode.DrawPolyline,
+  'vector-polyline-plus'
+);
+/**
  * Multi-selection editing mode control button
  */
 export const SelectControl = makeModeControl(

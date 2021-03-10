@@ -77,6 +77,7 @@ function _PageContent() {
         break;
       case InteractionMode.DrawPoint:
       case InteractionMode.DrawPolygon:
+      case InteractionMode.DrawPolyline:
       case InteractionMode.EditMetadata:
         content = <MetadataEditorConsumer />;
         break;

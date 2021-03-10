@@ -44,8 +44,18 @@ function _HotGeometry() {
         style={styleGenerators.polygon()}
       />
       <MapboxGL.LineLayer
-        id="hot_edges"
+        id="hot_linestrings"
         aboveLayerID="hot_polygons"
+        filter={[
+          'all',
+          ['==', ['geometry-type'], 'LineString'],
+          ['==', ['get', 'rnmgeRole'], LineStringRole.LineStringFeature],
+        ]}
+        style={styleGenerators.polyline()}
+      />
+      <MapboxGL.LineLayer
+        id="hot_edges"
+        aboveLayerID="hot_linestrings"
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
