@@ -88,13 +88,13 @@ function _ShapeEditControl() {
   let nextMode:
     | null
     | InteractionMode.DragPoint
-    | InteractionMode.EditPolygonVertices = null;
+    | InteractionMode.EditVertices = null;
   if (controls.hasSelectionMode) {
     if (features.hasSelectedPointsOnly) {
       nextMode = InteractionMode.DragPoint;
       enabled = true;
-    } else if (features.hasOneSelectedPolygonOnly) {
-      nextMode = InteractionMode.EditPolygonVertices;
+    } else if (features.hasOneSelectedComplexShapeOnly) {
+      nextMode = InteractionMode.EditVertices;
       enabled = true;
     }
   } else if (controls.hasShapeModificationMode) {

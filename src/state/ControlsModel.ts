@@ -40,9 +40,9 @@ export enum InteractionMode {
    */
   EditMetadata = 'EDITMETADATA',
   /**
-   * Edit polygon vertices
+   * Edit compound shape vertices
    */
-  EditPolygonVertices = 'EDITPOLYGONVERTICES',
+  EditVertices = 'EDITVERTICES',
   /**
    * Add shapes to the set of shapes selected for editing
    */
@@ -102,8 +102,7 @@ function selectionModeToSelectionStage(
  */
 function isShapeModificationMode(mode: InteractionMode) {
   return (
-    mode === InteractionMode.DragPoint ||
-    mode === InteractionMode.EditPolygonVertices
+    mode === InteractionMode.DragPoint || mode === InteractionMode.EditVertices
   );
 }
 
@@ -168,7 +167,7 @@ export class ControlsModel extends Model({
   get metadataInteraction(): MetadataInteraction {
     switch (this.mode) {
       case InteractionMode.DragPoint:
-      case InteractionMode.EditPolygonVertices:
+      case InteractionMode.EditVertices:
         break;
       case InteractionMode.DrawPoint:
       case InteractionMode.DrawPolygon:
@@ -219,7 +218,7 @@ export class ControlsModel extends Model({
   get canDelete() {
     const features = featureListContext.get(this);
     switch (this.mode) {
-      case InteractionMode.EditPolygonVertices:
+      case InteractionMode.EditVertices:
         return this.hasSelectedVertex && features?.canRemoveVertex;
       case InteractionMode.SelectMultiple:
       case InteractionMode.SelectSingle: {
@@ -294,7 +293,7 @@ export class ControlsModel extends Model({
     // Execute cleanup actions specific to individual outgoing editing modes
     switch (this.mode) {
       case InteractionMode.DragPoint:
-      case InteractionMode.EditPolygonVertices:
+      case InteractionMode.EditVertices:
         // Select the features that were being edited
         if (isSelectionMode(mode)) {
           features?.editableToSelected(selectionModeToSelectionStage(mode));
@@ -364,8 +363,8 @@ export class ControlsModel extends Model({
         case InteractionMode.DrawPolygon:
         case InteractionMode.DrawPolyline:
           break;
-        case InteractionMode.EditPolygonVertices:
-          features?.selectedPolygonToEditable();
+        case InteractionMode.EditVertices:
+          features?.selectedComplexShapeToEditable();
           break;
         case InteractionMode.EditMetadata:
           features?.selectedToEditMetadata();
@@ -398,7 +397,7 @@ export class ControlsModel extends Model({
   @modelAction
   selectVertex(index: number) {
     switch (this.mode) {
-      case InteractionMode.EditPolygonVertices:
+      case InteractionMode.EditVertices:
         this.selectedVertexIndex = index;
         break;
       case InteractionMode.DragPoint:
@@ -511,7 +510,7 @@ export class ControlsModel extends Model({
           this.setDefaultMode();
           break;
         case InteractionMode.DragPoint:
-        case InteractionMode.EditPolygonVertices:
+        case InteractionMode.EditVertices:
         case InteractionMode.SelectMultiple:
         case InteractionMode.SelectSingle:
           switch (this.confirmation.reason) {
@@ -572,7 +571,7 @@ export class ControlsModel extends Model({
           }
           break;
         case InteractionMode.DragPoint:
-        case InteractionMode.EditPolygonVertices:
+        case InteractionMode.EditVertices:
           if (features?.canUndoOrRedo) {
             this.confirmation = new ConfirmationModel({
               message:
@@ -667,7 +666,7 @@ export class ControlsModel extends Model({
           }
           break;
         case InteractionMode.DragPoint:
-        case InteractionMode.EditPolygonVertices:
+        case InteractionMode.EditVertices:
           if (features?.canUndo) {
             this.confirmation = new ConfirmationModel({
               message: 'Discard all changes and clear the editing history?',
@@ -762,7 +761,7 @@ export class ControlsModel extends Model({
 
     switch (this.mode) {
       case InteractionMode.DragPoint:
-      case InteractionMode.EditPolygonVertices:
+      case InteractionMode.EditVertices:
         console.warn(`The current editing mode, ${this.mode}, has no pages.`);
         break;
       case InteractionMode.DrawPoint:
@@ -819,7 +818,7 @@ export class ControlsModel extends Model({
   delete() {
     const features = featureListContext.get(this);
     switch (this.mode) {
-      case InteractionMode.EditPolygonVertices:
+      case InteractionMode.EditVertices:
         if (this.hasSelectedVertex) {
           features?.removeVertex(this.selectedVertexIndex as number);
           this.deselectVertex();
@@ -947,7 +946,7 @@ export class ControlsModel extends Model({
 
     switch (this.mode) {
       case InteractionMode.DragPoint:
-      case InteractionMode.EditPolygonVertices:
+      case InteractionMode.EditVertices:
         // Ignore - Editable geometry is not rendered in the cold layers
         break;
       case InteractionMode.DrawPoint:
@@ -1073,22 +1072,22 @@ export class ControlsModel extends Model({
       case InteractionMode.DrawPolyline:
         // Ignore the touch to avoid creating overlapping vertices or self-intersections in a polyline
         break;
-      case InteractionMode.EditPolygonVertices:
-        // Split an edge of an existing polygon by adding a new vertex
+      case InteractionMode.EditVertices:
+        // Split an edge of an existing shape by adding a new vertex
         if (e.features.length > 0) {
           /**
            * Prevent creating overlapping vertices by ensuring that a vertex
            * is only created if the user has not also touched an existing vertex.
            */
           let pointTouched = false;
-          // ID of the polygon that was touched, or whose edge was touched
-          let polygonID: RnmgeID | null = null;
+          // ID of the shape that was touched, or whose edge was touched
+          let shapeID: RnmgeID | null = null;
           let point = [e.coordinates.longitude, e.coordinates.latitude];
           for (let feature of e.features) {
             // Filter to features that were created by this library
             const id = feature?.properties?.rnmgeID;
             if (id) {
-              // Filter to parts of the polygon being edited
+              // Filter to parts of the shape being edited
               if (
                 feature.properties?.rnmgeStage ===
                 FeatureLifecycleStage.EditShape
@@ -1098,7 +1097,7 @@ export class ControlsModel extends Model({
                  * hence the '?' in `feature.geometry?.type`
                  */
                 if (feature.geometry?.type === 'Point') {
-                  // Touched a vertex of the polygon that is being edited
+                  // Touched a vertex of the shape that is being edited
                   pointTouched = true;
                   break;
                 } else if (
@@ -1110,14 +1109,14 @@ export class ControlsModel extends Model({
                     feature?.properties?.rnmgeRole !==
                     LineStringRole.PolygonHole
                   ) {
-                    if (polygonID) {
-                      if (id !== polygonID) {
+                    if (shapeID) {
+                      if (id !== shapeID) {
                         console.warn(
-                          `Multiple editable features with IDs ${polygonID} and ${id}.`
+                          `Multiple editable features with IDs ${shapeID} and ${id}.`
                         );
                       }
                     } else {
-                      polygonID = id;
+                      shapeID = id;
                     }
                   }
                 }
@@ -1128,14 +1127,14 @@ export class ControlsModel extends Model({
               }
             }
           }
-          if (polygonID && !pointTouched) {
+          if (shapeID && !pointTouched) {
             /**
              * We allow vertices to be added when the user touched the interior
-             * of the polygon, and did not touch any of its edges, because it can
+             * of a polygon, and did not touch any of its edges, because it can
              * be difficult for the user to trigger a touch event on a thin edge.
              *
              * The drawback is that the user might sometimes be confused when they touch
-             * the interior of the polygon and their touch causes a change to the polygon
+             * the interior of a polygon and their touch causes a change to the polygon
              * far away from the location that they touch. The nearest edge to their touch,
              * where the new vertex is placed, may even be outside of the screen area.
              *
@@ -1167,7 +1166,7 @@ export class ControlsModel extends Model({
 
     switch (this.mode) {
       case InteractionMode.DragPoint:
-      case InteractionMode.EditPolygonVertices:
+      case InteractionMode.EditVertices:
         return false; // Ignore
       case InteractionMode.DrawPoint:
         // Draw a new point

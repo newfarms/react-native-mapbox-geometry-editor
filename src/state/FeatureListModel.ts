@@ -700,25 +700,29 @@ export class FeatureListModel extends Model({
   }
 
   /**
-   * Whether there is one polygon in a multiple selection mode,
+   * Whether there is one complex shape in a multiple selection mode,
    * and no other features are selected
    */
   @computed
-  get hasOneSelectedPolygonOnly() {
+  get hasOneSelectedComplexShapeOnly() {
     let arr = this.rawSelectedFeatures;
-    return arr.length === 1 && arr[0].geojson.geometry.type === 'Polygon';
+    return (
+      arr.length === 1 &&
+      (arr[0].geojson.geometry.type === 'Polygon' ||
+        arr[0].geojson.geometry.type === 'LineString')
+    );
   }
 
   /**
-   * Put a single selected polygon into a geometry editing lifecycle stage
+   * Put a single selected complex shape into a geometry editing lifecycle stage
    */
   @modelAction
-  selectedPolygonToEditable() {
+  selectedComplexShapeToEditable() {
     withoutUndo(() => {
-      if (this.hasOneSelectedPolygonOnly) {
+      if (this.hasOneSelectedComplexShapeOnly) {
         this.rawSelectedFeatures[0].stage = FeatureLifecycleStage.EditShape;
       } else {
-        console.warn(`There must be one and only one selected polygon.`);
+        console.warn(`There must be one and only one selected complex shape.`);
       }
     });
   }

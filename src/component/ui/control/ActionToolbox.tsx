@@ -68,7 +68,7 @@ function _ActionToolbox() {
         topToolbox = <TopToolbox />;
       }
       break;
-    case InteractionMode.EditPolygonVertices:
+    case InteractionMode.EditVertices:
       bottomToolbox = (
         <Surface style={styles.bottomToolbox}>
           <RedoControl />
