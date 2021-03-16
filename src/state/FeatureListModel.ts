@@ -17,7 +17,6 @@ import remove from 'lodash/remove';
 import every from 'lodash/every';
 import type { Position, GeoJsonProperties } from 'geojson';
 
-import { globalToLocalIndices } from '../util/collections';
 import { FeatureModel } from './FeatureModel';
 import type {
   DraggablePosition,
@@ -78,51 +77,23 @@ export class FeatureListModel extends Model({
   }
 
   /**
-   * Look up the underlying feature in the list of features,
-   * corresponding to the index into the list of draggable points
-   * @param index The index of the point in the list of points being edited.
-   *              See [[draggablePositions]]
-   */
-  private getFeatureForDraggablePoint(
-    index: number
-  ): {
-    /**
-     * The feature corresponding to the input index
-     */
-    feature: FeatureModel;
-    /**
-     * The index of the point within `feature`
-     */
-    index: number;
-  } {
-    const { innerIndex, outerIndex } = globalToLocalIndices(index, (i) => {
-      if (i >= this.features.length) {
-        return null;
-      }
-      return this.features[i].draggablePositions.length;
-    });
-    return { feature: this.features[outerIndex], index: innerIndex };
-  }
-
-  /**
-   * Re-position a point in the list of points currently being edited
+   * Re-position a point in a feature
    * @param position The new position for the point
-   * @param index The index of the point in the list of points being edited. See [[draggablePositions]]
+   * @param id Feature ID
+   * @param index The index of the point or vertex in the feature
    */
   @modelAction
-  dragPosition(position: Position, index: number) {
-    /**
-     * Look up the underlying feature in the list of features,
-     * corresponding to the index into the list of draggable points
-     */
-    const { index: innerIndex, feature } = this.getFeatureForDraggablePoint(
-      index
-    );
-    /**
-     * Ask the feature to update the point, given the computed index
-     * of the point in that feature.
-     */
-    feature.dragPosition(position, innerIndex);
+  dragPosition(position: Position, id: RnmgeID, index: number) {
+    const feature = this.findFeature(id);
+    if (feature) {
+      /**
+       * Ask the feature to update the point, given the computed index
+       * of the point in that feature.
+       */
+      feature.dragPosition(position, index);
+    } else {
+      console.warn(`No feature found with ID ${id}.`);
+    }
   }
 
   /**
@@ -167,7 +138,7 @@ export class FeatureListModel extends Model({
   }
 
   /**
-   * Delete a point that is in the list of points currently being edited
+   * Delete a vertex from the feature currently being edited
    *
    * This function is intended to be used to delete vertices from non-point
    * features, and will do nothing to point features. Use [[deleteSelected]]
@@ -175,31 +146,18 @@ export class FeatureListModel extends Model({
    * determines what types of features are used to create the list of points
    * currently being edited.
    *
-   * @param index The index of the point in the list of points being edited.
-   *              See [[draggablePositions]]
+   * @param index The index of the vertex in the feature
    */
   @modelAction
   removeVertex(index: number) {
-    /**
-     * Look up the underlying feature in the list of features,
-     * corresponding to the index into the list of draggable points
-     */
-    const { index: innerIndex, feature } = this.getFeatureForDraggablePoint(
-      index
-    );
-    if (
-      this.rawGeometryEditableFeature &&
-      this.rawGeometryEditableFeature.$modelId === feature.$modelId
-    ) {
+    if (this.rawGeometryEditableFeature) {
       /**
-       * Ask the feature to remove the vertex, given the local index
-       * of its vertex. The feature will check whether vertex removal is possible.
+       * Ask the feature to remove the vertex.
+       * The feature will check whether vertex removal is possible.
        */
-      feature.removeVertex(innerIndex);
+      this.rawGeometryEditableFeature.removeVertex(index);
     } else {
-      console.warn(
-        `The feature with model ID ${feature.$modelId} associated with the vertex to remove is not the editable feature.`
-      );
+      console.warn('There is no editable feature.');
     }
   }
 
@@ -316,15 +274,13 @@ export class FeatureListModel extends Model({
   }
 
   /**
-   * Computes the list of draggable points (points currently being edited)
-   * by concatenating the coordinates of all currently editable features.
+   * Computes the list of draggable points (points or vertices currently being edited)
+   * by concatenating the draggable points of all currently editable features.
    */
   @computed
   get draggablePositions(): Array<DraggablePosition> {
     /**
-     * Empty arrays will be removed by `flatten`, but their removal
-     * does not cause problems for [[dragPosition]], because [[globalToLocalIndices]]
-     * can handle zero-length sub-collections.
+     * Empty arrays will be removed by `flatten`.
      */
     return flatten(this.features.map((feature) => feature.draggablePositions));
   }
@@ -588,7 +544,7 @@ export class FeatureListModel extends Model({
    *
    * @param id Feature ID
    */
-  findFeature(id: RnmgeID): FeatureModel | undefined {
+  private findFeature(id: RnmgeID): FeatureModel | undefined {
     const arr = filter(this.features, (val) => val.$modelId === id);
     if (arr.length > 0) {
       // This check is present in case IDs are generated by the client application or the user in the future

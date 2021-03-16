@@ -9,7 +9,6 @@ import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
 import type { PointAnnotationPayload } from '../../type/events';
 import type { DraggablePointStyle } from '../../type/style';
-import { InteractionMode } from '../../state/ControlsModel';
 
 /**
  * Generate additional style parameters needed to create a circular point annotation
@@ -52,10 +51,13 @@ function _SinglePoint(props: {
   readonly index: number;
 }) {
   const { controls, features } = useContext(StoreContext);
-  const { index } = props;
-  const isSelected = controls.selectedVertexIndex === index;
+  const { index: inputIndex } = props;
+  const draggablePosition = features.draggablePositions[inputIndex];
+  const isSelected =
+    controls.selectedVertex?.index === draggablePosition.index &&
+    controls.selectedVertex?.id === draggablePosition.id;
   // Layer ID for Mapbox
-  const id = `pointAnnotation${index}`;
+  const id = `pointAnnotation${inputIndex}`;
   /**
    * While the point is being dragged, touch events must be ignored.
    */
@@ -72,20 +74,14 @@ function _SinglePoint(props: {
   const onDragEndWithIndex = useMemo(
     () =>
       action('draggable_points_drag_end', (e: PointAnnotationPayload) => {
-        features.dragPosition(e.geometry.coordinates, index);
+        features.dragPosition(
+          e.geometry.coordinates,
+          draggablePosition.id,
+          draggablePosition.index
+        );
         controls.endDrag();
       }),
-    [controls, features, index]
-  );
-  /**
-   * When the point is selected, inform the controller
-   */
-  const onSelectWithIndex = useMemo(
-    () =>
-      action('draggable_points_select', () => {
-        controls.selectVertex(index);
-      }),
-    [controls, index]
+    [controls, features, draggablePosition]
   );
 
   /**
@@ -97,7 +93,6 @@ function _SinglePoint(props: {
   /**
    * Dynamic styling depending on whether the point is a selected vertex
    */
-  const draggablePosition = features.draggablePositions[index];
   let protoStyle: DraggablePointStyle | null = null;
   if (isSelected) {
     protoStyle = styleGenerators.selectedVertex(
@@ -124,10 +119,9 @@ function _SinglePoint(props: {
     <MapboxGL.PointAnnotation
       id={id}
       coordinate={toJS(draggablePosition.coordinates)}
-      draggable={isSelected || controls.mode === InteractionMode.DragPoint}
+      draggable={true}
       onDragStart={onDragStart}
       onDragEnd={onDragEndWithIndex as () => void}
-      onSelected={onSelectWithIndex}
     >
       <View style={pointStyleToPointAnnotationStyle(protoStyle)} />
     </MapboxGL.PointAnnotation>
