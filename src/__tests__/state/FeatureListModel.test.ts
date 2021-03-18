@@ -37,7 +37,7 @@ test.each([[1], [2], [3]])(
      */
     range(nPoints).forEach((index) => {
       const newPosition = [index + 0.5, index + 1.5];
-      features.dragPosition(newPosition, index);
+      features.dragPosition(newPosition, features.features[index].$modelId, 0);
       expect(features.draggablePositions[index].coordinates).toStrictEqual(
         newPosition
       );

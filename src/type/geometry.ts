@@ -208,6 +208,11 @@ export interface RenderProperties {
    */
   readonly rnmgeRole: CoordinateRole | LineStringRole | GeometryRole;
   /**
+   * For point features, the index in their containing features.
+   * For non-point features, it is set to `-1`.
+   */
+  readonly rnmgeIndex: number;
+  /**
    * Client-defined properties associated with GeoJSON features.
    * These properties are set by the client, not by the library.
    */
@@ -267,4 +272,12 @@ export interface DraggablePosition {
    * The GeoJSON feature to which the point belongs
    */
   readonly feature: EditableFeature;
+  /**
+   * The identifier of the feature used by the library.
+   */
+  readonly id: RnmgeID;
+  /**
+   * The index of the point in the feature
+   */
+  readonly index: number;
 }

@@ -1,6 +1,6 @@
 import { model, Model, modelAction, prop } from 'mobx-keystone';
 
-import { featureListContext } from './ModelContexts';
+import { controlsContext, featureListContext } from './ModelContexts';
 import { FeatureListModel } from './FeatureListModel';
 import { ControlsModel } from './ControlsModel';
 import type { MapPressPayload } from '../type/events';
@@ -23,6 +23,7 @@ export class RootModel extends Model({
    * Set up contexts by which child stores can find each other.
    */
   onInit() {
+    controlsContext.setComputed(this, () => this.controls);
     featureListContext.setComputed(this, () => this.features);
   }
 

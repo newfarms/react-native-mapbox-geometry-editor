@@ -53,7 +53,7 @@ export function _ModeToolbox() {
       case InteractionMode.DragPoint:
       case InteractionMode.DrawPolygon:
       case InteractionMode.DrawPolyline:
-      case InteractionMode.EditPolygonVertices:
+      case InteractionMode.EditVertices:
         if (features.cannotUndoAndRedo) {
           toolbox = <ModeToolboxButtons />;
         }

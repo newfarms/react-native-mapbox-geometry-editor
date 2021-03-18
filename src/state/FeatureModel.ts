@@ -1,11 +1,14 @@
 import { comparer, computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
+import filter from 'lodash/filter';
 import flatten from 'lodash/flatten';
+import reject from 'lodash/reject';
 import { point, lineString, polygon } from '@turf/helpers';
 import type { Position, Point, LineString, Polygon, Feature } from 'geojson';
 import { coordReduce } from '@turf/meta';
 import nearestPointOnLine from '@turf/nearest-point-on-line';
 
+import { controlsContext } from './ModelContexts';
 import type {
   DraggablePosition,
   EditableFeature,
@@ -46,18 +49,21 @@ export class FeatureModel extends Model({
   finalType: prop<EditableGeometryType>(),
 }) {
   /**
-   * Re-position a draggable point in this feature.
-   * Throws an error if the feature's points are not currently draggable
+   * Re-position a point or vertex in this feature.
+   * Throws an error if the index is out of range.
    *
    * @param position The new position for the point
-   * @param index The index of the point in this feature's list of points. See [[draggablePositions]]
+   * @param index The index of the point in this feature's list of points.
    */
   @modelAction
   dragPosition(position: Position, index: number) {
-    if (index < 0 || index >= this.draggablePositions.length) {
-      throw new Error(
-        `Index ${index} out of range [0, ${this.draggablePositions.length}) of draggable positions.`
+    if (this.stage !== FeatureLifecycleStage.EditShape) {
+      console.warn(
+        `Feature with ID ${this.$modelId} is in an unexpected lifecycle stage, ${this.stage}.`
       );
+    }
+    if (index < 0) {
+      throw new Error(`Index ${index} is negative.`);
     }
 
     /**
@@ -65,9 +71,17 @@ export class FeatureModel extends Model({
      */
     switch (this.geojson.geometry.type) {
       case 'Point':
+        if (index !== 0) {
+          throw new Error(`Index ${index} is not zero for a point feature.`);
+        }
         this.geojson.geometry.coordinates = position;
         break;
       case 'LineString':
+        if (index >= this.geojson.geometry.coordinates.length) {
+          throw new Error(
+            `Index ${index} into line feature is not less than ${this.geojson.geometry.coordinates.length}.`
+          );
+        }
         this.geojson.geometry.coordinates.splice(index, 1, position);
         break;
       case 'Polygon': {
@@ -75,6 +89,7 @@ export class FeatureModel extends Model({
          * A polygon is composed of one or more linear rings.
          * Find the index of the ring and the index of the point within the ring
          * corresponding to `index`.
+         * Throws an exception if `index` is out of range.
          */
         const { innerIndex, outerIndex } = globalToLocalIndices(index, (i) => {
           if (i >= this.geojson.geometry.coordinates.length) {
@@ -388,10 +403,15 @@ export class FeatureModel extends Model({
      * in the context of the originating shape
      */
     role: CoordinateRole;
+    /**
+     * The index of the point in the shape
+     */
+    index: number;
   }> {
     let result: Array<{
       coordinates: Position;
       role: CoordinateRole;
+      index: number;
     }> = [];
     switch (this.geojson.geometry.type) {
       case 'Point':
@@ -402,6 +422,7 @@ export class FeatureModel extends Model({
               {
                 coordinates: this.geojson.geometry.coordinates,
                 role: CoordinateRole.PointFeature,
+                index: 0,
               },
             ];
             break;
@@ -411,6 +432,7 @@ export class FeatureModel extends Model({
               {
                 coordinates: this.geojson.geometry.coordinates,
                 role: CoordinateRole.LineStart,
+                index: 0,
               },
             ];
             break;
@@ -420,6 +442,7 @@ export class FeatureModel extends Model({
               {
                 coordinates: this.geojson.geometry.coordinates,
                 role: CoordinateRole.PolygonStart,
+                index: 0,
               },
             ];
             break;
@@ -450,6 +473,7 @@ export class FeatureModel extends Model({
                 return {
                   coordinates: val,
                   role,
+                  index,
                 };
               }
             );
@@ -473,6 +497,7 @@ export class FeatureModel extends Model({
               return {
                 coordinates: val,
                 role,
+                index,
               };
             });
             break;
@@ -489,6 +514,7 @@ export class FeatureModel extends Model({
           const coordinates: Array<{
             coordinates: Position;
             role: CoordinateRole;
+            index: number;
           }> = this.geojson.geometry.coordinates[0]
             .slice(0, -1) // The last position in a GeoJSON linear ring is a repeat of the first, so exclude it
             .map((val, index, arr) => {
@@ -504,6 +530,7 @@ export class FeatureModel extends Model({
               return {
                 coordinates: val,
                 role,
+                index,
               };
             });
           /**
@@ -519,7 +546,14 @@ export class FeatureModel extends Model({
                   };
                 })
               )
-            );
+            ).map((val, index) => {
+              return {
+                ...val,
+                index:
+                  (this.geojson.geometry.coordinates[0] as Position[]).length +
+                  index,
+              };
+            });
             result = coordinates.concat(holeCoordinates);
           } else {
             result = coordinates;
@@ -637,22 +671,38 @@ export class FeatureModel extends Model({
    * Helper function that computes the list of non-draggable coordinates
    * for a non-point feature that is in a "hot" lifecycle stage.
    * Returns an empty list for a point feature.
-   * If this feature is in a "hot" lifecycle stage,
-   * all of its points are returned in a flat list.
-   * Otherwise, returns an empty list.
+   * If this feature is in a "hot" lifecycle stage, all of its points are
+   * returned in a flat list, except for any vertex selected by [[ControlsModel]].
+   * If this feature is in a "cold" lifecycle stage, returns an empty list.
+   *
+   * Note: Any selected vertex is output in [[draggablePositions]] instead.
    */
   @computed
   private get fixedPositions(): Array<RenderFeature> {
     if (this.geojson.geometry.type === 'Point') {
       return [];
     }
-    if (this.isInHotStage && this.stage !== FeatureLifecycleStage.EditShape) {
-      return this.coordinatesWithRoles.map((val) => {
+    if (this.isInHotStage) {
+      // Filter out any selected vertex
+      const controls = controlsContext.get(this);
+      let coordinatesData = this.coordinatesWithRoles;
+      if (
+        controls?.hasSelectedVertex &&
+        controls.selectedVertex?.id === this.$modelId
+      ) {
+        const targetIndex = controls.selectedVertex.index;
+        coordinatesData = reject(
+          coordinatesData,
+          (val) => val.index === targetIndex
+        );
+      }
+      return coordinatesData.map((val) => {
         return point(
           toJS(val.coordinates),
           {
             ...toJS(this.renderFeatureProperties),
             rnmgeRole: val.role,
+            rnmgeIndex: val.index,
           },
           {
             bbox: toJS(this.geojson.bbox),
@@ -667,16 +717,37 @@ export class FeatureModel extends Model({
 
   /**
    * Computes the list of draggable points for this feature.
-   * If this feature is in an editable state, all of its points are returned in a flat list.
-   * Otherwise, returns an empty list.
+   * If this feature is in an editable state, either its point,
+   * if it is a point feature, or any selected vertex, if it is not a
+   * point feature, is output.
+   * Otherwise, outputs an empty list.
    */
   @computed
   get draggablePositions(): Array<DraggablePosition> {
     if (this.stage === FeatureLifecycleStage.EditShape) {
-      return this.coordinatesWithRoles.map((val) => {
+      let coordinatesData = this.coordinatesWithRoles;
+      if (this.geojson.geometry.type !== 'Point') {
+        // Filter to any selected vertex
+        const controls = controlsContext.get(this);
+        if (
+          controls?.hasSelectedVertex &&
+          controls.selectedVertex?.id === this.$modelId
+        ) {
+          const targetIndex = controls.selectedVertex.index;
+          coordinatesData = filter(
+            coordinatesData,
+            (val) => val.index === targetIndex
+          );
+        } else {
+          coordinatesData = [];
+        }
+      }
+
+      return coordinatesData.map((val) => {
         return {
           ...val,
           feature: this.geojson,
+          id: this.$modelId,
         };
       });
     } else {
@@ -743,11 +814,15 @@ export class FeatureModel extends Model({
      * Determine the semantic role of the geometry as a function
      * of the geometry's current type, and of the type of geometry
      * that it is expected to become as more vertices are added.
+     *
+     * Also set the vertex index depending on the type of geometry.
      */
     let role: GeometryRole | CoordinateRole | LineStringRole =
       GeometryRole.Other;
+    let index = -1;
     switch (this.geojson.geometry.type) {
       case 'Point':
+        index = 0;
         switch (this.finalType) {
           case 'Point':
             role = CoordinateRole.PointFeature;
@@ -779,10 +854,11 @@ export class FeatureModel extends Model({
     }
     /**
      * Properties provided by this library for data-driven styling of map layers,
-     * and for callbacks (in the case of the model ID).
+     * and for callbacks (in the case of the model ID and index).
      */
     let copyProperties: RenderProperties = {
       rnmgeID: this.$modelId,
+      rnmgeIndex: index,
       rnmgeStage: this.stage,
       rnmgeRole: role,
     };
@@ -831,21 +907,11 @@ export class FeatureModel extends Model({
             return [this.renderFeature];
           }
         case 'LineString':
-          if (this.stage === FeatureLifecycleStage.EditShape) {
-            // Draggable points are rendered in other layers
-            return [this.renderFeature];
-          } else {
-            return [this.renderFeature].concat(this.fixedPositions);
-          }
+          return [this.renderFeature].concat(this.fixedPositions);
         case 'Polygon':
-          if (this.stage === FeatureLifecycleStage.EditShape) {
-            // Draggable points are rendered in other layers
-            return [this.renderFeature].concat(this.hotEdges);
-          } else {
-            return [this.renderFeature]
-              .concat(this.hotEdges)
-              .concat(this.fixedPositions);
-          }
+          return [this.renderFeature]
+            .concat(this.hotEdges)
+            .concat(this.fixedPositions);
       }
     } else {
       return [];
