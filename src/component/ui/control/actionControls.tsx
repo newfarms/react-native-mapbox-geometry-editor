@@ -106,7 +106,7 @@ function _FinishControl() {
   switch (controls.mode) {
     case InteractionMode.DragPoint:
     case InteractionMode.DrawPoint:
-    case InteractionMode.EditPolygonVertices:
+    case InteractionMode.EditVertices:
     case InteractionMode.EditMetadata:
       break;
     case InteractionMode.DrawPolygon:
