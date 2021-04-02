@@ -78,3 +78,5 @@ export type {
   PageCloseCb,
   PageControls,
 } from './type/ui';
+export { Comparison } from './util/collections';
+export type { Comparator } from './util/collections';

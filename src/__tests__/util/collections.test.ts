@@ -1,4 +1,8 @@
-import { globalToLocalIndices } from '../../util/collections';
+import {
+  Comparison,
+  globalToLocalIndices,
+  groupSort,
+} from '../../util/collections';
 
 /**
  * Test that no indices can be resolved in an empty collection.
@@ -60,3 +64,114 @@ test.each([
     ).toStrictEqual({ innerIndex, outerIndex });
   }
 );
+
+/**
+ * Test group sorting of an empty collection
+ */
+test('groupSort on empty collection', () => {
+  expect(groupSort([], () => undefined)).toStrictEqual([]);
+});
+
+/**
+ * Helper function that converts a list of lists into a list of sets,
+ * allowing such structures to be compared while ignoring the order of the elements
+ * in the inner lists.
+ */
+function listsToSets<T>(lists: Array<Array<T>>) {
+  return lists.map((list) => new Set(list));
+}
+
+/**
+ * Test group sorting of entirely equal or incomparable elements
+ */
+test.each([
+  [[0, 1, 2, 3], () => Comparison.Equal],
+  [[0, 1, 2, 3], () => undefined],
+])(
+  'groupSort on collection of equal or incomparable elements',
+  (elements, compare) => {
+    const expected = listsToSets([elements]);
+    const actual = listsToSets(groupSort(elements, compare));
+    expect(actual).toStrictEqual(expected);
+  }
+);
+
+/**
+ * Test group sorting of a single element
+ */
+test.each([
+  [[1], () => Comparison.Equal],
+  [[1], () => Comparison.Less],
+  [[1], () => Comparison.Greater],
+  [[1], () => undefined],
+])('groupSort on a single element', (elements, compare) => {
+  expect(groupSort(elements, compare)).toStrictEqual([[1]]);
+});
+
+/**
+ * An ordering function that follows the same semantics as numerical comparisons
+ *
+ * @param a The first number to compare
+ * @param b The second number to compare
+ */
+function compareNumbers(a: number, b: number): Comparison | undefined {
+  if (a < b) {
+    return Comparison.Less;
+  } else if (a === b) {
+    return Comparison.Equal;
+  } else if (a > b) {
+    return Comparison.Greater;
+  } else {
+    return undefined;
+  }
+}
+
+/**
+ * Test group sorting of two elements in arbitrary orders
+ */
+test.each([
+  [
+    [1, 2],
+    [[1], [2]],
+  ],
+  [[1, 1], [[1, 1]]],
+  [
+    [2, 1],
+    [[1], [2]],
+  ],
+  [[NaN, NaN], [[NaN, NaN]]],
+])('groupSort on collections of two elements', (elements, expected) => {
+  expect(groupSort(elements, compareNumbers)).toStrictEqual(expected);
+});
+
+/**
+ * Test group sorting of objects
+ */
+test('groupSort on objects', () => {
+  expect(
+    groupSort(
+      [{ a: 1 }, { a: 3 }, { a: 1 }, { a: 2 }],
+      (a: { a: number }, b: { a: number }) => compareNumbers(a.a, b.a)
+    )
+  ).toStrictEqual([[{ a: 1 }, { a: 1 }], [{ a: 2 }], [{ a: 3 }]]);
+});
+
+/**
+ * Test an attempt to use a comparison function that generates a cycle
+ */
+test('groupSort cycle detection', () => {
+  expect(() => {
+    groupSort(
+      [{ a: 1 }, { a: 3 }, { a: 4 }, { a: 2 }],
+      (a: { a: number }, b: { a: number }) => {
+        if (a.a === 1 && b.a === 4) {
+          return Comparison.Greater;
+        } else if (a.a === 4 && b.a === 1) {
+          return Comparison.Less;
+        } else {
+          return compareNumbers(a.a, b.a);
+        }
+      }
+    );
+  }).toThrow('cycle');
+});
