@@ -81,7 +81,8 @@
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
-    ]
+    ],
+    "testRegex": "(\\.|/)(test|spec)\\.[jt]sx?$"
   },
   "release-it": {
     "git": {
@@ -152,7 +153,10 @@
   "dependencies": {
     "@demvsystems/yup-ast": "^1.2.0",
     "@turf/along": "^6.3.0",
+    "@turf/area": "^6.3.0",
     "@turf/bbox": "^6.3.0",
+    "@turf/boolean-equal": "^6.3.0",
+    "@turf/boolean-overlap": "^6.3.0",
     "@turf/centroid": "^6.3.0",
     "@turf/helpers": "^6.3.0",
     "@turf/length": "^6.3.0",

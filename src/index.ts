@@ -39,6 +39,7 @@ export {
   lineStringRoleColor,
 } from './util/defaultStyleGenerators';
 export { validateMetadata } from './util/metadata/schema';
+export { compareShapesByOverlap } from './util/geometry';
 
 export type { CameraControls } from './component/CameraController';
 export type {

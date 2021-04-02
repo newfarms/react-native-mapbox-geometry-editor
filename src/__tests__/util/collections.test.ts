@@ -3,6 +3,7 @@ import {
   globalToLocalIndices,
   groupSort,
 } from '../../util/collections';
+import { listsToSets } from '../test_helpers/collections';
 
 /**
  * Test that no indices can be resolved in an empty collection.
@@ -71,15 +72,6 @@ test.each([
 test('groupSort on empty collection', () => {
   expect(groupSort([], () => undefined)).toStrictEqual([]);
 });
-
-/**
- * Helper function that converts a list of lists into a list of sets,
- * allowing such structures to be compared while ignoring the order of the elements
- * in the inner lists.
- */
-function listsToSets<T>(lists: Array<Array<T>>) {
-  return lists.map((list) => new Set(list));
-}
 
 /**
  * Test group sorting of entirely equal or incomparable elements

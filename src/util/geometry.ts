@@ -1,9 +1,15 @@
 import along from '@turf/along';
+import area from '@turf/area';
+import booleanEqual from '@turf/boolean-equal';
+import booleanOverlap from '@turf/boolean-overlap';
 import bbox from '@turf/bbox';
 import centroid from '@turf/centroid';
 import length from '@turf/length';
+import { featureCollection } from '@turf/helpers';
+import type { Feature, FeatureCollection, LineString, Polygon } from 'geojson';
 
 import type { BBox2D, EditableFeature } from '../type/geometry';
+import { Comparison, groupSort } from './collections';
 
 /**
  * Find the "centre" of a GeoJSON feature that is either
@@ -50,4 +56,84 @@ export function findBoundingBox(feature: EditableFeature): BBox2D | null {
           return [box[0], box[1], box[3], box[4]];
       }
   }
+}
+
+/**
+ * An ordering function that declares polygons as being less than overlapping
+ * polygons with smaller areas. Identical polygons are equal,
+ * whereas polygons that do not overlap are incomparable. Unidentical polygons
+ * that overlap and have identical areas are equal, although
+ * this case should be very rare.
+ *
+ * @param a The first polygon to compare
+ * @param b The second polygon to compare
+ */
+function comparePolygonsByOverlap<Props>(
+  a: Feature<Polygon, Props>,
+  b: Feature<Polygon, Props>
+): Comparison | undefined {
+  if (booleanEqual(a, b)) {
+    return Comparison.Equal;
+  } else {
+    if (booleanOverlap(a, b)) {
+      const areaA = area(a);
+      const areaB = area(b);
+      if (areaA < areaB) {
+        return Comparison.Greater;
+      } else if (areaA === areaB) {
+        return Comparison.Equal;
+      } else {
+        return Comparison.Less;
+      }
+    } else {
+      return undefined;
+    }
+  }
+}
+
+/**
+ * An ordering function that declares polylines as being "greater"
+ * than polygons, and uses comparePolygonsByOverlap to order polygons.
+ *
+ * @param a The first shape to compare
+ * @param b The second shape to compare
+ */
+export function compareShapesByOverlap<Props>(
+  a: Feature<Polygon | LineString, Props>,
+  b: Feature<Polygon | LineString, Props>
+): Comparison | undefined {
+  if (a.geometry.type === 'LineString') {
+    if (b.geometry.type === 'LineString') {
+      return undefined;
+    } else {
+      return Comparison.Greater;
+    }
+  } else {
+    if (b.geometry.type === 'LineString') {
+      return Comparison.Less;
+    } else {
+      return comparePolygonsByOverlap(
+        a as Feature<Polygon, Props>,
+        b as Feature<Polygon, Props>
+      );
+    }
+  }
+}
+
+/**
+ * Groups shapes into an ordered list of lists of shapes.
+ * All polylines and no polygons are in the last list.
+ * Each sub-list of polygons contains shapes that are equal or incomparable
+ * according to comparePolygonsByOverlap
+ * Sub-lists are ordered such that the "lesser" polygon in a pair of polygons
+ * always appears in the set with a higher index than the set
+ * containing the "greater" polygon (according to comparePolygonsByOverlap).
+ *
+ * @param shapes The shapes to group and order
+ */
+export function orderShapesByGeometry<Props>(
+  shapes: Array<Feature<Polygon | LineString, Props>>
+): Array<FeatureCollection<Polygon | LineString, Props>> {
+  const groupedShapes = groupSort(shapes, compareShapesByOverlap);
+  return groupedShapes.map((group) => featureCollection(group));
 }
