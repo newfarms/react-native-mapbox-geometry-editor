@@ -7,6 +7,12 @@ import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
 import { CoordinateRole, LineStringRole } from '../../type/geometry';
+import { COLD_POINTS_CLUSTERS_COUNT_LAYER_ID } from './ColdGeometry';
+
+/**
+ * The ID of the bottommost polygon layer is referred to by other layers.
+ */
+export const HOT_POLYGONS_LAYER_ID = 'hot_polygons';
 
 /**
  * Renders "hot" geometry on a Mapbox map.
@@ -38,14 +44,16 @@ function _HotGeometry() {
       onPress={onPress}
     >
       <MapboxGL.FillLayer
-        id="hot_polygons"
-        aboveLayerID="cold_points"
+        id={HOT_POLYGONS_LAYER_ID}
+        aboveLayerID={COLD_POINTS_CLUSTERS_COUNT_LAYER_ID}
+        belowLayerID="hot_linestrings"
         filter={['==', ['geometry-type'], 'Polygon']}
         style={styleGenerators.polygon()}
       />
       <MapboxGL.LineLayer
         id="hot_linestrings"
-        aboveLayerID="hot_polygons"
+        aboveLayerID={HOT_POLYGONS_LAYER_ID}
+        belowLayerID="hot_edges"
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
@@ -56,6 +64,7 @@ function _HotGeometry() {
       <MapboxGL.LineLayer
         id="hot_edges"
         aboveLayerID="hot_linestrings"
+        belowLayerID="hot_vertices"
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
@@ -66,6 +75,7 @@ function _HotGeometry() {
       <MapboxGL.CircleLayer
         id="hot_vertices"
         aboveLayerID="hot_edges"
+        belowLayerID="hot_points"
         filter={[
           'all',
           ['==', ['geometry-type'], 'Point'],

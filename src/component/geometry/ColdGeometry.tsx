@@ -14,6 +14,7 @@ import type {
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
 import { orderShapesByGeometry } from '../../util/geometry';
+import { HOT_POLYGONS_LAYER_ID } from './HotGeometry';
 
 /**
  * The GeoJSON property giving the height index for rendering
@@ -25,6 +26,11 @@ export const COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY = 'rnmgeZIndex';
  * point geometry layers above.
  */
 const LAST_LINE_LAYER_ID = 'cold_linestrings';
+
+/**
+ * The ID of the bottommost points layer is referred to by other layers.
+ */
+export const COLD_POINTS_CLUSTERS_COUNT_LAYER_ID = 'cold_points_clusters_count';
 
 /**
  * Renders the desired number of `FillLayer` and `LineLayer` layers
@@ -71,12 +77,12 @@ function makeNonPointLayers({
       range(count).map((val, _index, arr) => {
         // Construct unique layer IDs based on the height index
         const fillLayerId = `cold_polygons${val}`;
-        let lineLayerId: null | string = null;
+        let lineLayerId = `cold_linestrings${val}`;
+        let lineLayerBelowId = `cold_polygons${val + 1}`;
         if (val === arr.length - 1) {
           // Note: Same ID as in the case where there are no shapes to render
           lineLayerId = LAST_LINE_LAYER_ID;
-        } else {
-          lineLayerId = `cold_linestrings${val}`;
+          lineLayerBelowId = 'cold_points';
         }
         let fillLayerAboveId: string | undefined = `cold_linestrings${val - 1}`;
         if (val === 0) {
@@ -89,6 +95,7 @@ function makeNonPointLayers({
             key={fillLayerId}
             id={fillLayerId}
             aboveLayerID={fillLayerAboveId}
+            belowLayerID={lineLayerId}
             filter={[
               'all',
               ['==', ['geometry-type'], 'Polygon'],
@@ -100,6 +107,7 @@ function makeNonPointLayers({
             key={lineLayerId}
             id={lineLayerId}
             aboveLayerID={fillLayerId}
+            belowLayerID={lineLayerBelowId}
             filter={[
               'all',
               ['==', ['geometry-type'], 'LineString'],
@@ -186,6 +194,7 @@ function _ColdGeometry() {
         <MapboxGL.CircleLayer
           id="cold_points"
           aboveLayerID={LAST_LINE_LAYER_ID}
+          belowLayerID="cold_points_clusters"
           filter={[
             'all',
             ['==', ['geometry-type'], 'Point'],
@@ -195,13 +204,15 @@ function _ColdGeometry() {
         />
         <MapboxGL.CircleLayer
           id="cold_points_clusters"
-          belowLayerID="cold_points_clusters_count"
+          aboveLayerID="cold_points"
+          belowLayerID={COLD_POINTS_CLUSTERS_COUNT_LAYER_ID}
           filter={clusterFilter}
           style={styleGenerators.cluster()}
         />
         <MapboxGL.SymbolLayer
-          id="cold_points_clusters_count"
-          aboveLayerID={LAST_LINE_LAYER_ID}
+          id={COLD_POINTS_CLUSTERS_COUNT_LAYER_ID}
+          aboveLayerID="cold_points_clusters"
+          belowLayerID={HOT_POLYGONS_LAYER_ID}
           style={styleGenerators.clusterSymbol()}
           filter={clusterFilter}
         />
