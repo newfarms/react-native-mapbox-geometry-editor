@@ -304,10 +304,6 @@ test.each([
   ],
 ])('orderShapesByGeometry on pairs of shapes', (elements, expectedAsLists) => {
   const expected = listsToSets(expectedAsLists);
-  const actual = listsToSets(
-    orderShapesByGeometry(elements).map(
-      (featureCollection) => featureCollection.features
-    )
-  );
+  const actual = listsToSets(orderShapesByGeometry(elements));
   expect(actual).toStrictEqual(expected);
 });

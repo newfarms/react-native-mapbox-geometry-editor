@@ -5,8 +5,7 @@ import booleanOverlap from '@turf/boolean-overlap';
 import bbox from '@turf/bbox';
 import centroid from '@turf/centroid';
 import length from '@turf/length';
-import { featureCollection } from '@turf/helpers';
-import type { Feature, FeatureCollection, LineString, Polygon } from 'geojson';
+import type { Feature, LineString, Polygon } from 'geojson';
 
 import type { BBox2D, EditableFeature } from '../type/geometry';
 import { Comparison, groupSort } from './collections';
@@ -133,7 +132,6 @@ export function compareShapesByOverlap<Props>(
  */
 export function orderShapesByGeometry<Props>(
   shapes: Array<Feature<Polygon | LineString, Props>>
-): Array<FeatureCollection<Polygon | LineString, Props>> {
-  const groupedShapes = groupSort(shapes, compareShapesByOverlap);
-  return groupedShapes.map((group) => featureCollection(group));
+): Array<Array<Feature<Polygon | LineString, Props>>> {
+  return groupSort(shapes, compareShapesByOverlap);
 }
