@@ -82,13 +82,7 @@ function NonPointLayers({
   groupedFeatures.forEach((list, index, arr) => {
     list.forEach((feature) => {
       const indexFromEnd = arr.length - index - 1;
-      let height = COLD_NON_POINT_LAYER_PAIR_COUNT - indexFromEnd - 1;
-      if (height < 0) {
-        /**
-         * Merge extra layers into the first layer
-         */
-        height = 0;
-      }
+      const height = COLD_NON_POINT_LAYER_PAIR_COUNT - indexFromEnd - 1;
       feature.properties[COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY] = height;
     });
   });
@@ -97,6 +91,8 @@ function NonPointLayers({
    * Return pairs of polygon and polyline layers,
    * where each pair is rendered on top of the previous pair.
    * Each layer filters geometry to geometry having its associated height index.
+   * The bottommost layers catch all geometry that overflows the fixed
+   * set of height values.
    */
   return (
     <MapboxGL.ShapeSource
@@ -110,7 +106,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'Polygon'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 0],
+          ['<=', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 0],
         ]}
         style={fillLayerStyle}
       />
@@ -120,7 +116,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 0],
+          ['<=', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 0],
         ]}
         style={lineLayerStyle}
       />
