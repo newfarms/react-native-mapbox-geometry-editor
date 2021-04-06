@@ -12,7 +12,7 @@ import type {
 
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
-import { orderShapesByGeometry } from '../../util/geometry';
+import { orderShapes } from '../../util/geometry';
 import type { RenderNonPointFeatureCollection } from '../../type/geometry';
 
 /**
@@ -73,7 +73,7 @@ function NonPointLayers({
    * Add height indices to non-point geometry so that overlapping geometry
    * is rendered in a desired order.
    */
-  const groupedFeatures = orderShapesByGeometry(shapesCopy.features);
+  const groupedFeatures = orderShapes(shapesCopy.features);
   if (groupedFeatures.length > COLD_NON_POINT_LAYER_PAIR_COUNT) {
     console.warn(
       `There are ${COLD_NON_POINT_LAYER_PAIR_COUNT} layers for overlapping polygons and polylines, but the actual geometry requires ${groupedFeatures.length}. Some overlapping shapes will be grouped into the same layers.`
