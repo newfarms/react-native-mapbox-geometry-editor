@@ -10,11 +10,6 @@ import { CoordinateRole, LineStringRole } from '../../type/geometry';
 import { COLD_POINTS_CLUSTERS_COUNT_LAYER_ID } from './ColdGeometry';
 
 /**
- * The ID of the bottommost polygon layer is referred to by other layers.
- */
-export const HOT_POLYGONS_LAYER_ID = 'hot_polygons';
-
-/**
  * Renders "hot" geometry on a Mapbox map.
  * Hot geometry is actively being edited, and is not subject to clustering
  * @return Renderable React node
@@ -44,16 +39,14 @@ function _HotGeometry() {
       onPress={onPress}
     >
       <MapboxGL.FillLayer
-        id={HOT_POLYGONS_LAYER_ID}
+        id="hot_polygons"
         aboveLayerID={COLD_POINTS_CLUSTERS_COUNT_LAYER_ID}
-        belowLayerID="hot_linestrings"
         filter={['==', ['geometry-type'], 'Polygon']}
         style={styleGenerators.polygon()}
       />
       <MapboxGL.LineLayer
         id="hot_linestrings"
-        aboveLayerID={HOT_POLYGONS_LAYER_ID}
-        belowLayerID="hot_edges"
+        aboveLayerID="hot_polygons"
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
@@ -64,7 +57,6 @@ function _HotGeometry() {
       <MapboxGL.LineLayer
         id="hot_edges"
         aboveLayerID="hot_linestrings"
-        belowLayerID="hot_vertices"
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
@@ -75,7 +67,6 @@ function _HotGeometry() {
       <MapboxGL.CircleLayer
         id="hot_vertices"
         aboveLayerID="hot_edges"
-        belowLayerID="hot_points"
         filter={[
           'all',
           ['==', ['geometry-type'], 'Point'],
