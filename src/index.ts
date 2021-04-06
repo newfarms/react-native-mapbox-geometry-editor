@@ -81,3 +81,4 @@ export type {
 } from './type/ui';
 export { Comparison } from './util/collections';
 export type { Comparator } from './util/collections';
+export type { ShapeComparator } from './component/geometry/ColdGeometry';
