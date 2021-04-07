@@ -39,6 +39,7 @@ export {
   lineStringRoleColor,
 } from './util/defaultStyleGenerators';
 export { validateMetadata } from './util/metadata/schema';
+export { compareShapesByOverlap } from './util/geometry';
 
 export type { CameraControls } from './component/CameraController';
 export type {
@@ -78,3 +79,5 @@ export type {
   PageCloseCb,
   PageControls,
 } from './type/ui';
+export { Comparison } from './util/collections';
+export type { Comparator } from './util/collections';
