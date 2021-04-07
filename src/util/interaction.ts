@@ -30,16 +30,22 @@ export function pickTopmostFeature(e: OnPressEvent): RnmgeID | undefined {
     let topmostZIndex: number | null = null;
     let points: Array<Feature<Point, RenderProperties>> = [];
     let nonPoints: Array<Feature<LineString | Polygon, RenderProperties>> = [];
+    let idSet = new Set<RnmgeID>();
 
     // Filter features to non-clusters and find the maximum z-index
     for (let feature of e.features) {
       const id = feature.properties?.rnmgeID; // Mapbox cluster features do not have this property
       if (id) {
+        // Mapbox may pass copies of features
+        if (idSet.has(id)) {
+          continue;
+        }
         // Mapbox may pass features with null geometry to touch handlers
         switch (feature.geometry?.type) {
           case 'Point':
             // Points do not need a z-index property, because they cannot properly overlap
             points.push(feature as Feature<Point, RenderProperties>);
+            idSet.add(id);
             break;
           case 'LineString':
           case 'Polygon':
@@ -52,6 +58,7 @@ export function pickTopmostFeature(e: OnPressEvent): RnmgeID | undefined {
               nonPoints.push(
                 feature as Feature<LineString | Polygon, RenderProperties>
               );
+              idSet.add(id);
             } else {
               console.warn(
                 `Feature with ID ${id} does not have a numerical ${COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY} property.`
