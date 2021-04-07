@@ -3,6 +3,7 @@ import { model, Model, modelAction, prop } from 'mobx-keystone';
 import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
 import type { Position, GeoJsonProperties } from 'geojson';
 
+import { eventPosition, pickTopmostFeature } from '../util/interaction';
 import { ConfirmationModel, ConfirmationReason } from './ConfirmationModel';
 import { DelayedLockModel } from './util/DelayedLockModel';
 import { featureListContext } from './ModelContexts';
@@ -962,44 +963,30 @@ export class ControlsModel extends Model({
         // Ignore - Editable geometry is not rendered in the cold layers
         break;
       case InteractionMode.DrawPoint:
-        this.addNewPoint([e.coordinates.longitude, e.coordinates.latitude]);
+        this.addNewPoint(eventPosition(e));
         break;
       case InteractionMode.DrawPolygon:
-        this.addNewVertex(
-          [e.coordinates.longitude, e.coordinates.latitude],
-          'Polygon'
-        );
+        this.addNewVertex(eventPosition(e), 'Polygon');
         break;
       case InteractionMode.DrawPolyline:
-        this.addNewVertex(
-          [e.coordinates.longitude, e.coordinates.latitude],
-          'LineString'
-        );
+        this.addNewVertex(eventPosition(e), 'LineString');
         break;
       case InteractionMode.EditMetadata:
         // Ignore
         // This case shouldn't occur unless a metadata editing interface is slow to open
         break;
       case InteractionMode.SelectMultiple:
-        if (e.features.length > 0) {
-          // Select all non-cluster features at the location
-          for (let feature of e.features) {
-            const id = feature?.properties?.rnmgeID; // Clusters do not have this property
-            if (id) {
-              features?.toggleMultiSelectFeature(id);
-            }
-          }
-        }
-        break;
       case InteractionMode.SelectSingle:
-        if (e.features.length > 0) {
-          // Select the first non-cluster feature at the location
-          for (let feature of e.features) {
-            const id = feature?.properties?.rnmgeID; // Clusters do not have this property
-            if (id) {
-              features?.toggleSingleSelectFeature(id);
-              break;
-            }
+        let id = pickTopmostFeature(e);
+        if (typeof id === 'string') {
+          if (this.mode === InteractionMode.SelectMultiple) {
+            features?.toggleMultiSelectFeature(id);
+          } else if (this.mode === InteractionMode.SelectSingle) {
+            features?.toggleSingleSelectFeature(id);
+          } else {
+            throw new Error(
+              `There is no branch for the current editing mode, ${this.mode}, for selecting features.`
+            );
           }
         }
         break;
@@ -1074,10 +1061,7 @@ export class ControlsModel extends Model({
           }
           if (polygonTouched && !vertexTouched) {
             // Allow the user to add vertices such that the polygon becomes concave
-            this.addNewVertex(
-              [e.coordinates.longitude, e.coordinates.latitude],
-              'Polygon'
-            );
+            this.addNewVertex(eventPosition(e), 'Polygon');
           }
         }
         break;
@@ -1099,7 +1083,7 @@ export class ControlsModel extends Model({
           let vertexIndex: number | null = null;
           // ID of the shape that was touched, or whose edge was touched
           let shapeID: RnmgeID | null = null;
-          let point = [e.coordinates.longitude, e.coordinates.latitude];
+          let point = eventPosition(e);
           for (let feature of e.features) {
             // Filter to features that were created by this library
             const id = feature?.properties?.rnmgeID;
