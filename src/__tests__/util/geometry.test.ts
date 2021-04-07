@@ -1,13 +1,13 @@
 import { lineString, polygon } from '@turf/helpers';
 
-import { orderShapesByGeometry } from '../../util/geometry';
+import { orderShapes } from '../../util/geometry';
 import { listsToSets } from '../test_helpers/collections';
 
 /**
  * Test group sorting of an empty collection
  */
-test('orderShapesByGeometry on empty collection', () => {
-  expect(orderShapesByGeometry([])).toStrictEqual([]);
+test('orderShapes on empty collection', () => {
+  expect(orderShapes([])).toStrictEqual([]);
 });
 
 /**
@@ -302,8 +302,8 @@ test.each([
       ],
     ],
   ],
-])('orderShapesByGeometry on pairs of shapes', (elements, expectedAsLists) => {
+])('orderShapes on pairs of shapes', (elements, expectedAsLists) => {
   const expected = listsToSets(expectedAsLists);
-  const actual = listsToSets(orderShapesByGeometry(elements));
+  const actual = listsToSets(orderShapes(elements));
   expect(actual).toStrictEqual(expected);
 });

@@ -9,11 +9,23 @@ import type {
   FillLayerStyle,
   LineLayerStyle,
 } from '@react-native-mapbox-gl/maps';
+import type { Feature, LineString, Polygon } from 'geojson';
 
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
-import { orderShapesByGeometry } from '../../util/geometry';
-import type { RenderNonPointFeatureCollection } from '../../type/geometry';
+import { orderShapes } from '../../util/geometry';
+import type {
+  RenderNonPointFeatureCollection,
+  RenderProperties,
+} from '../../type/geometry';
+import type { Comparator } from '../../util/collections';
+
+/**
+ * A comparison function for ordering geometry
+ */
+export type ShapeComparator = Comparator<
+  Feature<Polygon | LineString, RenderProperties>
+>;
 
 /**
  * The GeoJSON property giving the height index for rendering
@@ -47,6 +59,7 @@ function NonPointLayers({
   onPress,
   fillLayerStyle,
   lineLayerStyle,
+  shapeComparator,
 }: {
   /**
    * The shapes to be rendered
@@ -64,6 +77,11 @@ function NonPointLayers({
    * Style for `LineLayer` layers (polylines)
    */
   lineLayerStyle: LineLayerStyle;
+  /**
+   * A comparator to use for sorting shapes into layers
+   * (e.g. to make intersecting shapes occlude each other in a desired order)
+   */
+  shapeComparator?: ShapeComparator;
 }) {
   /**
    * Copy to avoid attempting to mutate a prop
@@ -73,7 +91,7 @@ function NonPointLayers({
    * Add height indices to non-point geometry so that overlapping geometry
    * is rendered in a desired order.
    */
-  const groupedFeatures = orderShapesByGeometry(shapesCopy.features);
+  const groupedFeatures = orderShapes(shapesCopy.features, shapeComparator);
   if (groupedFeatures.length > COLD_NON_POINT_LAYER_PAIR_COUNT) {
     console.warn(
       `There are ${COLD_NON_POINT_LAYER_PAIR_COUNT} layers for overlapping polygons and polylines, but the actual geometry requires ${groupedFeatures.length}. Some overlapping shapes will be grouped into the same layers.`
@@ -328,9 +346,19 @@ function NonPointLayers({
  * Renders "cold" geometry on a Mapbox map.
  * Cold geometry is not actively being edited, and point features within it
  * are subject to clustering.
+ *
+ * @param props Render properties
  * @return Renderable React node
  */
-function _ColdGeometry() {
+function _ColdGeometry({
+  shapeComparator,
+}: {
+  /**
+   * A comparator to use for sorting shapes into layers
+   * (e.g. to make intersecting shapes occlude each other in a desired order)
+   */
+  shapeComparator?: ShapeComparator;
+}) {
   const { controls, features } = useContext(StoreContext);
   /**
    * Only point geometry can be clustered, so separate point geometry
@@ -370,6 +398,7 @@ function _ColdGeometry() {
         onPress={onPress}
         fillLayerStyle={styleGenerators.polygon()}
         lineLayerStyle={styleGenerators.polyline()}
+        shapeComparator={shapeComparator}
       />
       <MapboxGL.ShapeSource
         id="cold_geometry_circles"

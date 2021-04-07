@@ -91,7 +91,10 @@ export function globalToLocalIndices(
  * Binary comparison operator return values
  */
 export enum Comparison {
-  Less,
+  /**
+   * Start at `1` so that all enum members are truthy.
+   */
+  Less = 1,
   Equal,
   Greater,
 }

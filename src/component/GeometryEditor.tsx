@@ -19,6 +19,7 @@ import { defaultStyleGeneratorMap } from '../util/defaultStyleGenerators';
 import { StyleContext } from './StyleContext';
 import { CameraController } from './CameraController';
 import type { CameraControls } from './CameraController';
+import type { ShapeComparator } from './geometry/ColdGeometry';
 
 /**
  * Render properties for [[GeometryEditor]]
@@ -33,6 +34,18 @@ export interface GeometryEditorProps {
    * on the map
    */
   readonly styleGenerators?: StyleGeneratorMap;
+  /**
+   * A comparator to use for sorting shapes into layers
+   * (e.g. to make intersecting shapes occlude each other in a desired order)
+   *
+   * If not provided, a default comparator will be used that only examines
+   * the geometrical characteristics of GeoJSON features.
+   *
+   * Note that point geometry and geometry currently being edited will always
+   * be rendered on top of other features, regardless of the value of this
+   * prop.
+   */
+  readonly shapeComparator?: ShapeComparator;
   /**
    * Functions for giving hints to the Mapbox `Camera`
    */
@@ -63,6 +76,7 @@ const styles = StyleSheet.create({
 export function _GeometryEditor(props: GeometryEditorProps) {
   const {
     cameraControls,
+    shapeComparator,
     mapProps = {},
     styleGenerators = defaultStyleGeneratorMap,
   } = props;
@@ -102,7 +116,7 @@ export function _GeometryEditor(props: GeometryEditorProps) {
         {...restMapProps}
       >
         <StyleContext.Provider value={{ styleGenerators }}>
-          <ColdGeometry />
+          <ColdGeometry shapeComparator={shapeComparator} />
           <HotGeometry />
           <DraggablePoints />
           {props.children}
