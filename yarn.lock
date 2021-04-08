@@ -1983,6 +1983,16 @@
     "@turf/line-intersect" "^6.3.0"
     "@turf/meta" "^6.3.0"
 
+"@turf/nearest-point@^6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@turf/nearest-point/-/nearest-point-6.3.0.tgz#d888d3b4b4eb5c9deb6db1b410814398624df83d"
+  integrity sha512-eovLuWxO2cQaKETbf1OhnWYkRYYgwuDhJAvLU9ZpXnqk2tNE06gt/2C5oJJiSlh4ZksDM8ryHZicswaXrYz+qA==
+  dependencies:
+    "@turf/clone" "^6.3.0"
+    "@turf/distance" "^6.3.0"
+    "@turf/helpers" "^6.3.0"
+    "@turf/meta" "^6.3.0"
+
 "@turf/point-to-line-distance@^6.3.0":
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/@turf/point-to-line-distance/-/point-to-line-distance-6.3.0.tgz#0d63efb8295f6a6e66fe0d431491d6b75aecc0be"

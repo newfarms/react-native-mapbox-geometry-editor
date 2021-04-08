@@ -309,32 +309,12 @@ function NonPointLayers({
         style={fillLayerStyle}
       />
       <MapboxGL.LineLayer
-        id="cold_linestrings9"
+        id="cold_linestrings_end"
         aboveLayerID="cold_polygons9"
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
           ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 9],
-        ]}
-        style={lineLayerStyle}
-      />
-      <MapboxGL.FillLayer
-        id="cold_polygons10"
-        aboveLayerID="cold_linestrings9"
-        filter={[
-          'all',
-          ['==', ['geometry-type'], 'Polygon'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 10],
-        ]}
-        style={fillLayerStyle}
-      />
-      <MapboxGL.LineLayer
-        id="cold_linestrings_end"
-        aboveLayerID="cold_polygons10"
-        filter={[
-          'all',
-          ['==', ['geometry-type'], 'LineString'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 10],
         ]}
         style={lineLayerStyle}
       />
