@@ -977,16 +977,18 @@ export class ControlsModel extends Model({
         break;
       case InteractionMode.SelectMultiple:
       case InteractionMode.SelectSingle:
-        let id = pickTopmostFeature(e);
-        if (typeof id === 'string') {
-          if (this.mode === InteractionMode.SelectMultiple) {
-            features?.toggleMultiSelectFeature(id);
-          } else if (this.mode === InteractionMode.SelectSingle) {
-            features?.toggleSingleSelectFeature(id);
-          } else {
-            throw new Error(
-              `There is no branch for the current editing mode, ${this.mode}, for selecting features.`
-            );
+        if (features) {
+          let id = pickTopmostFeature(e, features);
+          if (typeof id === 'string') {
+            if (this.mode === InteractionMode.SelectMultiple) {
+              features?.toggleMultiSelectFeature(id);
+            } else if (this.mode === InteractionMode.SelectSingle) {
+              features?.toggleSingleSelectFeature(id);
+            } else {
+              throw new Error(
+                `There is no branch for the current editing mode, ${this.mode}, for selecting features.`
+              );
+            }
           }
         }
         break;

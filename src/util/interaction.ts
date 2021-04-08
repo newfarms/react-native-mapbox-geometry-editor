@@ -1,12 +1,17 @@
 import centroid from '@turf/centroid';
 import nearestPoint from '@turf/nearest-point';
-import { featureCollection, point } from '@turf/helpers';
+import {
+  feature as turfFeature,
+  featureCollection,
+  point,
+} from '@turf/helpers';
 import filter from 'lodash/filter';
 import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
 import type { Feature, LineString, Point, Polygon, Position } from 'geojson';
 
 import { COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY } from '../component/geometry/ColdGeometry';
 import type { RenderProperties, RnmgeID } from '../type/geometry';
+import type { FeatureListModel } from '../state/FeatureListModel';
 
 /**
  * Obtain a GeoJSON `Position` for the location of a touch event
@@ -24,8 +29,15 @@ export function eventPosition(e: OnPressEvent): Position {
  * If the touch event has no features, returns `undefined`
  *
  * @param e The features that were pressed, and information about the location pressed
+ * @param features The features store, used to look up features by their IDs.
+ *                 This parameter is needed because the features passed to the touch handler
+ *                 sometimes have properties but no geometry. This function uses the properties
+ *                 to look up the geometry.
  */
-export function pickTopmostFeature(e: OnPressEvent): RnmgeID | undefined {
+export function pickTopmostFeature(
+  e: OnPressEvent,
+  features: FeatureListModel
+): RnmgeID | undefined {
   if (e.features.length > 0) {
     let topmostZIndex: number | null = null;
     let points: Array<Feature<Point, RenderProperties>> = [];
@@ -40,37 +52,44 @@ export function pickTopmostFeature(e: OnPressEvent): RnmgeID | undefined {
         if (idSet.has(id)) {
           continue;
         }
-        // Mapbox may pass features with null geometry to touch handlers
-        switch (feature.geometry?.type) {
-          case 'Point':
-            // Points do not need a z-index property, because they cannot properly overlap
-            points.push(feature as Feature<Point, RenderProperties>);
-            idSet.add(id);
-            break;
-          case 'LineString':
-          case 'Polygon':
-            let zIndex =
-              feature.properties?.[COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY];
-            if (typeof zIndex === 'number') {
-              if (typeof topmostZIndex !== 'number' || zIndex > topmostZIndex) {
-                topmostZIndex = zIndex;
-              }
-              nonPoints.push(
-                feature as Feature<LineString | Polygon, RenderProperties>
+        const sourceFeature = features.findFeature(id);
+        if (sourceFeature) {
+          switch (sourceFeature.geojson.geometry.type) {
+            case 'Point':
+              // Points do not need a z-index property, because they cannot properly overlap
+              points.push(
+                turfFeature(
+                  sourceFeature.geojson.geometry,
+                  feature.properties
+                ) as Feature<Point, RenderProperties>
               );
               idSet.add(id);
-            } else {
-              console.warn(
-                `Feature with ID ${id} does not have a numerical ${COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY} property.`
-              );
-            }
-            break;
-          default:
-            if (typeof feature.geometry?.type === 'string') {
-              console.warn(
-                `Feature with ID ${id} has an unexpected geometry type, ${feature.geometry?.type}.`
-              );
-            }
+              break;
+            case 'LineString':
+            case 'Polygon':
+              let zIndex =
+                feature.properties?.[COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY];
+              if (typeof zIndex === 'number') {
+                if (
+                  typeof topmostZIndex !== 'number' ||
+                  zIndex > topmostZIndex
+                ) {
+                  topmostZIndex = zIndex;
+                }
+                nonPoints.push(
+                  turfFeature(
+                    sourceFeature.geojson.geometry,
+                    feature.properties
+                  ) as Feature<LineString | Polygon, RenderProperties>
+                );
+                idSet.add(id);
+              } else {
+                console.warn(
+                  `Feature with ID ${id} does not have a numerical ${COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY} property.`
+                );
+              }
+              break;
+          }
         }
       }
     }
