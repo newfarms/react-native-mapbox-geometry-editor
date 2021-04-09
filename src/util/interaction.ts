@@ -28,24 +28,25 @@ export function eventPosition(e: OnPressEvent): Position {
  *
  * If the touch event has no features, returns `undefined`
  *
- * @param e The features that were pressed, and information about the location pressed
+ * @param event The event object containing the features that were pressed,
+ *              and information about the location pressed
  * @param features The features store, used to look up features by their IDs.
  *                 This parameter is needed because the features passed to the touch handler
  *                 sometimes have properties but no geometry. This function uses the properties
  *                 to look up the geometry.
  */
 export function pickTopmostFeature(
-  e: OnPressEvent,
+  event: OnPressEvent,
   features: FeatureListModel
 ): RnmgeID | undefined {
-  if (e.features.length > 0) {
+  if (event.features.length > 0) {
     let topmostZIndex: number | null = null;
     let points: Array<Feature<Point, RenderProperties>> = [];
     let nonPoints: Array<Feature<LineString | Polygon, RenderProperties>> = [];
     let idSet = new Set<RnmgeID>();
 
     // Filter features to non-clusters and find the maximum z-index
-    for (let feature of e.features) {
+    for (let feature of event.features) {
       const id = feature.properties?.rnmgeID; // Mapbox cluster features do not have this property
       if (id) {
         // Mapbox may pass copies of features
@@ -131,7 +132,7 @@ export function pickTopmostFeature(
       return topFeatures[0].properties.rnmgeID;
     } else if (topFeatures.length > 1) {
       return topFeatures[
-        nearestPoint(eventPosition(e), featureCollection(topFeatures))
+        nearestPoint(eventPosition(event), featureCollection(topFeatures))
           .properties.featureIndex
       ].properties.rnmgeID;
     }
