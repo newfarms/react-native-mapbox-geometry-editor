@@ -96,9 +96,12 @@ export function pickTopmostFeature(
     }
 
     /**
-     * Filter to any points, which are, by convention, the topmost features.
-     * If there are no points, filter to the topmost non-point features,
-     * but take only their centroids for use selecting the closest feature.
+     * If any point features were touched, non-point features can be ignored,
+     * since points are, by convention, the topmost features.
+     * If there are no points, retain only the topmost non-point features.
+     * Construct point features from the centroids of the non-point features,
+     * as only centroids are needed when selecting the closest feature
+     * in the next stage.
      */
     let topFeatures: Array<Feature<Point, RenderProperties>> = points;
     if (points.length === 0) {
