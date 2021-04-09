@@ -7,6 +7,7 @@ import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
 import { CoordinateRole, LineStringRole } from '../../type/geometry';
+import { COLD_POINTS_CLUSTERS_COUNT_LAYER_ID } from './ColdGeometry';
 
 /**
  * Renders "hot" geometry on a Mapbox map.
@@ -39,7 +40,7 @@ function _HotGeometry() {
     >
       <MapboxGL.FillLayer
         id="hot_polygons"
-        aboveLayerID="cold_points"
+        aboveLayerID={COLD_POINTS_CLUSTERS_COUNT_LAYER_ID}
         filter={['==', ['geometry-type'], 'Polygon']}
         style={styleGenerators.polygon()}
       />
