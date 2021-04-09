@@ -1,7 +1,7 @@
 import along from '@turf/along';
 import area from '@turf/area';
 import booleanEqual from '@turf/boolean-equal';
-import booleanOverlap from '@turf/boolean-overlap';
+import booleanDisjoint from '@turf/boolean-disjoint';
 import bbox from '@turf/bbox';
 import centroid from '@turf/centroid';
 import length from '@turf/length';
@@ -75,7 +75,7 @@ function comparePolygonsByOverlap<Props>(
   if (booleanEqual(a, b)) {
     return Comparison.Equal;
   } else {
-    if (booleanOverlap(a, b)) {
+    if (!booleanDisjoint(a, b)) {
       const areaA = area(a);
       const areaB = area(b);
       if (areaA < areaB) {

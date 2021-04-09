@@ -1839,6 +1839,17 @@
     "@turf/helpers" "^6.3.0"
     "@turf/invariant" "^6.3.0"
 
+"@turf/boolean-disjoint@^6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@turf/boolean-disjoint/-/boolean-disjoint-6.3.0.tgz#4b27fb3c3c9ff23f69fbcc8d2d03665e9f52c20e"
+  integrity sha512-bVAwAJF05QPH0tf+qjR3kUcCyqTgYcCbXSMgXl6LQF6mSGuOutzNq1gCyRLCOdOcZtw4Oh4dqeP3ykwv8kDibw==
+  dependencies:
+    "@turf/boolean-point-in-polygon" "^6.3.0"
+    "@turf/helpers" "^6.3.0"
+    "@turf/line-intersect" "^6.3.0"
+    "@turf/meta" "^6.3.0"
+    "@turf/polygon-to-line" "^6.3.0"
+
 "@turf/boolean-equal@^6.3.0":
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/@turf/boolean-equal/-/boolean-equal-6.3.0.tgz#d1c2404207f6174b6f5efd99e7a56344932c4850"
@@ -1849,22 +1860,10 @@
     "@turf/invariant" "^6.3.0"
     geojson-equality "0.1.6"
 
-"@turf/boolean-overlap@^6.3.0":
+"@turf/boolean-point-in-polygon@^6.3.0":
   version "6.3.0"
-  resolved "https://registry.yarnpkg.com/@turf/boolean-overlap/-/boolean-overlap-6.3.0.tgz#b696945154fc85f8e700b82f8e15502a03995b35"
-  integrity sha512-rWh8JKTqlJ1m27FY8YeWcGoXutLyCVfSi2/8AOkXi2F+36P9GM4tHz19yKY3btbnHJTgSZf1xO2YhX2d0BmNqg==
-  dependencies:
-    "@turf/helpers" "^6.3.0"
-    "@turf/invariant" "^6.3.0"
-    "@turf/line-intersect" "^6.3.0"
-    "@turf/line-overlap" "^6.3.0"
-    "@turf/meta" "^6.3.0"
-    geojson-equality "0.1.6"
-
-"@turf/boolean-point-on-line@^6.3.0":
-  version "6.3.0"
-  resolved "https://registry.yarnpkg.com/@turf/boolean-point-on-line/-/boolean-point-on-line-6.3.0.tgz#1fe7b5c0979695260011b93036f0e7042cb5195b"
-  integrity sha512-eScH8sfKJVjfbEX5Hgkt1nA7A8DUoiYD1riUVqTp2xikujrMfnYRjFpL/UAo01v33cPKZlhCXp7NE86bdOSrYg==
+  resolved "https://registry.yarnpkg.com/@turf/boolean-point-in-polygon/-/boolean-point-in-polygon-6.3.0.tgz#784952a36c64119e90fbe94650245da62ecd8fc2"
+  integrity sha512-NqFSsoE6OwhDK19IllDQRhEQEkF7UVEOlqH9vgS1fGg4T6NcyKvACJs05c9457tL7QSbV9ZS53f2qiLneFL+qg==
   dependencies:
     "@turf/helpers" "^6.3.0"
     "@turf/invariant" "^6.3.0"
@@ -1940,20 +1939,6 @@
     "@turf/meta" "^6.3.0"
     geojson-rbush "3.x"
 
-"@turf/line-overlap@^6.3.0":
-  version "6.3.0"
-  resolved "https://registry.yarnpkg.com/@turf/line-overlap/-/line-overlap-6.3.0.tgz#c7e92c09e7626e1287a80742df7f509f0b4da693"
-  integrity sha512-fVyXfTpr/A+ZXZWG6PbuYz5rAGbTQWyrMZveCl2049SbOXSkVXGjUfpnLaklP0p+adw7eRR0LhZn6FGz9CQaFg==
-  dependencies:
-    "@turf/boolean-point-on-line" "^6.3.0"
-    "@turf/helpers" "^6.3.0"
-    "@turf/invariant" "^6.3.0"
-    "@turf/line-segment" "^6.3.0"
-    "@turf/meta" "^6.3.0"
-    "@turf/nearest-point-on-line" "^6.3.0"
-    deep-equal "1.x"
-    geojson-rbush "3.x"
-
 "@turf/line-segment@^6.3.0":
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/@turf/line-segment/-/line-segment-6.3.0.tgz#b37d6877ee4425ebc12698860e7d355d1bf2ba9b"
@@ -2006,6 +1991,14 @@
     "@turf/projection" "^6.3.0"
     "@turf/rhumb-bearing" "^6.3.0"
     "@turf/rhumb-distance" "^6.3.0"
+
+"@turf/polygon-to-line@^6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@turf/polygon-to-line/-/polygon-to-line-6.3.0.tgz#aa3e1a0ea074479e5cb6c5c111a924bb80ec553e"
+  integrity sha512-KFGlQlGOBayBvELz+tip1zCa3eB8xyZePZUZ3I3OnU7mk0FFzJzvLTmPUc7MupgqORT4LkNGmyKSVWaz38NTig==
+  dependencies:
+    "@turf/helpers" "^6.3.0"
+    "@turf/invariant" "^6.3.0"
 
 "@turf/projection@^6.3.0":
   version "6.3.0"
@@ -3781,7 +3774,7 @@ dedent@^0.7.0:
   resolved "https://registry.yarnpkg.com/dedent/-/dedent-0.7.0.tgz#2495ddbaf6eb874abb0e1be9df22d2e5a544326c"
   integrity sha1-JJXduvbrh0q7Dhvp3yLS5aVEMmw=
 
-deep-equal@1.x, deep-equal@^1.0.0:
+deep-equal@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/deep-equal/-/deep-equal-1.1.1.tgz#b5c98c942ceffaf7cb051e24e1434a25a2e6076a"
   integrity sha512-yd9c5AdiqVcR+JjcwUQb9DkhJc8ngNr0MahEBGvDiJw8puWab2yZlh+nkasOnZP+EGTAP6rRp2JzJhJZzvNF8g==
