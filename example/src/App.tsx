@@ -4,7 +4,7 @@
 
 import * as React from 'react';
 import { useMemo, useRef } from 'react';
-import { LogBox, SafeAreaView, StyleSheet } from 'react-native';
+import { LogBox, SafeAreaView, StyleSheet, View, Button } from 'react-native';
 
 import MapboxGL from '@react-native-mapbox-gl/maps';
 
@@ -35,6 +35,7 @@ import type {
   CameraControls,
   DraggablePointStyle,
   EditableFeature,
+  GeometryIORef,
   MetadataSchema,
   SemanticGeometryType,
   StyleGeneratorMap,
@@ -56,6 +57,11 @@ const styles = StyleSheet.create({
     margin: 10,
     borderRadius: 5,
     overflow: 'hidden',
+  },
+  ioControlsContainer: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
 });
 
@@ -442,6 +448,32 @@ if (validationResult.dataErrors) {
 const cameraMoveTime = 200; // Milliseconds
 
 /**
+ * A component that renders buttons for the user to import and export
+ * geometry
+ * @param props Render properties
+ */
+function IOControls({
+  onImport,
+  onExport,
+}: {
+  /**
+   * Import button press event handler
+   */
+  onImport: () => void;
+  /**
+   * Export button press event handler
+   */
+  onExport: () => void;
+}) {
+  return (
+    <View style={styles.ioControlsContainer}>
+      <Button color="orange" onPress={onImport} title="Import static shapes" />
+      <Button color="seagreen" onPress={onExport} title="Export shapes" />
+    </View>
+  );
+}
+
+/**
  * Render a map page with a demonstration of the geometry editor library's functionality
  */
 export default function App() {
@@ -467,6 +499,21 @@ export default function App() {
     return controls;
   }, [cameraRef]);
 
+  /**
+   * Geometry import and export functionality
+   */
+  const ioRef = useRef<GeometryIORef>(null);
+  const ioHandlers = {
+    onImport: () => {
+      console.log('TODO Import button pressed.');
+      ioRef.current?.import();
+    },
+    onExport: () => {
+      console.log('TODO Export button pressed.');
+      ioRef.current?.export();
+    },
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <GeometryEditorUI
@@ -478,6 +525,7 @@ export default function App() {
         }}
         metadataSchemaGeneratorMap={metadataSchemaGeneratorMap}
         styleGenerators={styleGeneratorMap}
+        ref={ioRef}
       >
         <MapboxGL.Camera
           ref={cameraRef}
@@ -485,6 +533,7 @@ export default function App() {
           zoomLevel={14}
         />
       </GeometryEditorUI>
+      <IOControls {...ioHandlers} />
     </SafeAreaView>
   );
 }
