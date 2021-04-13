@@ -4,11 +4,33 @@
 
 import * as React from 'react';
 import { useMemo, useRef } from 'react';
-import { LogBox, SafeAreaView, StyleSheet, View, Button } from 'react-native';
+import {
+  Alert,
+  LogBox,
+  SafeAreaView,
+  StyleSheet,
+  View,
+  Button,
+} from 'react-native';
 
 import MapboxGL from '@react-native-mapbox-gl/maps';
 
 import token from '../mapbox_token.json';
+import sampleFeatures from './sample.json';
+import type { FeatureCollection } from 'geojson';
+
+/**
+ * A way to get the `performance.now()` interface, for timing code,
+ * in both debug and release mode
+ * See https://github.com/MaxGraey/react-native-console-time-polyfill/blob/master/index.js
+ */
+const PerformanceNow =
+  ((global as any).performance && (global as any).performance.now) ||
+  (global as any).performanceNow ||
+  (global as any).nativePerformanceNow;
+if (!PerformanceNow) {
+  throw new Error('Failed to find performance.now() or an equivalent.');
+}
 
 /**
  * Hide warnings about require cycles in React Native Paper,
@@ -505,12 +527,68 @@ export default function App() {
   const ioRef = useRef<GeometryIORef>(null);
   const ioHandlers = {
     onImport: () => {
-      console.log('TODO Import button pressed.');
-      ioRef.current?.import();
+      (async () => {
+        if (ioRef.current) {
+          /**
+           * Time the import operation and display the time in an alert
+           */
+          const t0 = PerformanceNow();
+          try {
+            const result = await ioRef.current.import(
+              sampleFeatures as FeatureCollection,
+              {
+                replace: true,
+                strict: true,
+                validate: true,
+              }
+            );
+
+            const t1 = PerformanceNow();
+            Alert.alert(
+              'Import result',
+              `Data imported ${result.exact ? 'exactly' : 'with changes'} in ${
+                t1 - t0
+              } milliseconds with ${result?.errors.length} errors.`
+            );
+          } catch (e) {
+            console.error(e);
+            Alert.alert('Import failed');
+          }
+        }
+      })();
     },
     onExport: () => {
-      console.log('TODO Export button pressed.');
-      ioRef.current?.export();
+      (async () => {
+        if (ioRef.current) {
+          /**
+           * Time the export operation and display the time in an alert
+           */
+          const t0 = PerformanceNow();
+          try {
+            const result = await ioRef.current.export();
+            const jsonResult = JSON.stringify(result, null, 1);
+            /**
+             * Avoid flooding the console with the result
+             */
+            if (jsonResult.length < 1000) {
+              console.log('Export result: \n', jsonResult);
+            } else {
+              console.log(
+                `Stringified export result (with whitespace) has ${jsonResult.length} characters.`
+              );
+            }
+
+            const t1 = PerformanceNow();
+            Alert.alert(
+              'Export result',
+              `Data exported in ${t1 - t0} milliseconds.`
+            );
+          } catch (e) {
+            console.error(e);
+            Alert.alert('Export failed');
+          }
+        }
+      })();
     },
   };
 
