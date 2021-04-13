@@ -3,7 +3,10 @@ import React, { useContext, useEffect } from 'react';
 import type { BBox, Position } from 'geojson';
 
 import { StoreContext } from '../state/StoreContext';
-import { findBoundingBox, findCenterForAnnotation } from '../util/geometry';
+import {
+  findBoundingBox,
+  findCenterForAnnotation,
+} from '../util/geometry/display';
 import type { RnmgeID } from '../type/geometry';
 
 /**
