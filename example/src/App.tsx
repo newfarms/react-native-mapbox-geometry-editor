@@ -570,11 +570,11 @@ export default function App() {
             /**
              * Avoid flooding the console with the result
              */
-            if (jsonResult.length < 1000) {
+            if (jsonResult.length < 10000) {
               console.log('Export result: \n', jsonResult);
             } else {
               console.log(
-                `Stringified export result (with whitespace) has ${jsonResult.length} characters.`
+                `Stringified export result (with whitespace) has ${jsonResult.length} characters (not shown).`
               );
             }
 

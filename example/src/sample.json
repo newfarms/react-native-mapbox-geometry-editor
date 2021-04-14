@@ -3,7 +3,14 @@
   "features": [
     {
       "type": "Feature",
-      "properties": {},
+      "properties": {
+        "fieldWithPermissions": "",
+        "needsRepair": true,
+        "description": "",
+        "age": 3,
+        "model": "Spark",
+        "vehicleType": "CAR"
+      },
       "geometry": {
         "type": "Point",
         "coordinates": [3.379241, 6.468413]
@@ -11,7 +18,7 @@
     },
     {
       "type": "Feature",
-      "properties": {},
+      "properties": { "width": 6, "name": "Test line" },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -22,7 +29,7 @@
     },
     {
       "type": "Feature",
-      "properties": {},
+      "properties": { "zoneType": "RESTRICTED", "openAtNight": true },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
