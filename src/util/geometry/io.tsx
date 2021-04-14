@@ -243,7 +243,7 @@ function validateAndTransformGeometry(
                   feature
                 ),
                 error: new UnsupportedGeometryError(
-                  `Unexpected geometry type, ${geometry.type}, for flattened feature with index ${index}.`
+                  `Holes found in polygon feature with index ${index}.`
                 ),
                 canImport: true,
               };
