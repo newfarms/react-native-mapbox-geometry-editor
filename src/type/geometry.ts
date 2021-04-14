@@ -21,7 +21,7 @@ export type BBox2D = [number, number, number, number];
  * Geometry available for editing consists of atomic shapes,
  * not multi-shapes.
  */
-type EditableGeometry = Point | LineString | Polygon;
+export type EditableGeometry = Point | LineString | Polygon;
 
 /**
  * The valid values for the "type" property of [[EditableGeometry]] objects.

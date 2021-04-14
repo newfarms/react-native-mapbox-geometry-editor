@@ -44,6 +44,7 @@ export { compareShapesByOverlap } from './util/geometry/display';
 export type { CameraControls } from './component/CameraController';
 export type {
   EditableFeature,
+  EditableGeometry,
   RenderFeature,
   RenderProperties,
   SemanticGeometryType,

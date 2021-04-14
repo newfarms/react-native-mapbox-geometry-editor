@@ -10,7 +10,7 @@ import type { AllGeoJSON } from '@turf/helpers';
 import type { FeatureCollection, Geometry } from 'geojson';
 
 import type { RootModel } from '../../state/RootModel';
-import type { EditableFeature } from '../../type/geometry';
+import type { EditableFeature, EditableGeometry } from '../../type/geometry';
 import type {
   GeometryImportOptions,
   GeometryImportResult,
@@ -303,8 +303,8 @@ function validateAndTransformGeometry(
  */
 export async function exportGeometry(
   store: RootModel
-): Promise<FeatureCollection> {
-  let features: FeatureCollection | null = null;
+): Promise<FeatureCollection<EditableGeometry>> {
+  let features: FeatureCollection<EditableGeometry> | null = null;
   /**
    * We need to use a MobX observable in a reactive context,
    * which is provided by `autorun`

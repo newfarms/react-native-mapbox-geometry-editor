@@ -21,6 +21,7 @@ import { FeatureModel } from './FeatureModel';
 import type {
   DraggablePosition,
   EditableFeature,
+  EditableGeometry,
   EditableGeometryType,
   RenderFeatureCollection,
   RenderPointFeatureCollection,
@@ -358,7 +359,7 @@ export class FeatureListModel extends Model({
    * Returns a deep copy of all GeoJSON features
    */
   @computed
-  get allGeoJSON(): FeatureCollection {
+  get allGeoJSON(): FeatureCollection<EditableGeometry> {
     return featureCollection(
       this.features.map((feature) => feature.safeGeoJSON)
     );

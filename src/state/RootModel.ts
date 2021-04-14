@@ -5,7 +5,7 @@ import type { FeatureCollection } from 'geojson';
 import { controlsContext, featureListContext } from './ModelContexts';
 import { FeatureListModel } from './FeatureListModel';
 import { ControlsModel } from './ControlsModel';
-import type { EditableFeature } from '../type/geometry';
+import type { EditableFeature, EditableGeometry } from '../type/geometry';
 import type { MapPressPayload } from '../type/events';
 
 /**
@@ -63,7 +63,7 @@ export class RootModel extends Model({
    * Returns a deep copy of all geometry in the store
    */
   @computed
-  get geojson(): FeatureCollection {
+  get geojson(): FeatureCollection<EditableGeometry> {
     return this.features.allGeoJSON;
   }
 }

@@ -4,6 +4,7 @@ import type { FeatureCollection } from 'geojson';
 import { StoreContext } from '../../state/StoreContext';
 import { exportGeometry, importGeometry } from '../../util/geometry/io';
 import type { GeometryImportError } from '../../util/geometry/io';
+import type { EditableGeometry } from '../../type/geometry';
 
 /**
  * Options controlling geometry import
@@ -85,7 +86,7 @@ export interface GeometryIORef {
    * @return A feature collection containing a deep copy of all features
    *         managed by this library.
    */
-  export: () => Promise<FeatureCollection>;
+  export: () => Promise<FeatureCollection<EditableGeometry>>;
 }
 
 /**
