@@ -1850,6 +1850,14 @@
     "@turf/helpers" "^6.3.0"
     "@turf/invariant" "^6.3.0"
 
+"@turf/boolean-clockwise@^6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@turf/boolean-clockwise/-/boolean-clockwise-6.3.0.tgz#78652068d138ab8b12fa7c1250f15e0cdeb14d1d"
+  integrity sha512-zW0j8uPjBS5QJqNmJIeatTH02E1S7OCuBNBvkoOUPifC/c2xJ120a1r73prBj1zMFr6k3UCjwG9V8whUMxIAYA==
+  dependencies:
+    "@turf/helpers" "^6.3.0"
+    "@turf/invariant" "^6.3.0"
+
 "@turf/boolean-disjoint@^6.3.0":
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/@turf/boolean-disjoint/-/boolean-disjoint-6.3.0.tgz#4b27fb3c3c9ff23f69fbcc8d2d03665e9f52c20e"
@@ -2026,6 +2034,17 @@
   dependencies:
     "@turf/clone" "^6.3.0"
     "@turf/helpers" "^6.3.0"
+    "@turf/meta" "^6.3.0"
+
+"@turf/rewind@^6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@turf/rewind/-/rewind-6.3.0.tgz#f52fcbad79c0e932965a2346f5e6d3dda22aac5f"
+  integrity sha512-56HwvOZ4r4/wXr8l8zCpdjZ3bxY6Ee7aokuJr/+BlVqikHdRHRx+FJpLGpykZU1YWdO7IiLK7ajX+clYPaqRKg==
+  dependencies:
+    "@turf/boolean-clockwise" "^6.3.0"
+    "@turf/clone" "^6.3.0"
+    "@turf/helpers" "^6.3.0"
+    "@turf/invariant" "^6.3.0"
     "@turf/meta" "^6.3.0"
 
 "@turf/rhumb-bearing@^6.3.0":

@@ -4,6 +4,7 @@ import filter from 'lodash/filter';
 import flatten from 'lodash/flatten';
 import reject from 'lodash/reject';
 import { point, lineString, polygon } from '@turf/helpers';
+import rewind from '@turf/rewind';
 import type { Position, Point, LineString, Polygon, Feature } from 'geojson';
 import { coordReduce } from '@turf/meta';
 import nearestPointOnLine from '@turf/nearest-point-on-line';
@@ -990,5 +991,24 @@ export class FeatureModel extends Model({
     } else {
       return false;
     }
+  }
+
+  /**
+   * Returns a deep copy of the GeoJSON feature.
+   * Ensures that polygons have the proper winding order.
+   */
+  @computed
+  get safeGeoJSON(): EditableFeature {
+    let data = toJS(this.geojson);
+    switch (data.geometry.type) {
+      case 'Point':
+      case 'LineString':
+        break;
+      case 'Polygon':
+        data = rewind(data, {
+          mutate: true,
+        });
+    }
+    return data;
   }
 }

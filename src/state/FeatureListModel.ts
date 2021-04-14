@@ -360,7 +360,7 @@ export class FeatureListModel extends Model({
   @computed
   get allGeoJSON(): FeatureCollection {
     return featureCollection(
-      this.features.map((feature) => toJS(feature.geojson))
+      this.features.map((feature) => feature.safeGeoJSON)
     );
   }
 
