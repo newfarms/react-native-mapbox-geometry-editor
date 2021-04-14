@@ -8,8 +8,8 @@ import length from '@turf/length';
 import type { Feature, LineString, Polygon } from 'geojson';
 
 import type { BBox2D, EditableFeature } from '../../type/geometry';
-import { Comparison, groupSort } from './../collections';
-import type { Comparator } from './../collections';
+import { Comparison, groupSort } from '../collections';
+import type { Comparator } from '../collections';
 
 /**
  * Find the "centre" of a GeoJSON feature that is either

@@ -3,6 +3,7 @@ import { model, Model, modelAction, prop } from 'mobx-keystone';
 import { controlsContext, featureListContext } from './ModelContexts';
 import { FeatureListModel } from './FeatureListModel';
 import { ControlsModel } from './ControlsModel';
+import type { EditableFeature } from '../type/geometry';
 import type { MapPressPayload } from '../type/events';
 
 /**
@@ -35,5 +36,24 @@ export class RootModel extends Model({
   @modelAction
   handleMapPress(e: MapPressPayload) {
     return this.controls.handleMapPress(e);
+  }
+
+  /**
+   * Import features into the state stores
+   * @param features The new features to store
+   * @param options Options controlling the import operation
+   */
+  @modelAction
+  importFeatures(
+    features: Array<EditableFeature>,
+    options: {
+      /**
+       * Whether the features should be added to (`false`), or replace (`true`),
+       * the features currently in the state store.
+       */
+      replace: boolean;
+    }
+  ) {
+    this.controls.importFeatures(features, options);
   }
 }

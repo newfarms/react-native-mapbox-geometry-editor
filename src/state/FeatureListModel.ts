@@ -77,6 +77,45 @@ export class FeatureListModel extends Model({
   }
 
   /**
+   * Import features
+   *
+   * Preconditions: Current features are in a clean state. For instance,
+   *  `endEditingSession()` has been called.
+   *
+   * @param geojson The new features
+   * @param options Options controlling the import operation
+   */
+  @modelAction
+  importFeatures(
+    geojson: Array<EditableFeature>,
+    options: {
+      /**
+       * Whether the features should be added to (`false`), or replace (`true`),
+       * the current features
+       */
+      replace: boolean;
+    }
+  ) {
+    withoutUndo(() => {
+      let models = geojson.map((feature) => {
+        return new FeatureModel({
+          stage: FeatureLifecycleStage.View,
+          geojson: feature,
+          finalType: feature.geometry.type,
+        });
+      });
+      if (options.replace) {
+        // Overwrite features
+        this.features = models;
+      } else {
+        this.features = this.features.concat(models);
+      }
+    });
+    // Exclude the import operation from the editing history
+    this.clearHistory();
+  }
+
+  /**
    * Re-position a point in a feature
    * @param position The new position for the point
    * @param id Feature ID
