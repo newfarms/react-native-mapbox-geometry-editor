@@ -2,7 +2,7 @@ import React, { forwardRef, useContext, useImperativeHandle } from 'react';
 import type { FeatureCollection } from 'geojson';
 
 import { StoreContext } from '../../state/StoreContext';
-import { importGeometry } from '../../util/geometry/io';
+import { exportGeometry, importGeometry } from '../../util/geometry/io';
 import type { GeometryImportError } from '../../util/geometry/io';
 
 /**
@@ -106,12 +106,7 @@ function GeometryIOComponent(
     (): GeometryIORef => ({
       import: (features: FeatureCollection, options: GeometryImportOptions) =>
         importGeometry(store, features, options),
-      export: async () => {
-        return {
-          type: 'FeatureCollection',
-          features: [],
-        };
-      },
+      export: () => exportGeometry(store),
     }),
     [store]
   );

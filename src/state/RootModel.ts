@@ -1,4 +1,6 @@
+import { computed } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
+import type { FeatureCollection } from 'geojson';
 
 import { controlsContext, featureListContext } from './ModelContexts';
 import { FeatureListModel } from './FeatureListModel';
@@ -55,5 +57,13 @@ export class RootModel extends Model({
     }
   ) {
     this.controls.importFeatures(features, options);
+  }
+
+  /**
+   * Returns a deep copy of all geometry in the store
+   */
+  @computed
+  get geojson(): FeatureCollection {
+    return this.features.allGeoJSON;
   }
 }

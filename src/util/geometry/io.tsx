@@ -1,5 +1,6 @@
 /// <reference path="../../type/geojsonhint.d.ts"/>
 
+import { autorun, runInAction } from 'mobx';
 import filter from 'lodash/filter';
 import cloneDeep from 'lodash/cloneDeep';
 import { hint } from '@mapbox/geojsonhint/lib/object';
@@ -140,7 +141,13 @@ export async function importGeometry(
   // Copy to eliminate aliasing bugs from sharing data with the caller
   let newFeatures = cloneDeep(validatedFeatures.features);
 
-  store.importFeatures(newFeatures, options);
+  /**
+   * Inform MobX that this function is updating the state of an observable
+   * See https://mobx.js.org/actions.html#asynchronous-actions
+   */
+  runInAction(() => {
+    store.importFeatures(newFeatures, options);
+  });
 
   return {
     errors: validatedFeatures.errors,
@@ -283,5 +290,41 @@ function validateAndTransformGeometry(
     });
   } catch (err) {
     return Promise.reject(err);
+  }
+}
+
+/**
+ * Implementation of [[GeometryIORef.export]], with an additional `store`
+ * parameter
+ *
+ * Refer to the documentation of [[GeometryIORef.export]].
+ *
+ * @param store The store that exports the geometry
+ */
+export async function exportGeometry(
+  store: RootModel
+): Promise<FeatureCollection> {
+  let features: FeatureCollection | null = null;
+  /**
+   * We need to use a MobX observable in a reactive context,
+   * which is provided by `autorun`
+   * (https://mobx.js.org/reactions.html).
+   *
+   * Since we don't need the function to run whenever the observable changes
+   * in the future, we dispose of the reaction afterwards.
+   */
+  const disposer = autorun(() => {
+    features = store.geojson;
+  });
+  disposer();
+
+  if (features) {
+    return features;
+  } else {
+    console.warn('Failed to obtain GeoJSON from the store.');
+    return {
+      type: 'FeatureCollection',
+      features: [],
+    };
   }
 }

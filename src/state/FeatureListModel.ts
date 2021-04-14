@@ -15,7 +15,7 @@ import flatten from 'lodash/flatten';
 import filter from 'lodash/filter';
 import remove from 'lodash/remove';
 import every from 'lodash/every';
-import type { Position, GeoJsonProperties } from 'geojson';
+import type { FeatureCollection, Position, GeoJsonProperties } from 'geojson';
 
 import { FeatureModel } from './FeatureModel';
 import type {
@@ -351,6 +351,16 @@ export class FeatureListModel extends Model({
   get coldNonPointFeatures(): RenderNonPointFeatureCollection {
     return featureCollection(
       flatten(this.features.map((feature) => feature.coldNonPointFeatures))
+    );
+  }
+
+  /**
+   * Returns a deep copy of all GeoJSON features
+   */
+  @computed
+  get allGeoJSON(): FeatureCollection {
+    return featureCollection(
+      this.features.map((feature) => toJS(feature.geojson))
     );
   }
 
