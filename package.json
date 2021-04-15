@@ -54,6 +54,7 @@
     "@types/react": "^16.13.1",
     "@types/react-native": "0.63.4",
     "@types/yup": "^0.29.11",
+    "commander": "^7.2.0",
     "commitlint": "^11.0.0",
     "eslint": "^7.19.0",
     "eslint-config-prettier": "^7.2.0",
