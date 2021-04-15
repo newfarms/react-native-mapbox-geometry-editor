@@ -538,7 +538,7 @@ export default function App() {
               sampleFeatures as FeatureCollection,
               {
                 replace: true,
-                strict: true,
+                strict: false,
                 validate: true,
               }
             );
