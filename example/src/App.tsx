@@ -552,7 +552,11 @@ export default function App() {
             );
           } catch (e) {
             console.error(e);
-            Alert.alert('Import failed');
+            let message = 'Unknown error';
+            if (e instanceof Error) {
+              message = e.message;
+            }
+            Alert.alert('Import failed', message);
           }
         }
       })();
@@ -585,7 +589,11 @@ export default function App() {
             );
           } catch (e) {
             console.error(e);
-            Alert.alert('Export failed');
+            let message = 'Unknown error';
+            if (e instanceof Error) {
+              message = e.message;
+            }
+            Alert.alert('Export failed', message);
           }
         }
       })();
