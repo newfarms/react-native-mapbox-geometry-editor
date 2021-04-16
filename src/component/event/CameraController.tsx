@@ -2,12 +2,12 @@ import { observer } from 'mobx-react-lite';
 import React, { useContext, useEffect } from 'react';
 import type { BBox, Position } from 'geojson';
 
-import { StoreContext } from '../state/StoreContext';
+import { StoreContext } from '../../state/StoreContext';
 import {
   findBoundingBox,
   findCenterForAnnotation,
-} from '../util/geometry/display';
-import type { RnmgeID } from '../type/geometry';
+} from '../../util/geometry/display';
+import type { RnmgeID } from '../../type/geometry';
 
 /**
  * Functions for giving hints to the Mapbox `Camera`

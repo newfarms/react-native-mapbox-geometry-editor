@@ -41,7 +41,7 @@ export {
 export { validateMetadata } from './util/metadata/schema';
 export { compareShapesByOverlap } from './util/geometry/display';
 
-export type { CameraControls } from './component/CameraController';
+export type { CameraControls } from './component/event/CameraController';
 export type {
   EditableFeature,
   EditableGeometry,
