@@ -4,13 +4,14 @@
  */
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
-import React, { useContext, useMemo } from 'react';
+import React, { forwardRef, useContext, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL, { MapViewProps } from '@react-native-mapbox-gl/maps';
 
 import { DraggablePoints } from './geometry/DraggablePoints';
 import { ColdGeometry } from './geometry/ColdGeometry';
 import { HotGeometry } from './geometry/HotGeometry';
+import { GeometryIO } from './geometry/GeometryIO';
 import { StoreContext } from '../state/StoreContext';
 import { useEventHandlers } from '../hooks/useEventHandlers';
 import type { Event } from '../type/events';
@@ -20,6 +21,7 @@ import { StyleContext } from './StyleContext';
 import { CameraController } from './CameraController';
 import type { CameraControls } from './CameraController';
 import type { ShapeComparator } from './geometry/ColdGeometry';
+import type { GeometryIORef } from './geometry/GeometryIO';
 
 /**
  * Render properties for [[GeometryEditor]]
@@ -71,9 +73,13 @@ const styles = StyleSheet.create({
  * from the application to edit map geometry layers.
  *
  * @param props Render properties
+ * @param ref React ref to which library methods are attached
  * @return Renderable React node
  */
-export function _GeometryEditor(props: GeometryEditorProps) {
+function GeometryEditorComponent(
+  props: GeometryEditorProps,
+  ref: React.Ref<GeometryIORef>
+) {
   const {
     cameraControls,
     shapeComparator,
@@ -110,6 +116,7 @@ export function _GeometryEditor(props: GeometryEditorProps) {
   return (
     <>
       {cameraController}
+      <GeometryIO ref={ref} />
       <MapboxGL.MapView
         style={[styles.map, mapStyle]}
         onPress={onPress}
@@ -127,6 +134,18 @@ export function _GeometryEditor(props: GeometryEditorProps) {
 }
 
 /**
- * Renderable MobX wrapper for [[_GeometryEditor]]
+ * React ref forwarding version of [[GeometryEditorComponent]], for use
+ * by code internal to the library.
  */
-export const GeometryEditor = observer(_GeometryEditor);
+export const _GeometryEditor = forwardRef(GeometryEditorComponent);
+
+/**
+ * Renderable MobX wrapper for [[GeometryEditorComponent]], with React ref forwarding,
+ * for use by code external to the library.
+ *
+ * Note: `observer()` should be the first higher-order component applied
+ * (https://mobx.js.org/react-integration.html#tips), but React will warn
+ * about trying to forward a ref to a memoized function
+ * (https://github.com/facebook/react/commit/c898020e015f4ee6f793a652668d6d78b0d43e76)
+ */
+export const GeometryEditor = observer(forwardRef(GeometryEditorComponent));

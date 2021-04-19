@@ -15,6 +15,7 @@ import {
   LineStringRole,
   RnmgeID,
 } from '../type/geometry';
+import type { EditableFeature } from '../type/geometry';
 
 /**
  * Possible geometry editing modes
@@ -358,6 +359,8 @@ export class ControlsModel extends Model({
     this.clearMetadata();
 
     this.deselectVertex();
+
+    this.draggingLock.unlockNow();
 
     // Change the editing mode
     this.prevMode = this.mode;
@@ -704,8 +707,6 @@ export class ControlsModel extends Model({
               message: 'Discard all changes and clear the editing history?',
               reason: ConfirmationReason.Discard,
             });
-          } else {
-            console.warn(`There are no actions to cancel.`);
           }
           break;
       }
@@ -852,6 +853,36 @@ export class ControlsModel extends Model({
           `The current editing mode, ${this.mode} does not have a delete action.`
         );
         break;
+    }
+  }
+
+  /**
+   * Import features into the features store, cancel any active editing
+   * operations, and return to the default editing mode.
+   *
+   * @param features The new features
+   * @param options Options controlling the import operation
+   */
+  @modelAction
+  importFeatures(
+    features: Array<EditableFeature>,
+    options: {
+      /**
+       * Whether the features should be added to (`false`), or replace (`true`),
+       * the features currently in the features store.
+       */
+      replace: boolean;
+    }
+  ) {
+    const featureStore = featureListContext.get(this);
+    if (featureStore) {
+      // Reset all editing state
+      this.cancel(true);
+      this.isPageOpen = false;
+      this.setDefaultMode();
+      this.prevMode = this.mode;
+
+      featureStore.importFeatures(features, options);
     }
   }
 
