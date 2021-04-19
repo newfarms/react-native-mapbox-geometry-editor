@@ -18,8 +18,10 @@ import { MetadataPreview } from './geometry/MetadataPreview';
 import { MetadataEditorProvider } from './ui/metadata/MetadataEditorProvider';
 import { defaultMetadataSchemaGeneratorMap } from '../util/metadata/schema';
 import { PageController } from './ui/page/PageController';
+import { InteractionNotifier } from './event/InteractionNotifier';
 import type { MetadataSchemaGeneratorMap } from '../type/metadata';
 import type { PageProps } from '../type/ui';
+import type { InteractionEventProps } from '../type/ui';
 import type { GeometryIORef } from './geometry/GeometryIO';
 
 /**
@@ -41,6 +43,10 @@ export interface GeometryEditorUIProps extends GeometryEditorProps {
    * the page to close if necessary.
    */
   readonly pageProps?: PageProps;
+  /**
+   * Callbacks to notify the client application of shape or metadata editing events
+   */
+  readonly interactionEventProps?: InteractionEventProps;
 }
 
 /**
@@ -59,6 +65,7 @@ function _GeometryEditorUI(
     style: containerStyle = {},
     metadataSchemaGeneratorMap = defaultMetadataSchemaGeneratorMap,
     pageProps,
+    interactionEventProps,
     ...restProps
   } = props;
 
@@ -78,6 +85,7 @@ function _GeometryEditorUI(
             </MetadataEditorProvider>
             <ConfirmationDialog visibleIfPageOpen={false} />
           </MetadataContext.Provider>
+          <InteractionNotifier {...interactionEventProps} />
         </StoreProvider>
       </PaperProvider>
     </View>

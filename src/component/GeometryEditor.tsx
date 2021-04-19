@@ -18,8 +18,8 @@ import type { Event } from '../type/events';
 import type { StyleGeneratorMap } from '../type/style';
 import { defaultStyleGeneratorMap } from '../util/defaultStyleGenerators';
 import { StyleContext } from './StyleContext';
-import { CameraController } from './CameraController';
-import type { CameraControls } from './CameraController';
+import { CameraController } from './event/CameraController';
+import type { CameraControls } from './event/CameraController';
 import type { ShapeComparator } from './geometry/ColdGeometry';
 import type { GeometryIORef } from './geometry/GeometryIO';
 

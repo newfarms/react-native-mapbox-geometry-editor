@@ -3,7 +3,7 @@
  */
 
 import * as React from 'react';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   Alert,
   LogBox,
@@ -38,6 +38,12 @@ if (!PerformanceNow) {
  * https://github.com/callstack/react-native-paper/blob/212aa73715f157e1a77f8738859a608a543ba04c/example/src/index.tsx#L35
  */
 LogBox.ignoreLogs(['Require cycle:']);
+/**
+ * Hide known issue in the library (refer to the README)
+ */
+LogBox.ignoreLogs([
+  '[mobx] Derivation observer_StoreProvider is created/updated without reading any observable value',
+]);
 
 /**
  * Polyfill for React Native needed by 'react-native-mapbox-geometry-editor'
@@ -58,6 +64,7 @@ import type {
   DraggablePointStyle,
   EditableFeature,
   GeometryIORef,
+  InteractionEventProps,
   MetadataSchema,
   SemanticGeometryType,
   StyleGeneratorMap,
@@ -477,6 +484,7 @@ const cameraMoveTime = 200; // Milliseconds
 function IOControls({
   onImport,
   onExport,
+  disabled,
 }: {
   /**
    * Import button press event handler
@@ -486,11 +494,31 @@ function IOControls({
    * Export button press event handler
    */
   onExport: () => void;
+  /**
+   * Whether or not the buttons should be disabled
+   */
+  disabled: boolean;
 }) {
+  let importColor = 'orange';
+  let exportColor = 'seagreen';
+  if (disabled) {
+    importColor = 'grey';
+    exportColor = 'grey';
+  }
   return (
     <View style={styles.ioControlsContainer}>
-      <Button color="orange" onPress={onImport} title="Import static shapes" />
-      <Button color="seagreen" onPress={onExport} title="Export shapes" />
+      <Button
+        color={importColor}
+        onPress={onImport}
+        title="Import static shapes"
+        disabled={disabled}
+      />
+      <Button
+        color={exportColor}
+        onPress={onExport}
+        title="Export shapes"
+        disabled={disabled}
+      />
     </View>
   );
 }
@@ -504,8 +532,8 @@ export default function App() {
    * that are triggered by certain user actions.
    */
   const cameraRef = useRef<MapboxGL.Camera>(null);
-  const cameraControls = useMemo(() => {
-    const controls: CameraControls = {
+  const cameraControls: CameraControls = useMemo(() => {
+    return {
       fitBounds: (northEastCoordinates, southWestCoordinates, padding) => {
         cameraRef.current?.fitBounds(
           northEastCoordinates,
@@ -518,7 +546,6 @@ export default function App() {
         cameraRef.current?.moveTo(coordinates, cameraMoveTime);
       },
     };
-    return controls;
   }, [cameraRef]);
 
   /**
@@ -600,6 +627,17 @@ export default function App() {
     },
   };
 
+  /**
+   * Enable or disable the import and export buttons as a function of the current
+   * geometry editing operation
+   */
+  const [disableIO, setDisableIO] = useState(false);
+  const interactionHandlers: InteractionEventProps = useMemo(() => {
+    return {
+      onEditingStatus: setDisableIO,
+    };
+  }, [setDisableIO]);
+
   return (
     <SafeAreaView style={styles.container}>
       <GeometryEditorUI
@@ -611,6 +649,7 @@ export default function App() {
         }}
         metadataSchemaGeneratorMap={metadataSchemaGeneratorMap}
         styleGenerators={styleGeneratorMap}
+        interactionEventProps={interactionHandlers}
         ref={ioRef}
       >
         <MapboxGL.Camera
@@ -619,7 +658,7 @@ export default function App() {
           zoomLevel={14}
         />
       </GeometryEditorUI>
-      <IOControls {...ioHandlers} />
+      <IOControls disabled={disableIO} {...ioHandlers} />
     </SafeAreaView>
   );
 }
