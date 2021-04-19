@@ -96,4 +96,3 @@ export type {
   InvalidGeometryError,
   UnsupportedGeometryError,
 } from './util/geometry/io';
-export { InteractionMode } from './state/ControlsModel';

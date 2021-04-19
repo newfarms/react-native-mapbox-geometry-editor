@@ -55,7 +55,6 @@ import {
   FeatureLifecycleStage,
   featureLifecycleStageColor,
   GeometryEditorUI,
-  InteractionMode,
   CoordinateRole,
   validateMetadata,
   MetadataSchemaGeneratorMap,
@@ -635,22 +634,7 @@ export default function App() {
   const [disableIO, setDisableIO] = useState(false);
   const interactionHandlers: InteractionEventProps = useMemo(() => {
     return {
-      onMode: (mode: InteractionMode) => {
-        switch (mode) {
-          case InteractionMode.DragPoint:
-          case InteractionMode.DrawPoint:
-          case InteractionMode.DrawPolygon:
-          case InteractionMode.DrawPolyline:
-          case InteractionMode.EditMetadata:
-          case InteractionMode.EditVertices:
-          case InteractionMode.SelectMultiple:
-            setDisableIO(true);
-            break;
-          case InteractionMode.SelectSingle:
-            setDisableIO(false);
-            break;
-        }
-      },
+      onEditingStatus: setDisableIO,
     };
   }, [setDisableIO]);
 

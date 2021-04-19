@@ -250,6 +250,31 @@ export class ControlsModel extends Model({
   }
 
   /**
+   * Return whether it is appropriate for geometry to be imported
+   * or exported (`false`), or whether an editing session is in progress
+   * such that it is not appropriate to import or export geometry (`true`).
+   */
+  @computed
+  get isEditing() {
+    const features = featureListContext.get(this);
+    if (features) {
+      switch (this.mode) {
+        case InteractionMode.SelectMultiple:
+        case InteractionMode.SelectSingle:
+          return features.canUndo;
+        case InteractionMode.EditVertices:
+        case InteractionMode.DragPoint:
+        case InteractionMode.DrawPoint:
+        case InteractionMode.DrawPolygon:
+        case InteractionMode.DrawPolyline:
+        case InteractionMode.EditMetadata:
+          return true;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Set the editing mode to `mode`, or restore the default editing mode
    * if `mode` is the current editing mode
    *

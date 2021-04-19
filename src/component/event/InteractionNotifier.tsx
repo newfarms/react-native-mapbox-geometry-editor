@@ -11,19 +11,19 @@ import type { InteractionEventProps } from '../../type/ui';
  * @param props Render properties
  */
 function _InteractionNotifier({
-  onMode,
+  onEditingStatus,
   children,
 }: InteractionEventProps & { readonly children?: React.ReactNode }) {
   const { controls } = useContext(StoreContext);
 
-  const mode = controls.mode;
+  const isEditing = controls.isEditing;
 
   /**
    * Pass events to the event callbacks
    */
   useEffect(() => {
-    onMode?.(mode);
-  }, [onMode, mode]);
+    onEditingStatus?.(isEditing);
+  }, [onEditingStatus, isEditing]);
 
   /**
    * This component has nothing meaningful to render, and is just used to integrate

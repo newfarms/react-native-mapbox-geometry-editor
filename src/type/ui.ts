@@ -1,5 +1,3 @@
-import type { InteractionMode } from '../state/ControlsModel';
-
 /**
  * Callbacks that a [[PageOpenCb]] receives
  */
@@ -58,15 +56,17 @@ export interface PageProps {
 }
 
 /**
- * A callback that notifies the client application of the current [[InteractionMode]]
+ * A callback that notifies the client application of whether it is appropriate
+ * for geometry to be imported or exported (`false`), or whether an editing session
+ * is in progress such that it is not appropriate to import or export geometry (`true`).
  *
  * This function should be idempotent.
  */
-export interface InteractionModeCb {
+export interface EditingStatusCb {
   /**
-   * @param mode the current [[InteractionMode]]
+   * @param status the editing status of the library
    */
-  (mode: InteractionMode): void;
+  (status: boolean): void;
 }
 
 /**
@@ -74,7 +74,7 @@ export interface InteractionModeCb {
  */
 export interface InteractionEventProps {
   /**
-   * An event callback for changes to the current [[InteractionMode]]
+   * An event callback for changes to the current editing status
    */
-  readonly onMode?: InteractionModeCb;
+  readonly onEditingStatus?: EditingStatusCb;
 }
