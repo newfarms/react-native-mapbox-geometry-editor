@@ -1,3 +1,5 @@
+import type { InteractionMode } from '../state/ControlsModel';
+
 /**
  * Callbacks that a [[PageOpenCb]] receives
  */
@@ -53,4 +55,26 @@ export interface PageProps {
    * A page close event callback
    */
   closePage: PageCloseCb;
+}
+
+/**
+ * A callback that notifies the client application of the current [[InteractionMode]]
+ *
+ * This function should be idempotent.
+ */
+export interface InteractionModeCb {
+  /**
+   * @param mode the current [[InteractionMode]]
+   */
+  (mode: InteractionMode): void;
+}
+
+/**
+ * Callbacks to notify the client application of shape or metadata editing events
+ */
+export interface InteractionEventProps {
+  /**
+   * An event callback for changes to the current [[InteractionMode]]
+   */
+  readonly onMode?: InteractionModeCb;
 }

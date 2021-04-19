@@ -75,6 +75,7 @@ export type {
   StyleGeneratorMap,
 } from './type/style';
 export type {
+  InteractionEventProps,
   PageProps,
   PageOpenCb,
   PageCloseCb,
@@ -95,3 +96,4 @@ export type {
   InvalidGeometryError,
   UnsupportedGeometryError,
 } from './util/geometry/io';
+export { InteractionMode } from './state/ControlsModel';
