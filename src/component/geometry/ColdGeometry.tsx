@@ -13,7 +13,7 @@ import type { Feature, LineString, Polygon } from 'geojson';
 
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
-import { orderShapes } from '../../util/geometry';
+import { orderShapes } from '../../util/geometry/display';
 import type {
   RenderNonPointFeatureCollection,
   RenderProperties,

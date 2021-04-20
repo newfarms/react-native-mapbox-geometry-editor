@@ -2,7 +2,7 @@
  * Geometry editor map canvas with editing controls user interface
  * @packageDocumentation
  */
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
@@ -18,8 +18,11 @@ import { MetadataPreview } from './geometry/MetadataPreview';
 import { MetadataEditorProvider } from './ui/metadata/MetadataEditorProvider';
 import { defaultMetadataSchemaGeneratorMap } from '../util/metadata/schema';
 import { PageController } from './ui/page/PageController';
+import { InteractionNotifier } from './event/InteractionNotifier';
 import type { MetadataSchemaGeneratorMap } from '../type/metadata';
 import type { PageProps } from '../type/ui';
+import type { InteractionEventProps } from '../type/ui';
+import type { GeometryIORef } from './geometry/GeometryIO';
 
 /**
  * Render properties for [[GeometryEditorUI]]
@@ -40,6 +43,10 @@ export interface GeometryEditorUIProps extends GeometryEditorProps {
    * the page to close if necessary.
    */
   readonly pageProps?: PageProps;
+  /**
+   * Callbacks to notify the client application of shape or metadata editing events
+   */
+  readonly interactionEventProps?: InteractionEventProps;
 }
 
 /**
@@ -47,13 +54,18 @@ export interface GeometryEditorUIProps extends GeometryEditorProps {
  * in addition to the underlying core geometry editing library.
  *
  * @param props Render properties
+ * @param ref React ref to which library methods are attached
  * @return Renderable React node
  */
-export function GeometryEditorUI(props: GeometryEditorUIProps) {
+function _GeometryEditorUI(
+  props: GeometryEditorUIProps,
+  ref: React.Ref<GeometryIORef>
+) {
   const {
     style: containerStyle = {},
     metadataSchemaGeneratorMap = defaultMetadataSchemaGeneratorMap,
     pageProps,
+    interactionEventProps,
     ...restProps
   } = props;
 
@@ -62,7 +74,7 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
       <PaperProvider>
         <StoreProvider>
           <MetadataContext.Provider value={metadataSchemaGeneratorMap}>
-            <_GeometryEditor {...restProps}>
+            <_GeometryEditor ref={ref} {...restProps}>
               <MetadataPreview />
               {props.children}
             </_GeometryEditor>
@@ -73,8 +85,14 @@ export function GeometryEditorUI(props: GeometryEditorUIProps) {
             </MetadataEditorProvider>
             <ConfirmationDialog visibleIfPageOpen={false} />
           </MetadataContext.Provider>
+          <InteractionNotifier {...interactionEventProps} />
         </StoreProvider>
       </PaperProvider>
     </View>
   );
 }
+
+/**
+ * React ref forwarding version of [[_GeometryEditorUI]]
+ */
+export const GeometryEditorUI = forwardRef(_GeometryEditorUI);

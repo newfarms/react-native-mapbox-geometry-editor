@@ -3,12 +3,34 @@
  */
 
 import * as React from 'react';
-import { useMemo, useRef } from 'react';
-import { LogBox, SafeAreaView, StyleSheet } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import {
+  Alert,
+  LogBox,
+  SafeAreaView,
+  StyleSheet,
+  View,
+  Button,
+} from 'react-native';
 
 import MapboxGL from '@react-native-mapbox-gl/maps';
 
 import token from '../mapbox_token.json';
+import sampleFeatures from './sample.json';
+import type { FeatureCollection } from 'geojson';
+
+/**
+ * A way to get the `performance.now()` interface, for timing code,
+ * in both debug and release mode
+ * See https://github.com/MaxGraey/react-native-console-time-polyfill/blob/master/index.js
+ */
+const getTimeMilliseconds =
+  ((global as any).performance && (global as any).performance.now) ||
+  (global as any).performanceNow ||
+  (global as any).nativePerformanceNow;
+if (!getTimeMilliseconds) {
+  throw new Error('Failed to find performance.now() or an equivalent.');
+}
 
 /**
  * Hide warnings about require cycles in React Native Paper,
@@ -16,6 +38,12 @@ import token from '../mapbox_token.json';
  * https://github.com/callstack/react-native-paper/blob/212aa73715f157e1a77f8738859a608a543ba04c/example/src/index.tsx#L35
  */
 LogBox.ignoreLogs(['Require cycle:']);
+/**
+ * Hide known issue in the library (refer to the README)
+ */
+LogBox.ignoreLogs([
+  '[mobx] Derivation observer_StoreProvider is created/updated without reading any observable value',
+]);
 
 /**
  * Polyfill for React Native needed by 'react-native-mapbox-geometry-editor'
@@ -35,6 +63,8 @@ import type {
   CameraControls,
   DraggablePointStyle,
   EditableFeature,
+  GeometryIORef,
+  InteractionEventProps,
   MetadataSchema,
   SemanticGeometryType,
   StyleGeneratorMap,
@@ -56,6 +86,11 @@ const styles = StyleSheet.create({
     margin: 10,
     borderRadius: 5,
     overflow: 'hidden',
+  },
+  ioControlsContainer: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
 });
 
@@ -442,6 +477,53 @@ if (validationResult.dataErrors) {
 const cameraMoveTime = 200; // Milliseconds
 
 /**
+ * A component that renders buttons for the user to import and export
+ * geometry
+ * @param props Render properties
+ */
+function IOControls({
+  onImport,
+  onExport,
+  disabled,
+}: {
+  /**
+   * Import button press event handler
+   */
+  onImport: () => void;
+  /**
+   * Export button press event handler
+   */
+  onExport: () => void;
+  /**
+   * Whether or not the buttons should be disabled
+   */
+  disabled: boolean;
+}) {
+  let importColor = 'orange';
+  let exportColor = 'seagreen';
+  if (disabled) {
+    importColor = 'grey';
+    exportColor = 'grey';
+  }
+  return (
+    <View style={styles.ioControlsContainer}>
+      <Button
+        color={importColor}
+        onPress={onImport}
+        title="Import static shapes"
+        disabled={disabled}
+      />
+      <Button
+        color={exportColor}
+        onPress={onExport}
+        title="Export shapes"
+        disabled={disabled}
+      />
+    </View>
+  );
+}
+
+/**
  * Render a map page with a demonstration of the geometry editor library's functionality
  */
 export default function App() {
@@ -450,8 +532,8 @@ export default function App() {
    * that are triggered by certain user actions.
    */
   const cameraRef = useRef<MapboxGL.Camera>(null);
-  const cameraControls = useMemo(() => {
-    const controls: CameraControls = {
+  const cameraControls: CameraControls = useMemo(() => {
+    return {
       fitBounds: (northEastCoordinates, southWestCoordinates, padding) => {
         cameraRef.current?.fitBounds(
           northEastCoordinates,
@@ -464,8 +546,97 @@ export default function App() {
         cameraRef.current?.moveTo(coordinates, cameraMoveTime);
       },
     };
-    return controls;
   }, [cameraRef]);
+
+  /**
+   * Geometry import and export functionality
+   */
+  const ioRef = useRef<GeometryIORef>(null);
+  const ioHandlers = {
+    onImport: () => {
+      (async () => {
+        if (ioRef.current) {
+          /**
+           * Time the import operation and display the time in an alert
+           */
+          const t0 = getTimeMilliseconds();
+          try {
+            const result = await ioRef.current.import(
+              sampleFeatures as FeatureCollection,
+              {
+                replace: true,
+                strict: false,
+                validate: true,
+              }
+            );
+
+            const t1 = getTimeMilliseconds();
+            Alert.alert(
+              'Import result',
+              `Data imported ${result.exact ? 'exactly' : 'with changes'} in ${
+                t1 - t0
+              } milliseconds with ${result?.errors.length} errors.`
+            );
+          } catch (e) {
+            console.error(e);
+            let message = 'Unknown error';
+            if (e instanceof Error) {
+              message = e.message;
+            }
+            Alert.alert('Import failed', message);
+          }
+        }
+      })();
+    },
+    onExport: () => {
+      (async () => {
+        if (ioRef.current) {
+          /**
+           * Time the export operation and display the time in an alert
+           */
+          const t0 = getTimeMilliseconds();
+          try {
+            const result = await ioRef.current.export();
+            const jsonResult = JSON.stringify(result, null, 1);
+            /**
+             * Avoid flooding the console with the result
+             */
+            if (jsonResult.length < 10000) {
+              console.log('Export result: \n', jsonResult);
+            } else {
+              console.log(
+                `Stringified export result (with whitespace) has ${jsonResult.length} characters (not shown).`
+              );
+            }
+
+            const t1 = getTimeMilliseconds();
+            Alert.alert(
+              'Export result',
+              `Data exported in ${t1 - t0} milliseconds.`
+            );
+          } catch (e) {
+            console.error(e);
+            let message = 'Unknown error';
+            if (e instanceof Error) {
+              message = e.message;
+            }
+            Alert.alert('Export failed', message);
+          }
+        }
+      })();
+    },
+  };
+
+  /**
+   * Enable or disable the import and export buttons as a function of the current
+   * geometry editing operation
+   */
+  const [disableIO, setDisableIO] = useState(false);
+  const interactionHandlers: InteractionEventProps = useMemo(() => {
+    return {
+      onEditingStatus: setDisableIO,
+    };
+  }, [setDisableIO]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -478,6 +649,8 @@ export default function App() {
         }}
         metadataSchemaGeneratorMap={metadataSchemaGeneratorMap}
         styleGenerators={styleGeneratorMap}
+        interactionEventProps={interactionHandlers}
+        ref={ioRef}
       >
         <MapboxGL.Camera
           ref={cameraRef}
@@ -485,6 +658,7 @@ export default function App() {
           zoomLevel={14}
         />
       </GeometryEditorUI>
+      <IOControls disabled={disableIO} {...ioHandlers} />
     </SafeAreaView>
   );
 }

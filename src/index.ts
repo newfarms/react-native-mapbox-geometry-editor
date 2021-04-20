@@ -39,11 +39,12 @@ export {
   lineStringRoleColor,
 } from './util/defaultStyleGenerators';
 export { validateMetadata } from './util/metadata/schema';
-export { compareShapesByOverlap } from './util/geometry';
+export { compareShapesByOverlap } from './util/geometry/display';
 
-export type { CameraControls } from './component/CameraController';
+export type { CameraControls } from './component/event/CameraController';
 export type {
   EditableFeature,
+  EditableGeometry,
   RenderFeature,
   RenderProperties,
   SemanticGeometryType,
@@ -74,6 +75,7 @@ export type {
   StyleGeneratorMap,
 } from './type/style';
 export type {
+  InteractionEventProps,
   PageProps,
   PageOpenCb,
   PageCloseCb,
@@ -82,3 +84,15 @@ export type {
 export { Comparison } from './util/collections';
 export type { Comparator } from './util/collections';
 export type { ShapeComparator } from './component/geometry/ColdGeometry';
+export type {
+  GeometryImportOptions,
+  GeometryImportResult,
+  GeometryIORef,
+} from './component/geometry/GeometryIO';
+export type {
+  GeometryImportError,
+  InvalidJSONError,
+  InvalidGeoJSONError,
+  InvalidGeometryError,
+  UnsupportedGeometryError,
+} from './util/geometry/io';

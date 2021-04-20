@@ -54,3 +54,27 @@ export interface PageProps {
    */
   closePage: PageCloseCb;
 }
+
+/**
+ * A callback that notifies the client application of whether it is appropriate
+ * for geometry to be imported or exported (`false`), or whether an editing session
+ * is in progress such that it is not appropriate to import or export geometry (`true`).
+ *
+ * This function should be idempotent.
+ */
+export interface EditingStatusCb {
+  /**
+   * @param status the editing status of the library
+   */
+  (status: boolean): void;
+}
+
+/**
+ * Callbacks to notify the client application of shape or metadata editing events
+ */
+export interface InteractionEventProps {
+  /**
+   * An event callback for changes to the current editing status
+   */
+  readonly onEditingStatus?: EditingStatusCb;
+}

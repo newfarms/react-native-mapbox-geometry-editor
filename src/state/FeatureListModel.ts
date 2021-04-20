@@ -15,12 +15,13 @@ import flatten from 'lodash/flatten';
 import filter from 'lodash/filter';
 import remove from 'lodash/remove';
 import every from 'lodash/every';
-import type { Position, GeoJsonProperties } from 'geojson';
+import type { FeatureCollection, Position, GeoJsonProperties } from 'geojson';
 
 import { FeatureModel } from './FeatureModel';
 import type {
   DraggablePosition,
   EditableFeature,
+  EditableGeometry,
   EditableGeometryType,
   RenderFeatureCollection,
   RenderPointFeatureCollection,
@@ -74,6 +75,45 @@ export class FeatureListModel extends Model({
      * object, as it only refers to this object.
      * See https://mobx.js.org/reactions.html#mem-leak-example
      */
+  }
+
+  /**
+   * Import features
+   *
+   * Preconditions: Current features are in a clean state. For instance,
+   *  `endEditingSession()` has been called.
+   *
+   * @param geojson The new features
+   * @param options Options controlling the import operation
+   */
+  @modelAction
+  importFeatures(
+    geojson: Array<EditableFeature>,
+    options: {
+      /**
+       * Whether the features should be added to (`false`), or replace (`true`),
+       * the current features
+       */
+      replace: boolean;
+    }
+  ) {
+    withoutUndo(() => {
+      let models = geojson.map((feature) => {
+        return new FeatureModel({
+          stage: FeatureLifecycleStage.View,
+          geojson: feature,
+          finalType: feature.geometry.type,
+        });
+      });
+      if (options.replace) {
+        // Overwrite features
+        this.features = models;
+      } else {
+        this.features = this.features.concat(models);
+      }
+    });
+    // Exclude the import operation from the editing history
+    this.clearHistory();
   }
 
   /**
@@ -312,6 +352,16 @@ export class FeatureListModel extends Model({
   get coldNonPointFeatures(): RenderNonPointFeatureCollection {
     return featureCollection(
       flatten(this.features.map((feature) => feature.coldNonPointFeatures))
+    );
+  }
+
+  /**
+   * Returns a deep copy of all GeoJSON features
+   */
+  @computed
+  get allGeoJSON(): FeatureCollection<EditableGeometry> {
+    return featureCollection(
+      this.features.map((feature) => feature.safeGeoJSON)
     );
   }
 

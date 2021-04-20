@@ -1,6 +1,6 @@
 import { lineString, polygon } from '@turf/helpers';
 
-import { orderShapes } from '../../util/geometry';
+import { orderShapes } from '../../util/geometry/display';
 import { listsToSets } from '../test_helpers/collections';
 
 /**
