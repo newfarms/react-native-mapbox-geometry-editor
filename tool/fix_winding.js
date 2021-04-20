@@ -39,11 +39,19 @@ if (options.debug) {
 var inputDataString = readFileSync(options.inputFile, { encoding: 'utf8' });
 var hints = hint(inputDataString);
 const originalNumberOfHints = hints.length;
+/**
+ * We can't fix problems other than winding order.
+ * Filter out winding order problems to test for serious errors.
+ */
 hints = reject(hints, (val) => val.message.includes('right-hand rule'));
 if (hints.length > 0) {
   console.error(hints);
   throw new Error('GeoJSON is not valid');
 }
+/**
+ * If the above filter operation changed the length of the list,
+ * then there are winding order problems
+ */
 if (hints.length !== originalNumberOfHints) {
   console.log('Winding issues were detected and will be fixed.');
 } else {
