@@ -24,11 +24,11 @@ import type { FeatureCollection } from 'geojson';
  * in both debug and release mode
  * See https://github.com/MaxGraey/react-native-console-time-polyfill/blob/master/index.js
  */
-const PerformanceNow =
+const getTimeMilliseconds =
   ((global as any).performance && (global as any).performance.now) ||
   (global as any).performanceNow ||
   (global as any).nativePerformanceNow;
-if (!PerformanceNow) {
+if (!getTimeMilliseconds) {
   throw new Error('Failed to find performance.now() or an equivalent.');
 }
 
@@ -559,7 +559,7 @@ export default function App() {
           /**
            * Time the import operation and display the time in an alert
            */
-          const t0 = PerformanceNow();
+          const t0 = getTimeMilliseconds();
           try {
             const result = await ioRef.current.import(
               sampleFeatures as FeatureCollection,
@@ -570,7 +570,7 @@ export default function App() {
               }
             );
 
-            const t1 = PerformanceNow();
+            const t1 = getTimeMilliseconds();
             Alert.alert(
               'Import result',
               `Data imported ${result.exact ? 'exactly' : 'with changes'} in ${
@@ -594,7 +594,7 @@ export default function App() {
           /**
            * Time the export operation and display the time in an alert
            */
-          const t0 = PerformanceNow();
+          const t0 = getTimeMilliseconds();
           try {
             const result = await ioRef.current.export();
             const jsonResult = JSON.stringify(result, null, 1);
@@ -609,7 +609,7 @@ export default function App() {
               );
             }
 
-            const t1 = PerformanceNow();
+            const t1 = getTimeMilliseconds();
             Alert.alert(
               'Export result',
               `Data exported in ${t1 - t0} milliseconds.`
