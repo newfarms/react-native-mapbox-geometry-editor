@@ -123,10 +123,10 @@ function GeometryEditorComponent(
         {...restMapProps}
       >
         <StyleContext.Provider value={{ styleGenerators }}>
+          {props.children}
           <ColdGeometry shapeComparator={shapeComparator} />
           <HotGeometry />
           <DraggablePoints />
-          {props.children}
         </StyleContext.Provider>
       </MapboxGL.MapView>
     </>
