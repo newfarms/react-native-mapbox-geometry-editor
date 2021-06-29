@@ -49,6 +49,13 @@ export interface GeometryEditorProps {
    */
   readonly shapeComparator?: ShapeComparator;
   /**
+   * The ID of the map layer above which all layers will be rendered.
+   * While this is a `prop`, it is possible that Mapbox will not respect changes
+   * to its value during subsequent re-renders, so it may be better to set it to a constant.
+   * See https://github.com/react-native-mapbox-gl/maps/issues/248
+   */
+  aboveLayerID?: string;
+  /**
    * Functions for giving hints to the Mapbox `Camera`
    */
   readonly cameraControls?: CameraControls;
@@ -83,6 +90,7 @@ function GeometryEditorComponent(
   const {
     cameraControls,
     shapeComparator,
+    aboveLayerID,
     mapProps = {},
     styleGenerators = defaultStyleGeneratorMap,
   } = props;
@@ -123,10 +131,13 @@ function GeometryEditorComponent(
         {...restMapProps}
       >
         <StyleContext.Provider value={{ styleGenerators }}>
-          <ColdGeometry shapeComparator={shapeComparator} />
+          {props.children}
+          <ColdGeometry
+            shapeComparator={shapeComparator}
+            aboveLayerID={aboveLayerID}
+          />
           <HotGeometry />
           <DraggablePoints />
-          {props.children}
         </StyleContext.Provider>
       </MapboxGL.MapView>
     </>

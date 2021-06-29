@@ -89,7 +89,7 @@ export type {
   GeometryImportResult,
   GeometryIORef,
 } from './component/geometry/GeometryIO';
-export type {
+export {
   GeometryImportError,
   InvalidJSONError,
   InvalidGeoJSONError,

@@ -60,6 +60,7 @@ function NonPointLayers({
   fillLayerStyle,
   lineLayerStyle,
   shapeComparator,
+  aboveLayerID,
 }: {
   /**
    * The shapes to be rendered
@@ -82,6 +83,10 @@ function NonPointLayers({
    * (e.g. to make intersecting shapes occlude each other in a desired order)
    */
   shapeComparator?: ShapeComparator;
+  /**
+   * Refer to the documentation of [[_ColdGeometry]]
+   */
+  aboveLayerID?: string;
 }) {
   /**
    * Copy to avoid attempting to mutate a prop
@@ -121,6 +126,7 @@ function NonPointLayers({
     >
       <MapboxGL.FillLayer
         id="cold_polygons0"
+        aboveLayerID={aboveLayerID}
         filter={[
           'all',
           ['==', ['geometry-type'], 'Polygon'],
@@ -332,12 +338,20 @@ function NonPointLayers({
  */
 function _ColdGeometry({
   shapeComparator,
+  aboveLayerID,
 }: {
   /**
    * A comparator to use for sorting shapes into layers
    * (e.g. to make intersecting shapes occlude each other in a desired order)
    */
   shapeComparator?: ShapeComparator;
+  /**
+   * The ID of the map layer above which all layers will be rendered.
+   * It is possible that Mapbox will not respect changes
+   * to its value during subsequent re-renders.
+   * See https://github.com/react-native-mapbox-gl/maps/issues/248
+   */
+  aboveLayerID?: string;
 }) {
   const { controls, features } = useContext(StoreContext);
   /**
@@ -379,6 +393,7 @@ function _ColdGeometry({
         fillLayerStyle={styleGenerators.polygon()}
         lineLayerStyle={styleGenerators.polyline()}
         shapeComparator={shapeComparator}
+        aboveLayerID={aboveLayerID}
       />
       <MapboxGL.ShapeSource
         id="cold_geometry_circles"
