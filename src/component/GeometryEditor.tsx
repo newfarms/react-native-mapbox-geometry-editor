@@ -2,7 +2,7 @@
  * Geometry editor map canvas
  * @packageDocumentation
  */
-import { observer } from 'mobx-react-lite';
+import { Observer } from 'mobx-react-lite';
 import { action } from 'mobx';
 import React, { forwardRef, useContext, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
@@ -151,12 +151,27 @@ function GeometryEditorComponent(
 export const _GeometryEditor = forwardRef(GeometryEditorComponent);
 
 /**
+ * MobX observer version of [[GeometryEditorComponent]], suitable for
+ * use with React's `forwardRef`.
+ *
+ * @param props Render properties
+ * @param ref React ref to which library methods are attached
+ * @return Renderable React node
+ */
+function _GeometryEditorObserver(
+  props: GeometryEditorProps,
+  ref: React.Ref<GeometryIORef>
+) {
+  return <Observer>{() => GeometryEditorComponent(props, ref)}</Observer>;
+}
+
+/**
  * Renderable MobX wrapper for [[GeometryEditorComponent]], with React ref forwarding,
  * for use by code external to the library.
  *
- * Note: `observer()` should be the first higher-order component applied
+ * Note: Ordinarily, we would apply the MobX `observer()` higher-order component, followed by `forwardRef`
  * (https://mobx.js.org/react-integration.html#tips), but React will warn
  * about trying to forward a ref to a memoized function
  * (https://github.com/facebook/react/commit/c898020e015f4ee6f793a652668d6d78b0d43e76)
  */
-export const GeometryEditor = observer(forwardRef(GeometryEditorComponent));
+export const GeometryEditor = forwardRef(_GeometryEditorObserver);
