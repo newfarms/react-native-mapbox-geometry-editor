@@ -12,7 +12,7 @@ If you do not need to run the example app, you can use an arbitrary string inste
 Run `yarn bootstrap` in the root directory to install the required dependencies for each package:
 
 ```sh
-yarn bootstrap
+yarn
 ```
 
 While developing, you can run the [example app](/example/) to test your changes.
@@ -56,10 +56,6 @@ Remember to add tests for your change if possible. Run the unit tests by:
 ```sh
 yarn test
 ```
-
-To edit the Objective-C files, open `example/ios/MapboxGeometryEditorExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > react-native-mapbox-geometry-editor`.
-
-To edit the Kotlin files, open `example/android` in Android studio and find the source files at `reactnativemapboxgeometryeditor` under `Android`.
 
 ### Commit message convention
 

@@ -2,7 +2,6 @@
  * React Native Mapbox geometry editor library example
  */
 
-import * as React from 'react';
 import { useMemo, useRef, useState } from 'react';
 import {
   Alert,
