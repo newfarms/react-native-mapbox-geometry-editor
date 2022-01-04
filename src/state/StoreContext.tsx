@@ -1,4 +1,4 @@
-import React from 'react';
+import { createContext } from 'react';
 
 import { RootModel } from './RootModel';
 
@@ -8,4 +8,4 @@ import { RootModel } from './RootModel';
  *
  * @access public
  */
-export const StoreContext = React.createContext(new RootModel({}));
+export const StoreContext = createContext(new RootModel({}));

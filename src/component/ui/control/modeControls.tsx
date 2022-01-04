@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
-import React, { useContext, useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import { ToggleButton } from 'react-native-paper';
 
 import { InteractionMode } from '../../../state/ControlsModel';

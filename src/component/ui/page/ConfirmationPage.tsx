@@ -1,4 +1,5 @@
-import React, { useContext, useMemo } from 'react';
+import { useContext, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
@@ -20,7 +21,7 @@ function _ConfirmationPage({
   /**
    * Child elements to render in the absence of an operation to confirm or cancel
    */
-  readonly children?: React.ReactNode;
+  readonly children?: ReactNode;
 }) {
   const { controls } = useContext(StoreContext);
 

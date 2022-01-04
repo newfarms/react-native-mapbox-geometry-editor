@@ -2,7 +2,9 @@
  * Geometry editor map canvas with editing controls user interface
  * @packageDocumentation
  */
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
+
+import type { Ref } from 'react';
 import { View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
@@ -59,7 +61,7 @@ export interface GeometryEditorUIProps extends GeometryEditorProps {
  */
 function _GeometryEditorUI(
   props: GeometryEditorUIProps,
-  ref: React.Ref<GeometryIORef>
+  ref: Ref<GeometryIORef>
 ) {
   const {
     style: containerStyle = {},

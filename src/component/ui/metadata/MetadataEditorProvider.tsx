@@ -1,4 +1,5 @@
-import React, { useContext, useMemo } from 'react';
+import { useContext, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { useFormik } from 'formik';
@@ -52,7 +53,7 @@ function _InnerMetadataEditorProvider({
    * Information for building metadata forms
    */
   formStarter: MetadataFormStarter;
-  readonly children?: React.ReactNode;
+  readonly children?: ReactNode;
 }) {
   const { controls } = useContext(StoreContext);
 
@@ -130,7 +131,7 @@ const InnerMetadataEditorProvider = observer(_InnerMetadataEditorProvider);
 function _MetadataEditorProvider({
   children,
 }: {
-  readonly children?: React.ReactNode;
+  readonly children?: ReactNode;
 }) {
   const { controls } = useContext(StoreContext);
   /**

@@ -1,4 +1,4 @@
-import React from 'react';
+import { createContext } from 'react';
 
 import { defaultStyleGeneratorMap } from '../util/defaultStyleGenerators';
 
@@ -8,7 +8,7 @@ import { defaultStyleGeneratorMap } from '../util/defaultStyleGenerators';
  *
  * @access public
  */
-export const StyleContext = React.createContext({
+export const StyleContext = createContext({
   /**
    * Default geometry rendering style generators
    */

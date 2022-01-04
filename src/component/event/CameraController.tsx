@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
-import React, { useContext, useEffect } from 'react';
+import { useContext, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import type { BBox, Position } from 'geojson';
 
 import { StoreContext } from '../../state/StoreContext';
@@ -59,7 +60,7 @@ function _CameraController({
   fitBounds,
   moveTo,
   children,
-}: CameraControls & { readonly children?: React.ReactNode }) {
+}: CameraControls & { readonly children?: ReactNode }) {
   const { features } = useContext(StoreContext);
 
   /**

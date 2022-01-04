@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { StyleSheet } from 'react-native';
 import { Paragraph, Button, Card, Surface } from 'react-native-paper';
 

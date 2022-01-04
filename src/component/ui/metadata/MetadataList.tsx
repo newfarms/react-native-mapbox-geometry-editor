@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import { Fragment, useCallback, useMemo } from 'react';
 import { FlatList, StyleSheet } from 'react-native';
 import {
   Divider,
@@ -386,10 +386,10 @@ export function MetadataFieldList({
           <>
             {filteredFieldList.map((item) => {
               return (
-                <React.Fragment key={item.key}>
+                <Fragment key={item.key}>
                   <ListItem item={item} />
                   <Divider />
-                </React.Fragment>
+                </Fragment>
               );
             })}
           </>

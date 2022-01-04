@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Modal, SafeAreaView, StyleSheet } from 'react-native';
 
 import { PageContent } from './PageContent';

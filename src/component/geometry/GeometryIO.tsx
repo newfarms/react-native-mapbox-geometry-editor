@@ -1,4 +1,5 @@
-import React, { forwardRef, useContext, useImperativeHandle } from 'react';
+import { forwardRef, useContext, useImperativeHandle } from 'react';
+import type { ReactNode, Ref } from 'react';
 import type { FeatureCollection } from 'geojson';
 
 import { StoreContext } from '../../state/StoreContext';
@@ -97,8 +98,8 @@ export interface GeometryIORef {
  * @param ref React ref to which import and export methods are attached
  */
 function GeometryIOComponent(
-  { children }: { readonly children?: React.ReactNode },
-  ref: React.Ref<GeometryIORef>
+  { children }: { readonly children?: ReactNode },
+  ref: Ref<GeometryIORef>
 ) {
   const store = useContext(StoreContext);
 
