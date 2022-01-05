@@ -6,7 +6,6 @@ import {
   prop,
   undoMiddleware,
   UndoStore,
-  withoutUndo,
 } from 'mobx-keystone';
 import type { UndoManager } from 'mobx-keystone';
 import { point, featureCollection } from '@turf/helpers';
@@ -97,7 +96,7 @@ export class FeatureListModel extends Model({
       replace: boolean;
     }
   ) {
-    withoutUndo(() => {
+    this.undoManager!.withoutUndo(() => {
       let models = geojson.map((feature) => {
         return new FeatureModel({
           stage: FeatureLifecycleStage.View,
@@ -208,7 +207,7 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   endEditingSession() {
-    withoutUndo(() => {
+    this.undoManager!.withoutUndo(() => {
       /**
        * Finalize all geometry
        * Note that this step is done before clearing the undo/redo history.
@@ -233,8 +232,8 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   clearHistory() {
-    this.undoManager?.clearRedo();
-    this.undoManager?.clearUndo();
+    this.undoManager!.clearRedo();
+    this.undoManager!.clearUndo();
   }
 
   /**
@@ -243,8 +242,8 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   rollbackEditingSession() {
-    while (this.undoManager?.canUndo) {
-      this.undoManager?.undo();
+    while (this.undoManager!.canUndo) {
+      this.undoManager!.undo();
     }
   }
 
@@ -253,10 +252,7 @@ export class FeatureListModel extends Model({
    */
   @computed
   get canUndo(): boolean {
-    if (this.undoManager) {
-      return this.undoManager.canUndo;
-    }
-    return false;
+    return this.undoManager!.canUndo;
   }
 
   /**
@@ -264,8 +260,8 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   undo() {
-    if (this.undoManager?.canUndo) {
-      this.undoManager?.undo();
+    if (this.undoManager!.canUndo) {
+      this.undoManager!.undo();
     } else {
       console.warn('No changes to undo.');
     }
@@ -276,10 +272,7 @@ export class FeatureListModel extends Model({
    */
   @computed
   get canRedo(): boolean {
-    if (this.undoManager) {
-      return this.undoManager.canRedo;
-    }
-    return false;
+    return this.undoManager!.canRedo;
   }
 
   /**
@@ -287,8 +280,8 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   redo() {
-    if (this.undoManager?.canRedo) {
-      this.undoManager?.redo();
+    if (this.undoManager!.canRedo) {
+      this.undoManager!.redo();
     } else {
       console.warn('No changes to redo.');
     }
@@ -299,10 +292,7 @@ export class FeatureListModel extends Model({
    */
   @computed
   get canUndoOrRedo(): boolean {
-    if (this.undoManager) {
-      return this.undoManager.canUndo || this.undoManager.canRedo;
-    }
-    return false;
+    return this.undoManager!.canUndo || this.undoManager!.canRedo;
   }
 
   /**
@@ -385,7 +375,7 @@ export class FeatureListModel extends Model({
     };
     if (finalType === 'Point') {
       // Point drawing mode does not have undo functionality
-      withoutUndo(internalAddPoint);
+      this.undoManager!.withoutUndo(internalAddPoint);
     } else {
       internalAddPoint();
     }
@@ -396,7 +386,7 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   discardNewFeatures() {
-    withoutUndo(() => {
+    this.undoManager!.withoutUndo(() => {
       // Search for all features that are not new
       const arr = remove(
         this.features,
@@ -451,7 +441,7 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   confirmNewFeatures() {
-    withoutUndo(() => {
+    this.undoManager!.withoutUndo(() => {
       const feature = this.rawNewFeature;
       if (feature) {
         if (!feature.isCompleteFeature) {
@@ -578,7 +568,7 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   setDraftMetadata(data: GeoJsonProperties) {
-    withoutUndo(() => {
+    this.undoManager!.withoutUndo(() => {
       if (this.draftMetadataFeature) {
         this.draftMetadataFeature.geojson.properties = data;
       } else {
@@ -616,7 +606,7 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   toggleMultiSelectFeature(id: RnmgeID) {
-    withoutUndo(() => {
+    this.undoManager!.withoutUndo(() => {
       const feature = this.findFeature(id);
       if (feature) {
         if (feature.stage === FeatureLifecycleStage.View) {
@@ -641,7 +631,7 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   toggleSingleSelectFeature(id: RnmgeID) {
-    withoutUndo(() => {
+    this.undoManager!.withoutUndo(() => {
       const feature = this.findFeature(id);
       if (feature) {
         if (feature.stage === FeatureLifecycleStage.View) {
@@ -666,7 +656,7 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   deselectAll() {
-    withoutUndo(() => {
+    this.undoManager!.withoutUndo(() => {
       this.rawSelectedFeatures.forEach((val) => {
         val.stage = FeatureLifecycleStage.View;
       });
@@ -692,7 +682,7 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   selectedPointsToEditable() {
-    withoutUndo(() => {
+    this.undoManager!.withoutUndo(() => {
       if (this.hasSelectedPointsOnly) {
         this.rawSelectedFeatures.forEach((val) => {
           val.stage = FeatureLifecycleStage.EditShape;
@@ -724,7 +714,7 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   selectedComplexShapeToEditable() {
-    withoutUndo(() => {
+    this.undoManager!.withoutUndo(() => {
       if (this.hasOneSelectedComplexShapeOnly) {
         this.rawSelectedFeatures[0].stage = FeatureLifecycleStage.EditShape;
       } else {
@@ -743,7 +733,7 @@ export class FeatureListModel extends Model({
       | FeatureLifecycleStage.SelectMultiple
       | FeatureLifecycleStage.SelectSingle
   ) {
-    withoutUndo(() => {
+    this.undoManager!.withoutUndo(() => {
       this.features.forEach((val) => {
         if (val.stage === FeatureLifecycleStage.EditShape) {
           val.stage = stage;
@@ -757,7 +747,7 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   selectedToEditMetadata() {
-    withoutUndo(() => {
+    this.undoManager!.withoutUndo(() => {
       if (this.rawFocusedFeature) {
         this.rawFocusedFeature.stage = FeatureLifecycleStage.EditMetadata;
       }
@@ -769,7 +759,7 @@ export class FeatureListModel extends Model({
    */
   @modelAction
   draftMetadataToSelected() {
-    withoutUndo(() => {
+    this.undoManager!.withoutUndo(() => {
       if (this.draftMetadataFeature) {
         this.draftMetadataFeature.stage = FeatureLifecycleStage.SelectSingle;
       }
