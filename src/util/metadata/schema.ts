@@ -439,7 +439,7 @@ function schemaFieldIteratee(
           prev.schemaErrors
         );
         initialValue = result.initialValue;
-        ((formElement as unknown) as EnumFieldDescription).options =
+        (formElement as unknown as EnumFieldDescription).options =
           result.options;
         break;
       }

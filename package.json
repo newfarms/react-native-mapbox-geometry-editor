@@ -58,7 +58,7 @@
     "@types/yup": "^0.29.13",
     "commander": "^8.3.0",
     "commitlint": "^11.0.0",
-    "eslint": "^7.32.0",
+    "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "husky": "^4.3.8",
@@ -112,6 +112,8 @@
       "prettier"
     ],
     "rules": {
+      "@typescript-eslint/no-shadow": "error",
+      "no-shadow": "off",
       "prettier/prettier": [
         "error",
         {
@@ -129,7 +131,10 @@
   "eslintIgnore": [
     "docs/",
     "lib/",
-    "node_modules/"
+    "node_modules/",
+    "scripts/bootstrap.js",
+    "tool/fix_winding.js",
+    "*.config.js"
   ],
   "prettier": {
     "quoteProps": "consistent",
@@ -183,5 +188,9 @@
     "react-native-paper": "^4.11.1",
     "react-native-responsive-screen": "^1.4.2",
     "yup": "^0.32.11"
+  },
+  "resolutions": {
+    "@typescript-eslint/eslint-plugin": "5.9.0",
+    "eslint-plugin-flowtype": "8.0.3"
   }
 }
