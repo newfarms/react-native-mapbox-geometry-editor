@@ -1,4 +1,7 @@
 {
   "entryPoints": ["./src/index.ts"],
-  "out": "docs/src"
+  "out": "docs/src",
+  "validation": {
+    "invalidLink": true
+  }
 }

@@ -22,7 +22,7 @@
     "!**/__mocks__"
   ],
   "scripts": {
-    "docs": "typedoc --listInvalidSymbolLinks",
+    "docs": "typedoc",
     "test": "jest",
     "typescript": "tsc --noEmit && tsc --project example --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
