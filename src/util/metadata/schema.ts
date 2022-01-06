@@ -1,5 +1,4 @@
 import * as yup from 'yup';
-import { ValidationError } from 'yup';
 import { transformAll } from '@demvsystems/yup-ast';
 import reduce from 'lodash/reduce';
 
@@ -663,7 +662,7 @@ export function validateMetadata(
     try {
       schema.validateSync(data);
     } catch (err) {
-      if (err instanceof ValidationError) {
+      if (err instanceof Error) {
         result.dataErrors = err;
       } else {
         throw err;
