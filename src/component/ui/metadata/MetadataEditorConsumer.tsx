@@ -49,7 +49,7 @@ function _MetadataEditorConsumer() {
          * Inform the controller of whether there is dirty state.
          * The controller will warn the user about unsaved changes.
          */
-        controls.isDirty = dirty;
+        controls.setIsDirty(dirty);
       }
     });
   }, [canUse, dirty, controls]);

@@ -83,7 +83,7 @@ function _InnerMetadataEditorProvider({
             );
             castValues = null;
           }
-          controls.pendingMetadata = castValues;
+          controls.setPendingMetadata(castValues);
           controls.confirm();
           formikBag.setSubmitting(false);
         }
