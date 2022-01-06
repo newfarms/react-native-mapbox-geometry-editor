@@ -73,9 +73,9 @@ function _GeometryEditorUI(
 
   return (
     <View style={containerStyle}>
-      <PaperProvider>
-        <StoreProvider>
-          <MetadataContext.Provider value={metadataSchemaGeneratorMap}>
+      <StoreProvider>
+        <MetadataContext.Provider value={metadataSchemaGeneratorMap}>
+          <PaperProvider>
             <_GeometryEditor ref={ref} {...restProps}>
               <MetadataPreview />
               {props.children}
@@ -86,10 +86,10 @@ function _GeometryEditorUI(
               <PageController pageProps={pageProps} />
             </MetadataEditorProvider>
             <ConfirmationDialog visibleIfPageOpen={false} />
-          </MetadataContext.Provider>
-          <InteractionNotifier {...interactionEventProps} />
-        </StoreProvider>
-      </PaperProvider>
+          </PaperProvider>
+        </MetadataContext.Provider>
+        <InteractionNotifier {...interactionEventProps} />
+      </StoreProvider>
     </View>
   );
 }
