@@ -4,7 +4,8 @@
  */
 import { Observer } from 'mobx-react-lite';
 import { action } from 'mobx';
-import React, { forwardRef, useContext, useMemo } from 'react';
+import { forwardRef, useContext, useMemo } from 'react';
+import type { ReactNode, Ref } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL, { MapViewProps } from '@react-native-mapbox-gl/maps';
 
@@ -62,7 +63,7 @@ export interface GeometryEditorProps {
   /**
    * Additional child elements to render as children of the map
    */
-  readonly children?: React.ReactNode;
+  readonly children?: ReactNode;
 }
 
 /**
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
  */
 function GeometryEditorComponent(
   props: GeometryEditorProps,
-  ref: React.Ref<GeometryIORef>
+  ref: Ref<GeometryIORef>
 ) {
   const {
     cameraControls,
@@ -160,7 +161,7 @@ export const _GeometryEditor = forwardRef(GeometryEditorComponent);
  */
 function _GeometryEditorObserver(
   props: GeometryEditorProps,
-  ref: React.Ref<GeometryIORef>
+  ref: Ref<GeometryIORef>
 ) {
   return <Observer>{() => GeometryEditorComponent(props, ref)}</Observer>;
 }

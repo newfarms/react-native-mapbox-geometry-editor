@@ -23,9 +23,7 @@ import type { EditableFeature, SemanticGeometryType } from 'src/type/geometry';
  *
  * @param use The purpose for which the caller needs to render geometry metadata
  */
-export function useMetadata(
-  use: MetadataInteraction
-): {
+export function useMetadata(use: MetadataInteraction): {
   /**
    * Whether the use of geometry metadata is permitted in this context.
    * Caution: This value may be `true` in cases where there is no available metadata.

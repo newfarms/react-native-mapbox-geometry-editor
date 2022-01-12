@@ -142,15 +142,11 @@ export class ControlsModel extends Model({
    * that there are unsaved changes somewhere.
    * When it is `true`, the controller will warn about unsaved changes.
    */
-  isDirty: prop<boolean>(false, {
-    setterAction: true,
-  }),
+  isDirty: prop<boolean>(false).withSetter(),
   /**
    * Geometry metadata to be saved.
    */
-  pendingMetadata: prop<GeoJsonProperties>(() => null, {
-    setterAction: true,
-  }),
+  pendingMetadata: prop<GeoJsonProperties>(() => null).withSetter(),
   /**
    * A lock that prevents touch events from being handled while the user is dragging
    * something on the map. For some reason, a fast drag action on Android sometimes

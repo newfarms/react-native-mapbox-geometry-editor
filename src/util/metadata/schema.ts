@@ -92,7 +92,11 @@ function parseSchemaDescription(
     try {
       schema = transformAll(schemaDescription);
     } catch (err) {
-      schemaErrors.push('Schema parsing error: ' + err.toString());
+      if (err instanceof Error) {
+        schemaErrors.push('Schema parsing error: ' + err.toString());
+      } else {
+        throw err;
+      }
     }
   }
   return schema;
@@ -150,7 +154,13 @@ function processSchemaRoot<T extends yup.BaseSchema>(
   try {
     attributes = metadataAttributesImpl.cast((schema as any)._meta);
   } catch (err) {
-    schemaErrors.push(`Schema meta attribute is malformed: ${err.toString()}.`);
+    if (err instanceof Error) {
+      schemaErrors.push(
+        `Schema meta attribute is malformed: ${err.toString()}.`
+      );
+    } else {
+      throw err;
+    }
   }
   return attributes as MetadataAttributes;
 }
@@ -204,9 +214,13 @@ function extractFieldMetadata(
   try {
     attributes = fieldAttributesImpl.cast(schemaField._meta);
   } catch (err) {
-    schemaErrors.push(
-      `Schema field "${key}" meta attribute is malformed: ${err.toString()}.`
-    );
+    if (err instanceof Error) {
+      schemaErrors.push(
+        `Schema field "${key}" meta attribute is malformed: ${err.toString()}.`
+      );
+    } else {
+      throw err;
+    }
   }
   return {
     type: FieldType.String,
@@ -424,7 +438,7 @@ function schemaFieldIteratee(
           prev.schemaErrors
         );
         initialValue = result.initialValue;
-        ((formElement as unknown) as EnumFieldDescription).options =
+        (formElement as unknown as EnumFieldDescription).options =
           result.options;
         break;
       }
@@ -648,7 +662,11 @@ export function validateMetadata(
     try {
       schema.validateSync(data);
     } catch (err) {
-      result.dataErrors = err;
+      if (err instanceof Error) {
+        result.dataErrors = err;
+      } else {
+        throw err;
+      }
     }
   }
   return result;

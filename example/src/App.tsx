@@ -2,7 +2,6 @@
  * React Native Mapbox geometry editor library example
  */
 
-import * as React from 'react';
 import { useMemo, useRef, useState } from 'react';
 import {
   Alert,
@@ -33,16 +32,10 @@ if (!getTimeMilliseconds) {
 }
 
 /**
- * Hide warnings about require cycles in React Native Paper,
- * as done in the React Native Paper example,
- * https://github.com/callstack/react-native-paper/blob/212aa73715f157e1a77f8738859a608a543ba04c/example/src/index.tsx#L35
- */
-LogBox.ignoreLogs(['Require cycle:']);
-/**
  * Hide known issue in the library (refer to the README)
  */
 LogBox.ignoreLogs([
-  '[mobx] Derivation observer_StoreProvider is created/updated without reading any observable value',
+  "[mobx] Derivation 'observer_StoreProvider' is created/updated without reading any observable value.",
 ]);
 
 /**

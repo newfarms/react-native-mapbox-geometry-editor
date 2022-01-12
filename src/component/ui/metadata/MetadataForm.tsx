@@ -1,10 +1,5 @@
-import React, {
-  useCallback,
-  useContext,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useContext, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import {
   Platform,
   StyleSheet,
@@ -75,9 +70,7 @@ function StringField({
   /**
    * An alternative component to render for the text input field
    */
-  customTextInput?:
-    | ((props: NativeTextInputProps) => React.ReactNode)
-    | undefined;
+  customTextInput?: ((props: NativeTextInputProps) => ReactNode) | undefined;
 }) {
   const { formik } = useContext(MetadataEditorContext); // Retrieve Formik data
   const showError = !!(formik.touched[item.key] && formik.errors[item.key]);

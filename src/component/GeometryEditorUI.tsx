@@ -2,7 +2,9 @@
  * Geometry editor map canvas with editing controls user interface
  * @packageDocumentation
  */
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
+
+import type { Ref } from 'react';
 import { View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
@@ -59,7 +61,7 @@ export interface GeometryEditorUIProps extends GeometryEditorProps {
  */
 function _GeometryEditorUI(
   props: GeometryEditorUIProps,
-  ref: React.Ref<GeometryIORef>
+  ref: Ref<GeometryIORef>
 ) {
   const {
     style: containerStyle = {},
@@ -71,9 +73,9 @@ function _GeometryEditorUI(
 
   return (
     <View style={containerStyle}>
-      <PaperProvider>
-        <StoreProvider>
-          <MetadataContext.Provider value={metadataSchemaGeneratorMap}>
+      <StoreProvider>
+        <MetadataContext.Provider value={metadataSchemaGeneratorMap}>
+          <PaperProvider>
             <_GeometryEditor ref={ref} {...restProps}>
               <MetadataPreview />
               {props.children}
@@ -84,10 +86,10 @@ function _GeometryEditorUI(
               <PageController pageProps={pageProps} />
             </MetadataEditorProvider>
             <ConfirmationDialog visibleIfPageOpen={false} />
-          </MetadataContext.Provider>
-          <InteractionNotifier {...interactionEventProps} />
-        </StoreProvider>
-      </PaperProvider>
+          </PaperProvider>
+        </MetadataContext.Provider>
+        <InteractionNotifier {...interactionEventProps} />
+      </StoreProvider>
     </View>
   );
 }

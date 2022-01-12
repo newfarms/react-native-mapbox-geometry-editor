@@ -1,3 +1,4 @@
+import { toJS } from 'mobx';
 import { point, lineString, polygon } from '@turf/helpers';
 import cloneDeep from 'lodash/cloneDeep';
 import type { Position } from 'geojson';
@@ -284,9 +285,9 @@ test.each([[undefined], [-1], [0], [1]] as Array<[number | undefined]>)(
   'removeVertex on a point',
   (index) => {
     const p = makePoint('Point');
-    const expected = cloneDeep(p);
+    const expected = toJS(p);
     p.removeVertex(index);
-    expect(p).toStrictEqual(expected);
+    expect(toJS(p)).toStrictEqual(expected);
   }
 );
 
@@ -297,9 +298,9 @@ test.each([[undefined], [-2], [-1], [0], [1], [2]] as Array<
   [number | undefined]
 >)('removeVertex on a one-segment line string', (index) => {
   const p = makeEdge('LineString');
-  const expected = cloneDeep(p);
+  const expected = toJS(p);
   p.removeVertex(index);
-  expect(p).toStrictEqual(expected);
+  expect(toJS(p)).toStrictEqual(expected);
 });
 
 /**
@@ -320,9 +321,9 @@ test.each([
   [5],
 ] as Array<[number | undefined]>)('removeVertex on a triangle', (index) => {
   const p = makeTriplet('Polygon');
-  const expected = cloneDeep(p);
+  const expected = toJS(p);
   p.removeVertex(index);
-  expect(p).toStrictEqual(expected);
+  expect(toJS(p)).toStrictEqual(expected);
 });
 
 /**
@@ -332,9 +333,9 @@ test.each([[undefined], [-2], [-1], [0], [1], [2]] as Array<
   [number | undefined]
 >)('removeVertex on an incomplete line string', (index) => {
   const p = makePoint('LineString');
-  const expected = cloneDeep(p);
+  const expected = toJS(p);
   p.removeVertex(index);
-  expect(p).toStrictEqual(expected);
+  expect(toJS(p)).toStrictEqual(expected);
 });
 
 /**
@@ -357,13 +358,13 @@ test.each([
   'removeVertex on an incomplete polygon',
   (index) => {
     const e = makeEdge('Polygon');
-    const expectedEdge = cloneDeep(e);
+    const expectedEdge = toJS(e);
     e.removeVertex(index);
-    expect(e).toStrictEqual(expectedEdge);
+    expect(toJS(e)).toStrictEqual(expectedEdge);
     const p = makePoint('Polygon');
-    const expectedPoint = cloneDeep(p);
+    const expectedPoint = toJS(p);
     p.removeVertex(index);
-    expect(p).toStrictEqual(expectedPoint);
+    expect(toJS(p)).toStrictEqual(expectedPoint);
   }
 );
 
@@ -386,11 +387,17 @@ test.each([
 ] as Array<[number | undefined]>)(
   'removeVertex on a line string with three vertices',
   (index = -1) => {
-    const p = makeTriplet('LineString');
-    const expected = cloneDeep(p);
-    expected.geojson.geometry.coordinates.splice(index, 1);
+    const type = 'LineString';
+    const p = makeTriplet(type);
+    const expected: Array<Position> | Array<Array<Position>> = [
+      [-1, -2],
+      [1, 2],
+      [3, 4],
+    ];
+    expected.splice(index, 1);
     p.removeVertex(index);
-    expect(p).toStrictEqual(expected);
+    expect(p.geojson.geometry.coordinates).toStrictEqual(expected);
+    expect(p.geojson.geometry.type).toStrictEqual(type);
   }
 );
 

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo } from 'react';
+import { useContext, useEffect, useMemo } from 'react';
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { StyleSheet } from 'react-native';
@@ -49,7 +49,7 @@ function _MetadataEditorConsumer() {
          * Inform the controller of whether there is dirty state.
          * The controller will warn the user about unsaved changes.
          */
-        controls.isDirty = dirty;
+        controls.setIsDirty(dirty);
       }
     });
   }, [canUse, dirty, controls]);

@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
-import React, { useContext, useEffect } from 'react';
+import { useContext, useEffect } from 'react';
+import type { ReactNode } from 'react';
 
 import { StoreContext } from '../../state/StoreContext';
 import type { InteractionEventProps } from '../../type/ui';
@@ -13,7 +14,7 @@ import type { InteractionEventProps } from '../../type/ui';
 function _InteractionNotifier({
   onEditingStatus,
   children,
-}: InteractionEventProps & { readonly children?: React.ReactNode }) {
+}: InteractionEventProps & { readonly children?: ReactNode }) {
   const { controls } = useContext(StoreContext);
 
   const isEditing = controls.isEditing;
