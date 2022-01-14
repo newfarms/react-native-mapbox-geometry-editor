@@ -1,6 +1,6 @@
 # react-native-mapbox-geometry-editor
 
-Interactive shape editing on top of the Mapbox Maps SDK for React Native
+Interactive shape editing on top of the Mapbox GL React Native module
 
 ## Example
 

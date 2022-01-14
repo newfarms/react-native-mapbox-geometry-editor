@@ -1,4 +1,4 @@
-import * as React from 'react';
+import type { ReactNode } from 'react';
 import { StyleSheet } from 'react-native';
 import type { ImageSourcePropType, StyleProp, ViewStyle } from 'react-native';
 import { FAB, useTheme } from 'react-native-paper';
@@ -32,7 +32,7 @@ type IconSource =
       props: IconProps & {
         color: string;
       }
-    ) => React.ReactNode);
+    ) => ReactNode);
 
 /**
  * Extra rendering properties used by React Native Paper's FAB

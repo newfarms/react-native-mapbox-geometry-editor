@@ -1,5 +1,5 @@
 import type { EditableFeature, SemanticGeometryType } from './geometry';
-import type { ObjectSchema, ValidationError } from 'yup';
+import type { ObjectSchema } from 'yup';
 
 /**
  * Arbitrary data that the client application may store with geometry
@@ -249,7 +249,7 @@ export interface MetadataValidationResult {
    *
    * If there are no errors, `dataErrors` is undefined.
    */
-  dataErrors?: ValidationError;
+  dataErrors?: Error;
   /**
    * Errors emitted while converting the metadata schema description into
    * a live schema object.

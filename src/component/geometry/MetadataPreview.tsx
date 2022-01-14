@@ -1,6 +1,6 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useContext, useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { Button, Card } from 'react-native-paper';

@@ -1,6 +1,6 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useContext, useEffect, useMemo } from 'react';
+import { useContext, useEffect, useMemo } from 'react';
 
 import { StoreContext } from '../../../state/StoreContext';
 import { PageContainer } from './PageContainer';

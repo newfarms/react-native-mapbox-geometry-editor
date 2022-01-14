@@ -1,6 +1,6 @@
 import { action, toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useContext, useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
 

@@ -1,7 +1,7 @@
 {
   "include": ["src/**/*"],
   "compilerOptions": {
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
       "react-native-mapbox-geometry-editor": ["./src/index"]
     },
@@ -11,7 +11,7 @@
     "experimentalDecorators": true,
     "importsNotUsedAsValues": "error",
     "forceConsistentCasingInFileNames": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "lib": ["esnext"],
     "module": "esnext",
     "moduleResolution": "node",

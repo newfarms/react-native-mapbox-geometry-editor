@@ -12,7 +12,7 @@ If you do not need to run the example app, you can use an arbitrary string inste
 Run `yarn bootstrap` in the root directory to install the required dependencies for each package:
 
 ```sh
-yarn bootstrap
+yarn
 ```
 
 While developing, you can run the [example app](/example/) to test your changes.
@@ -57,10 +57,6 @@ Remember to add tests for your change if possible. Run the unit tests by:
 yarn test
 ```
 
-To edit the Objective-C files, open `example/ios/MapboxGeometryEditorExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > react-native-mapbox-geometry-editor`.
-
-To edit the Kotlin files, open `example/android` in Android studio and find the source files at `reactnativemapboxgeometryeditor` under `Android`.
-
 ### Commit message convention
 
 We use the following [commit message types](https://www.conventionalcommits.org/en/v1.0.0/):
@@ -82,7 +78,7 @@ Our pre-commit hooks verify that your commit message matches this format when co
 
 We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint](https://eslint.org/) with [Prettier](https://prettier.io/) for linting and formatting the code, and [Jest](https://jestjs.io/) for testing.
 
-Our pre-commit hooks verify that the linter and tests pass when committing.
+Our pre-commit hooks verify that most of these checks pass when committing.
 
 ### Scripts
 

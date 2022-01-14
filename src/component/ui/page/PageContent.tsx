@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';

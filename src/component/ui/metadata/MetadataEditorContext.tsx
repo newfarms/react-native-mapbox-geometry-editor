@@ -1,4 +1,4 @@
-import React from 'react';
+import { createContext } from 'react';
 import * as yup from 'yup';
 import type { FormikProps } from 'formik';
 
@@ -129,6 +129,6 @@ const DEFAULT_CONTEXT_VALUE: MetadataEditorContextValue = {
  * A React context used to give children components access to metadata editing
  * form data
  */
-export const MetadataEditorContext = React.createContext<MetadataEditorContextValue>(
+export const MetadataEditorContext = createContext<MetadataEditorContextValue>(
   DEFAULT_CONTEXT_VALUE
 );

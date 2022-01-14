@@ -1,6 +1,6 @@
 import { action, toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useMemo } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import MapboxGL from '@react-native-mapbox-gl/maps';

@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
-import React, { useState } from 'react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 
 import { StoreContext } from './StoreContext';
 import { RootModel } from './RootModel';
@@ -33,7 +34,7 @@ import { RootModel } from './RootModel';
  *
  * @param props Render properties
  */
-function _StoreProvider(props: { readonly children?: React.ReactNode }) {
+function _StoreProvider(props: { readonly children?: ReactNode }) {
   const [storeContext] = useState(() => {
     return new RootModel({});
   });
