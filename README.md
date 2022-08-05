@@ -6,6 +6,11 @@ Interactive shape editing on top of the Mapbox GL React Native module
 
 Example app setup is described in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+### Screenshots
+
+<img src="images/iphone-screenshot2.png" width="250">
+<img src="images/iphone-screenshot.png" width="250">
+
 ## Installation
 
 ```sh
@@ -56,7 +61,7 @@ The plain import will import the source code of the library, meaning that your c
  */
 import 'react-native-get-random-values';
 
-import MapboxGeometryEditor from "react-native-mapbox-geometry-editor";
+import MapboxGeometryEditor from 'react-native-mapbox-geometry-editor';
 
 // ...
 // TODO: Document a real example
@@ -74,6 +79,7 @@ Note that schema descriptions are requested immediately before an interface is o
 If a schema description returned by a function is not `null`, it must be an object of the form parsed by [`@demvsystems/yup-ast`](https://github.com/demvsystems/yup-ast), subject to restrictions described below.
 
 The schema description must contain a top-level object:
+
 ```TypeScript
 [
   ['yup.object'],
@@ -90,6 +96,7 @@ The schema description must contain a top-level object:
 
 The `FIELDS` portion contains the actual fields of the GeoJSON metadata.
 The datatype of a field must be one of the following:
+
 - `fieldKey: [['yup.mixed'], ['yup.oneOf', ["ARRAY", "OF", "STRINGS" ]],]`: A string-typed enumeration, where the array of possible values must have at least one element
 - `fieldKey: [['yup.string']]`: A string
 - `fieldKey: [['yup.number']]`: A number
@@ -100,6 +107,7 @@ The library will only display and allow editing of fields of the supported types
 The library will also ignore all properties of metdata objects that are not described in the schema.
 
 The schema description can (and should) contain human-readable text to assist the user:
+
 - Fields can be given human-readable names using the `'yup.label'` attribute.
   For example, `fieldKey: [['yup.boolean'], ['yup.label', 'Field name'],]` gives the field a name of `'Field name'`.
   If a label is not provided, the field name will default to the field's key.
@@ -144,6 +152,7 @@ HTML API documentation for the library can be generated using Typedoc as follows
 3. Open `docs/src/index.html` in a web browser
 
 ## Known issues
+
 - In some client applications, while running in development mode, the library will emit the following warning:
   `"[mobx] Derivation observer_StoreProvider is created/updated without reading any observable value"`
   Refer to the comments in `src/state/StoreProvider.tsx` for details.
@@ -156,12 +165,14 @@ HTML API documentation for the library can be generated using Typedoc as follows
   The library is still able to handle enumeration and boolean-typed fields that have missing or invalid values, however, such as when rendering metadata created outside the library.
 
 ### Android
+
 - Geometry rendering on an Android emulator may exhibit visual problems such as rendering points in grey instead of in their desired colours.
   Zooming in and out on the map may make colours randomly appear and disappear.
 - Draggable points/vertices will usually render underneath all other geometry
   (https://github.com/react-native-mapbox-gl/maps/issues/806).
 
 ### iOS
+
 - To drag an editable point, it may be necessary to first tap on the point (press and release) before pressing and holding to drag the point.
 - Editable points may snap back to their original positions while or after being dragged (https://github.com/react-native-mapbox-gl/maps/issues/1117).
 - To draw a new point, it may be necessary to first tap on the map, to switch focus to the map, after having tapped on a geometry object or on a user interface element.
