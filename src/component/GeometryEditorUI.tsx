@@ -8,6 +8,7 @@ import type { Ref } from 'react';
 import { View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
+import type { DefaultTheme } from 'react-native-paper';
 
 import { _GeometryEditor } from './GeometryEditor';
 import type { GeometryEditorProps } from './GeometryEditor';
@@ -35,6 +36,11 @@ export interface GeometryEditorUIProps extends GeometryEditorProps {
    * the map and user interface
    */
   readonly style?: ViewStyle;
+  /**
+   * Theme for React Native Paper
+   * See https://callstack.github.io/react-native-paper/theming.html
+   */
+  readonly theme?: typeof DefaultTheme;
   /**
    * Functions that will generate schemas for geometry metadata view/editing forms.
    */
@@ -65,6 +71,7 @@ function _GeometryEditorUI(
 ) {
   const {
     style: containerStyle = {},
+    theme,
     metadataSchemaGeneratorMap = defaultMetadataSchemaGeneratorMap,
     pageProps,
     interactionEventProps,
@@ -75,7 +82,7 @@ function _GeometryEditorUI(
     <View style={containerStyle}>
       <StoreProvider>
         <MetadataContext.Provider value={metadataSchemaGeneratorMap}>
-          <PaperProvider>
+          <PaperProvider theme={theme}>
             <_GeometryEditor ref={ref} {...restProps}>
               <MetadataPreview />
               {props.children}
