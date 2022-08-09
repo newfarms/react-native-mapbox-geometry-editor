@@ -398,6 +398,7 @@ export function MetadataFieldList({
       ListHeaderComponent={ListHeader}
       ListHeaderComponentStyle={styles.listHeader}
       enableOnAndroid={true}
+      removeClippedSubviews={false}
     />
   );
 }

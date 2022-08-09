@@ -11,6 +11,7 @@ import {
   View,
   Button,
 } from 'react-native';
+import { DarkTheme } from 'react-native-paper';
 
 import MapboxGL from '@react-native-mapbox-gl/maps';
 
@@ -636,6 +637,7 @@ export default function App() {
       <GeometryEditorUI
         cameraControls={cameraControls}
         style={styles.libraryContainer}
+        theme={DarkTheme}
         mapProps={{
           style: styles.map,
           styleURL: 'mapbox://styles/mapbox/dark-v10',
