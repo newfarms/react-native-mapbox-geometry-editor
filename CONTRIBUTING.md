@@ -1,6 +1,8 @@
 # Contributing
 
-We want this community to be friendly and respectful to each other. Please follow it in all your interactions with the project.
+Thank you for your interest in contributing! Please feel free to put up a PR for any issue or feature request. :)
+
+We want this community to be friendly and respectful to each other. Please follow these guidelines in all your interactions with the project.
 
 ## Development workflow
 
@@ -102,6 +104,14 @@ When you're sending a pull request:
 - Review the documentation to make sure it looks good.
 - Follow the pull request template when opening a pull request.
 - For pull requests that change the API or implementation, discuss with maintainers first by opening an issue.
+
+### Reporting issues
+
+If you notice any bugs, see some code that could be improved, or have features you would like to see added please create a bug report or feature request. Please select the issue template suits your needs and fill out the form that will be auto-created when you create an issue to submit your requests.
+
+### Working on issues
+
+Please feel free to work on fixing any issue that is currently open, or any issues you find within the code. It is greatly appreciated if you create an issue beforehand so it can possibly be discussed as well.
 
 ### Unused files
 

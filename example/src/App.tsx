@@ -9,7 +9,9 @@ import {
   SafeAreaView,
   StyleSheet,
   View,
-  Button,
+  TouchableOpacity,
+  Text,
+  Platform,
 } from 'react-native';
 
 import MapboxGL from '@react-native-mapbox-gl/maps';
@@ -82,8 +84,8 @@ const styles = StyleSheet.create({
   },
   ioControlsContainer: {
     position: 'absolute',
+    top: Platform.OS === 'android' ? 0 : 40,
     right: 0,
-    top: 0,
   },
 });
 
@@ -500,18 +502,21 @@ function IOControls({
   }
   return (
     <View style={styles.ioControlsContainer}>
-      <Button
-        color={importColor}
+      <TouchableOpacity
+        style={{ backgroundColor: importColor }}
         onPress={onImport}
-        title="Import static shapes"
         disabled={disabled}
-      />
-      <Button
-        color={exportColor}
+        //paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0
+      >
+        <Text>Import static shapes</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={{ backgroundColor: exportColor }}
         onPress={onExport}
-        title="Export shapes"
         disabled={disabled}
-      />
+      >
+        <Text>Export shapes</Text>
+      </TouchableOpacity>
     </View>
   );
 }
