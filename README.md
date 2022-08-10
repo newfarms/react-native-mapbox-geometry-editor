@@ -6,11 +6,6 @@ Interactive shape editing on top of the Mapbox GL React Native module
 
 Example app setup is described in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-### Screenshots
-
-<img src="images/iphone-screenshot2.png" width="250">
-<img src="images/iphone-screenshot.png" width="250">
-
 ## Installation
 
 ```sh
