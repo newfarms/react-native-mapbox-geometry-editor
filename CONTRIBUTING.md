@@ -107,11 +107,11 @@ When you're sending a pull request:
 
 ### Reporting issues
 
-If you notice any bugs, see some code that could be improved, or have features you would like to see added please create a bug report or feature request. Please select the issue template suits your needs and fill out the form that will be auto-created when you create an issue to submit your requests.
+If you notice any bugs, see some code that could be improved, or have features you would like to see added, please create a bug report or feature request. Please select the issue template that suits your needs, and fill out the form that will be auto-created, to submit your request.
 
 ### Working on issues
 
-Please feel free to work on fixing any issue that is currently open, or any issues you find within the code. It is greatly appreciated if you create an issue beforehand so it can possibly be discussed as well.
+Please feel free to work on fixing any issue that is currently open. It is greatly appreciated if you create an issue before you start working on any problems you notice in the code, so that the solution can be discussed beforehand.
 
 ### Unused files
 
