@@ -9,7 +9,7 @@ import {
   SafeAreaView,
   StyleSheet,
   View,
-  TouchableOpacity,
+  Pressable,
   Text,
   Platform,
 } from 'react-native';
@@ -503,20 +503,20 @@ function IOControls({
   }
   return (
     <View style={styles.ioControlsContainer}>
-      <TouchableOpacity
+      <Pressable
         style={{ backgroundColor: importColor }}
         onPress={onImport}
         disabled={disabled}
       >
         <Text>Import static shapes</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </Pressable>
+      <Pressable
         style={{ backgroundColor: exportColor }}
         onPress={onExport}
         disabled={disabled}
       >
         <Text>Export shapes</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }
