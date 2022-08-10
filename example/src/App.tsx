@@ -507,7 +507,6 @@ function IOControls({
         style={{ backgroundColor: importColor }}
         onPress={onImport}
         disabled={disabled}
-        //paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0
       >
         <Text>Import static shapes</Text>
       </TouchableOpacity>
