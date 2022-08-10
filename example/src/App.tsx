@@ -11,7 +11,6 @@ import {
   View,
   Pressable,
   Text,
-  Platform,
 } from 'react-native';
 import { DarkTheme } from 'react-native-paper';
 
@@ -84,9 +83,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   ioControlsContainer: {
-    position: 'absolute',
-    top: Platform.OS === 'android' ? 0 : 40,
-    right: 0,
+    position: 'relative',
+    direction: 'rtl',
+    alignSelf: 'flex-end',
   },
 });
 
@@ -638,6 +637,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <IOControls disabled={disableIO} {...ioHandlers} />
       <GeometryEditorUI
         cameraControls={cameraControls}
         style={styles.libraryContainer}
@@ -657,7 +657,6 @@ export default function App() {
           zoomLevel={14}
         />
       </GeometryEditorUI>
-      <IOControls disabled={disableIO} {...ioHandlers} />
     </SafeAreaView>
   );
 }
