@@ -21,7 +21,7 @@ body:
     id: current
     attributes:
       label: Current Behaviour
-      description: A clear and concise description of the current behavior of the app.
+      description: A clear and concise description of the current behavior of the code.
     validations:
       required: false
   - type: textarea
@@ -29,11 +29,10 @@ body:
     attributes:
       label: Feature Description
       description: >-
-        A description of what you would like to happen. Be as descriptive as
-        possible so we can have a good idea of what you want the feature to be.
-        Please be clear what would be in the scope of the feature and out of the
-        scope. Mockups or sketches are also welcome if they will help better our
-        understanding of the feature.
+        A description of what you would like to happen. 
+        Be as descriptive as possible to give a clear idea of the feature. 
+        Describe what would be in the scope of the feature and out of the scope of the feature. 
+        Explanatory mockups or sketches are also welcome.
     validations:
       required: true
   - type: textarea
@@ -42,6 +41,6 @@ body:
       label: Solution
       description: >-
         Potential ways to implement the feature. Possible considerations and
-        caveats for the future, as well as tradeoffs made in design decision.
+        caveats for the future, as well as tradeoffs made in design decisions.
     validations:
       required: false
