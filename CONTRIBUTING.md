@@ -111,7 +111,7 @@ If you notice any bugs, see some code that could be improved, or have features y
 
 ### Working on issues
 
-Please feel free to work on fixing any issue that is currently open, or any issues you find within the code. It is greatly appreciated if you create an issue beforehand so it can possibly be discussed as well.
+Please feel free to work on fixing any issue that is currently open. It is greatly appreciated if you create an issue before you start working on any problems you notice in the code, so that the solution can be discussed beforehand.
 
 ### Unused files
 
