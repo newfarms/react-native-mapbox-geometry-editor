@@ -9,7 +9,8 @@ import {
   SafeAreaView,
   StyleSheet,
   View,
-  Button,
+  Pressable,
+  Text,
 } from 'react-native';
 import { DarkTheme } from 'react-native-paper';
 
@@ -82,9 +83,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   ioControlsContainer: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
+    position: 'relative',
+    alignSelf: 'flex-end',
+  },
+  text: {
+    textAlign: 'center',
   },
 });
 
@@ -501,18 +504,20 @@ function IOControls({
   }
   return (
     <View style={styles.ioControlsContainer}>
-      <Button
-        color={importColor}
+      <Pressable
+        style={{ backgroundColor: importColor }}
         onPress={onImport}
-        title="Import static shapes"
         disabled={disabled}
-      />
-      <Button
-        color={exportColor}
+      >
+        <Text style={styles.text}>Import static shapes</Text>
+      </Pressable>
+      <Pressable
+        style={{ backgroundColor: exportColor }}
         onPress={onExport}
-        title="Export shapes"
         disabled={disabled}
-      />
+      >
+        <Text style={styles.text}>Export shapes</Text>
+      </Pressable>
     </View>
   );
 }
@@ -634,6 +639,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <IOControls disabled={disableIO} {...ioHandlers} />
       <GeometryEditorUI
         cameraControls={cameraControls}
         style={styles.libraryContainer}
@@ -653,7 +659,6 @@ export default function App() {
           zoomLevel={14}
         />
       </GeometryEditorUI>
-      <IOControls disabled={disableIO} {...ioHandlers} />
     </SafeAreaView>
   );
 }
