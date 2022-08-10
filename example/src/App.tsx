@@ -84,7 +84,6 @@ const styles = StyleSheet.create({
   },
   ioControlsContainer: {
     position: 'relative',
-    direction: 'rtl',
     alignSelf: 'flex-end',
   },
   text: {
