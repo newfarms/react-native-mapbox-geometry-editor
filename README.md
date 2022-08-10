@@ -28,7 +28,14 @@ Interactive shape editing on top of the Mapbox Maps SDK for React Native
 
 ## Example
 
-Example app setup is described in [CONTRIBUTING.md](CONTRIBUTING.md).
+The example app demonstrates almost all of the features of the library, in particular geometry drawing, and creating custom forms for editing metadata associated with geometry.
+
+<p float="left">
+  <img src="./docs/img/demo_shape_drawing_320x640.gif" width="320" alt="Demonstration of shape drawing features in the example app" />
+  <img src="./docs/img/demo_select_export_320x640.gif" width="320" alt="Demonstration of shape selection and import and export features in the example app"/>
+</p>
+
+To run the example app, refer to the instructions in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Features
 
