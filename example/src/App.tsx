@@ -87,6 +87,9 @@ const styles = StyleSheet.create({
     direction: 'rtl',
     alignSelf: 'flex-end',
   },
+  text: {
+    textAlign: 'center',
+  },
 });
 
 /* Set the Mapbox API access token
@@ -507,14 +510,14 @@ function IOControls({
         onPress={onImport}
         disabled={disabled}
       >
-        <Text>Import static shapes</Text>
+        <Text style={styles.text}>Import static shapes</Text>
       </Pressable>
       <Pressable
         style={{ backgroundColor: exportColor }}
         onPress={onExport}
         disabled={disabled}
       >
-        <Text>Export shapes</Text>
+        <Text style={styles.text}>Export shapes</Text>
       </Pressable>
     </View>
   );
