@@ -146,13 +146,13 @@ function GeometryEditorComponent(
 }
 
 /**
- * React ref forwarding version of [[GeometryEditorComponent]], for use
+ * React ref forwarding version of `GeometryEditorComponent`, for use
  * by code internal to the library.
  */
 export const _GeometryEditor = forwardRef(GeometryEditorComponent);
 
 /**
- * MobX observer version of [[GeometryEditorComponent]], suitable for
+ * MobX observer version of `GeometryEditorComponent`, suitable for
  * use with React's `forwardRef`.
  *
  * @param props Render properties
@@ -167,7 +167,7 @@ function _GeometryEditorObserver(
 }
 
 /**
- * Renderable MobX wrapper for [[GeometryEditorComponent]], with React ref forwarding,
+ * Renderable MobX wrapper for `GeometryEditorComponent`, with React ref forwarding,
  * for use by code external to the library.
  *
  * Note: Ordinarily, we would apply the MobX `observer()` higher-order component, followed by `forwardRef`

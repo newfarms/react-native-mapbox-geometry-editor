@@ -102,6 +102,6 @@ function _GeometryEditorUI(
 }
 
 /**
- * React ref forwarding version of [[_GeometryEditorUI]]
+ * React ref forwarding version of `_GeometryEditorUI`
  */
 export const GeometryEditorUI = forwardRef(_GeometryEditorUI);
