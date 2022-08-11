@@ -16,6 +16,7 @@ Interactive shape editing on top of the Mapbox Maps SDK for React Native
   - [Geometry format and metadata](#geometry-format-and-metadata)
     - [Advanced usage](#advanced-usage)
 - [API Documentation](#api-documentation)
+- [Utility scripts](#utility-scripts)
 - [Known issues and future work](#known-issues-and-future-work)
   - [Dependency updates](#dependency-updates)
   - [Custom user interface](#custom-user-interface)
@@ -186,6 +187,10 @@ HTML API documentation for the library can be generated using Typedoc as follows
 1. Run `yarn bootstrap` in the root directory of the repository
 2. Run `yarn docs`
 3. Open `docs/src/index.html` in a web browser
+
+## Utility scripts
+
+- [`fix_winding.js`](./tool/fix_winding.js): A script that corrects the winding order of GeoJSON polygons in GeoJSON data. This script is helpful when preparing data to be imported into the geometry editing library.
 
 ## Known issues and future work
 
