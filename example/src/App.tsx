@@ -86,6 +86,12 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignSelf: 'flex-end',
   },
+  button: {
+    marginBottom: 10,
+    marginRight: 10,
+    padding: 3,
+    borderRadius: 10,
+  },
   text: {
     textAlign: 'center',
   },
@@ -496,26 +502,17 @@ function IOControls({
    */
   disabled: boolean;
 }) {
-  let importColor = 'orange';
-  let exportColor = 'seagreen';
+  let buttonColor = 'orange';
   if (disabled) {
-    importColor = 'grey';
-    exportColor = 'grey';
+    buttonColor = 'grey';
   }
+  const buttonStyle = { ...styles.button, backgroundColor: buttonColor };
   return (
     <View style={styles.ioControlsContainer}>
-      <Pressable
-        style={{ backgroundColor: importColor }}
-        onPress={onImport}
-        disabled={disabled}
-      >
+      <Pressable style={buttonStyle} onPress={onImport} disabled={disabled}>
         <Text style={styles.text}>Import static shapes</Text>
       </Pressable>
-      <Pressable
-        style={{ backgroundColor: exportColor }}
-        onPress={onExport}
-        disabled={disabled}
-      >
+      <Pressable style={buttonStyle} onPress={onExport} disabled={disabled}>
         <Text style={styles.text}>Export shapes</Text>
       </Pressable>
     </View>
