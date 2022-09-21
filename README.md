@@ -59,8 +59,10 @@ During geometry import operations (see [`src/util/geometry/io.tsx`](./src/util/g
 
 ## Installation
 
+Presently this library is not published to a package repository. You can install it using a Git URL, along with its mandatory peer dependencies, as follows:
+
 ```sh
-yarn add react-native-mapbox-geometry-editor @react-native-mapbox-gl/maps react-native-get-random-values
+yarn add git+https://github.com/newfarms/react-native-mapbox-geometry-editor#development @react-native-mapbox-gl/maps react-native-get-random-values
 ```
 
 If you wish to use the default editing controls user interface (`<GeometryEditorUI/>`) from this library, then you must also install the peer dependency `react-native-vector-icons`.
