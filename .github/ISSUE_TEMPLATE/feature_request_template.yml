@@ -1,0 +1,46 @@
+name: Feature Request
+description: Submit a proposal for a new feature
+title: '[Feature]: '
+labels:
+  - feature
+assignees: null
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature request!
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Details
+      description: How can we get in touch with you if we need more info?
+      placeholder: ex. email@example.com
+    validations:
+      required: false
+  - type: textarea
+    id: current
+    attributes:
+      label: Current Behaviour
+      description: A clear and concise description of the current behavior of the code.
+    validations:
+      required: false
+  - type: textarea
+    id: feature
+    attributes:
+      label: Feature Description
+      description: >-
+        A description of what you would like to happen. 
+        Be as descriptive as possible to give a clear idea of the feature. 
+        Describe what would be in the scope of the feature and out of the scope of the feature. 
+        Explanatory mockups or sketches are also welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution
+      description: >-
+        Potential ways to implement the feature. Possible considerations and
+        caveats for the future, as well as tradeoffs made in design decisions.
+    validations:
+      required: false

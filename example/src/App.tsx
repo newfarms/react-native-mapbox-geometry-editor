@@ -9,8 +9,10 @@ import {
   SafeAreaView,
   StyleSheet,
   View,
-  Button,
+  Pressable,
+  Text,
 } from 'react-native';
+import { DarkTheme } from 'react-native-paper';
 
 import MapboxGL from '@react-native-mapbox-gl/maps';
 
@@ -81,9 +83,17 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   ioControlsContainer: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
+    position: 'relative',
+    alignSelf: 'flex-end',
+  },
+  button: {
+    marginBottom: 10,
+    marginRight: 10,
+    padding: 3,
+    borderRadius: 10,
+  },
+  text: {
+    textAlign: 'center',
   },
 });
 
@@ -492,26 +502,19 @@ function IOControls({
    */
   disabled: boolean;
 }) {
-  let importColor = 'orange';
-  let exportColor = 'seagreen';
+  let buttonColor = 'orange';
   if (disabled) {
-    importColor = 'grey';
-    exportColor = 'grey';
+    buttonColor = 'grey';
   }
+  const buttonStyle = { ...styles.button, backgroundColor: buttonColor };
   return (
     <View style={styles.ioControlsContainer}>
-      <Button
-        color={importColor}
-        onPress={onImport}
-        title="Import static shapes"
-        disabled={disabled}
-      />
-      <Button
-        color={exportColor}
-        onPress={onExport}
-        title="Export shapes"
-        disabled={disabled}
-      />
+      <Pressable style={buttonStyle} onPress={onImport} disabled={disabled}>
+        <Text style={styles.text}>Import static shapes</Text>
+      </Pressable>
+      <Pressable style={buttonStyle} onPress={onExport} disabled={disabled}>
+        <Text style={styles.text}>Export shapes</Text>
+      </Pressable>
     </View>
   );
 }
@@ -633,9 +636,11 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <IOControls disabled={disableIO} {...ioHandlers} />
       <GeometryEditorUI
         cameraControls={cameraControls}
         style={styles.libraryContainer}
+        theme={DarkTheme}
         mapProps={{
           style: styles.map,
           styleURL: 'mapbox://styles/mapbox/dark-v10',
@@ -651,7 +656,6 @@ export default function App() {
           zoomLevel={14}
         />
       </GeometryEditorUI>
-      <IOControls disabled={disableIO} {...ioHandlers} />
     </SafeAreaView>
   );
 }

@@ -45,6 +45,7 @@ export type { CameraControls } from './component/event/CameraController';
 export type {
   EditableFeature,
   EditableGeometry,
+  EditableGeometryType,
   RenderFeature,
   RenderProperties,
   SemanticGeometryType,
@@ -75,6 +76,7 @@ export type {
   StyleGeneratorMap,
 } from './type/style';
 export type {
+  EditingStatusCb,
   InteractionEventProps,
   PageProps,
   PageOpenCb,
