@@ -255,3 +255,7 @@ See the [contributing guide](CONTRIBUTING.md) to learn how to run the example ap
 ## License
 
 MIT
+
+---
+
+Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)

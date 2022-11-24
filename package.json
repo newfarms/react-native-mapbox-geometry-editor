@@ -13,13 +13,18 @@
     "android",
     "ios",
     "cpp",
-    "react-native-mapbox-geometry-editor.podspec",
+    "*.podspec",
     "!lib/typescript/example",
-    "!android/build",
     "!ios/build",
+    "!android/build",
+    "!android/gradle",
+    "!android/gradlew",
+    "!android/gradlew.bat",
+    "!android/local.properties",
     "!**/__tests__",
     "!**/__fixtures__",
-    "!**/__mocks__"
+    "!**/__mocks__",
+    "!**/.*"
   ],
   "scripts": {
     "docs": "typedoc",
@@ -45,33 +50,36 @@
   },
   "homepage": "https://github.com/newfarms/react-native-mapbox-geometry-editor#readme",
   "devDependencies": {
+    "@arkweid/lefthook": "^0.7.7",
     "@babel/plugin-proposal-decorators": "^7.16.7",
-    "@commitlint/config-conventional": "^11.0.0",
-    "@react-native-community/eslint-config": "^3.0.1",
+    "@commitlint/config-conventional": "^17.0.2",
+    "@react-native-community/eslint-config": "^3.0.2",
     "@react-native-mapbox-gl/maps": "^8.5.0",
-    "@release-it/conventional-changelog": "^2.0.0",
+    "@release-it/conventional-changelog": "^5.0.0",
     "@types/geojson": "^7946.0.8",
-    "@types/jest": "^27.4.0",
+    "@types/jest": "^28.1.2",
     "@types/lodash": "^4.14.178",
-    "@types/react": "^17.0.38",
-    "@types/react-native": "0.66.11",
+    "@types/react": "~17.0.21",
+    "@types/react-native": "0.70.0",
     "@types/yup": "^0.29.13",
     "commander": "^8.3.0",
-    "commitlint": "^11.0.0",
-    "eslint": "^8.6.0",
-    "eslint-config-prettier": "^8.3.0",
+    "commitlint": "^17.0.2",
+    "del-cli": "^5.0.0",
+    "eslint": "^8.4.1",
+    "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "husky": "^4.3.8",
-    "jest": "^27.4.6",
-    "metro-react-native-babel-preset": "^0.66.2",
-    "pod-install": "^0.1.30",
-    "prettier": "2.5.1",
-    "react": "17.0.2",
-    "react-native": "0.66.4",
-    "react-native-builder-bob": "^0.18.2",
-    "release-it": "^14.2.2",
+    "jest": "^28.1.1",
+    "pod-install": "^0.1.0",
+    "prettier": "^2.0.5",
+    "react": "18.1.0",
+    "react-native": "0.70.5",
+    "react-native-builder-bob": "^0.20.1",
+    "release-it": "^15.0.0",
     "typedoc": "^0.22.10",
-    "typescript": "^4.5.4"
+    "typescript": "^4.5.2"
+  },
+  "resolutions": {
+    "@types/react": "17.0.21"
   },
   "peerDependencies": {
     "@react-native-mapbox-gl/maps": "^8.5.0",
@@ -80,6 +88,10 @@
     "react-native-get-random-values": "*",
     "react-native-vector-icons": "^9.0.0"
   },
+  "engines": {
+    "node": ">= 16.0.0"
+  },
+  "packageManager": "^yarn@1.22.15",
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [
@@ -112,8 +124,6 @@
       "prettier"
     ],
     "rules": {
-      "@typescript-eslint/no-shadow": "error",
-      "no-shadow": "off",
       "prettier/prettier": [
         "error",
         {
@@ -123,9 +133,7 @@
           "trailingComma": "es5",
           "useTabs": false
         }
-      ],
-      "react/jsx-uses-react": "off",
-      "react/react-in-jsx-scope": "off"
+      ]
     }
   },
   "eslintIgnore": [
@@ -159,7 +167,12 @@
           "configFile": "./babel.config.js"
         }
       ],
-      "typescript"
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
     ]
   },
   "dependencies": {
@@ -188,9 +201,5 @@
     "react-native-paper": "^4.11.1",
     "react-native-responsive-screen": "^1.4.2",
     "yup": "^0.32.11"
-  },
-  "resolutions": {
-    "@typescript-eslint/eslint-plugin": "5.9.0",
-    "eslint-plugin-flowtype": "8.0.3"
   }
 }
