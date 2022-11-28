@@ -50,7 +50,6 @@
   },
   "homepage": "https://github.com/newfarms/react-native-mapbox-geometry-editor#readme",
   "devDependencies": {
-    "@arkweid/lefthook": "^0.7.7",
     "@babel/plugin-proposal-class-properties": "^7.18.6",
     "@babel/plugin-proposal-decorators": "^7.20.5",
     "@babel/preset-typescript": "^7.18.6",
@@ -70,6 +69,7 @@
     "eslint": "^8.4.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "lefthook": "^0.7.7",
     "jest": "^28.1.1",
     "metro-react-native-babel-preset": "0.72.3",
     "pod-install": "^0.1.0",
