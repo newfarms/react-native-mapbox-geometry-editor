@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 
 /**
  * Fallback content that is displayed when the page is rendered
- * while [[ControlsModel]] is not in an appropriate state
+ * while {@link ControlsModel} is not in an appropriate state
  * for the page to be rendered.
  * @param props Rendering props
  */
@@ -47,7 +47,7 @@ export function DefaultContent({
 
 /**
  * A component to be rendered inside a full page display
- * (such as [[PageContainer]]). This component serves as a dispatcher
+ * (such as {@link PageContainer}). This component serves as a dispatcher
  * to render content that is appropriate for the current state
  * of the user interface controller.
  */
@@ -92,6 +92,6 @@ function _PageContent() {
 }
 
 /**
- * Renderable MobX wrapper for [[_PageContent]]
+ * Renderable MobX wrapper for {@link _PageContent}
  */
 export const PageContent = observer(_PageContent);

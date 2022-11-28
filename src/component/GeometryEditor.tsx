@@ -25,7 +25,7 @@ import type { ShapeComparator } from './geometry/ColdGeometry';
 import type { GeometryIORef } from './geometry/GeometryIO';
 
 /**
- * Render properties for [[GeometryEditor]]
+ * Render properties for {@link GeometryEditor}
  */
 export interface GeometryEditorProps {
   /**

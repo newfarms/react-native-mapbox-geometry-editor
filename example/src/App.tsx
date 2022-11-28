@@ -145,7 +145,7 @@ enum ZoneType {
 }
 
 /**
- * Default colours for [[ZoneType]] types
+ * Default colours for {@link ZoneType} types
  * @param stage The zone type
  * @return A specific or a default colour, depending on whether `type` is defined
  */

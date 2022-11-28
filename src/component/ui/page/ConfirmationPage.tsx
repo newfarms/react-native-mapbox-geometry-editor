@@ -60,6 +60,6 @@ function _ConfirmationPage({
 }
 
 /**
- * Renderable MobX wrapper for [[_ConfirmationPage]]
+ * Renderable MobX wrapper for {@link _ConfirmationPage}
  */
 export const ConfirmationPage = observer(_ConfirmationPage);

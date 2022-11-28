@@ -48,7 +48,7 @@ export interface MetadataEditorContextValue {
 }
 
 /**
- * Create a placeholder default value for [[MetadataEditorContext]]
+ * Create a placeholder default value for {@link MetadataEditorContext}
  */
 const DEFAULT_SCHEMA = yup.object().shape({});
 const DEFAULT_INITIAL_VALUES: MetadataFormInitialValues = {};

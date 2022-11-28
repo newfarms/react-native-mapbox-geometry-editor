@@ -11,7 +11,7 @@ import type { PageControls, PageProps } from '../../../type/ui';
  * application with corresponding functionality from this library.
  *
  * This component manages the opening and closing of pages in accordance
- * with the page open/close state exposed by [[ControlsModel]]
+ * with the page open/close state exposed by {@link ControlsModel}
  *
  * @param props Rendering props
  */
@@ -61,6 +61,6 @@ function _PageController({
 }
 
 /**
- * Renderable MobX wrapper for [[_PageController]]
+ * Renderable MobX wrapper for {@link _PageController}
  */
 export const PageController = observer(_PageController);

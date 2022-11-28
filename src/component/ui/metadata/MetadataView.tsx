@@ -103,6 +103,6 @@ function _MetadataView() {
 }
 
 /**
- * Renderable MobX wrapper for [[_MetadataView]]
+ * Renderable MobX wrapper for {@link _MetadataView}
  */
 export const MetadataView = observer(_MetadataView);

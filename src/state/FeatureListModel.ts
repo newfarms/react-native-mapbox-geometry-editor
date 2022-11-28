@@ -51,7 +51,7 @@ export class FeatureListModel extends Model({
   features: prop<Array<FeatureModel>>(() => []),
   /**
    * Saved undo middleware state.
-   * This data allows [[FeatureListModel]] to attach and dispose of undo middleware
+   * This data allows {@link FeatureListModel} to attach and dispose of undo middleware
    * as needed without losing the undo history. Since undo middleware is a function,
    * it is not possible to store the undo middleware itself in the state tree.
    * It is stored as runtime data, using a class property. It may seem that doing so
@@ -138,7 +138,7 @@ export class FeatureListModel extends Model({
   /**
    * Add a vertex to the feature currently being edited
    * @param vertex The new vertex for the feature
-   * @param index The index at which to insert the vertex. See [[FeatureModel.addVertex]]
+   * @param index The index at which to insert the vertex. See {@link FeatureModel.addVertex}
    */
   @modelAction
   addVertex(vertex: Position, index: number = -1) {
@@ -151,7 +151,7 @@ export class FeatureListModel extends Model({
 
   /**
    * Add a vertex to split an edge of the feature currently being edited
-   * See [[FeatureModel.addVertexToNearestSegment]]
+   * See {@link FeatureModel.addVertexToNearestSegment}
    * @param position The position for which a closest edge position will be found for the new vertex
    */
   @modelAction
@@ -180,8 +180,8 @@ export class FeatureListModel extends Model({
    * Delete a vertex from the feature currently being edited
    *
    * This function is intended to be used to delete vertices from non-point
-   * features, and will do nothing to point features. Use [[deleteSelected]]
-   * to delete a point feature. The current [[InteractionMode]] of [[ControlsModel]]
+   * features, and will do nothing to point features. Use {@link deleteSelected}
+   * to delete a point feature. The current {@link InteractionMode} of {@link ControlsModel}
    * determines what types of features are used to create the list of points
    * currently being edited.
    *
@@ -515,7 +515,7 @@ export class FeatureListModel extends Model({
          */
         geojson: EditableFeature;
         /**
-         * The ID of the corresponding [[FeatureModel]]
+         * The ID of the corresponding {@link FeatureModel}
          */
         id: RnmgeID;
       }

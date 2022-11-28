@@ -89,6 +89,6 @@ function _HotGeometry() {
 }
 
 /**
- * Renderable MobX wrapper for [[_HotGeometry]]
+ * Renderable MobX wrapper for {@link _HotGeometry}
  */
 export const HotGeometry = observer(_HotGeometry);

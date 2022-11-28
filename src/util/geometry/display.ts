@@ -123,13 +123,13 @@ export function compareShapesByOverlap<Props extends GeoJsonProperties>(
 /**
  * Groups shapes into an ordered list of lists of shapes.
  *
- * If `compare` is not defined, it defaults to [[comparePolygonsByOverlap]].
+ * If `compare` is not defined, it defaults to {@link comparePolygonsByOverlap}.
  * Shapes are then organized as follows in the output list:
  * - All polylines and no polygons are in the last list.
- * - Each sub-list of polygons contains shapes that are equal or incomparable according to [[comparePolygonsByOverlap]]
+ * - Each sub-list of polygons contains shapes that are equal or incomparable according to {@link comparePolygonsByOverlap}
  * - Sub-lists are ordered such that the "lesser" polygon in a pair of polygons
  *   always appears in the set with a higher index than the set
- *   containing the "greater" polygon (according to [[comparePolygonsByOverlap]]).
+ *   containing the "greater" polygon (according to {@link comparePolygonsByOverlap}).
  *
  * If `compare` is defined, it will determine how shapes are grouped in the output list.
  *

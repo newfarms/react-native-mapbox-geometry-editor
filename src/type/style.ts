@@ -58,7 +58,7 @@ export interface CircleLayerStyleGenerator {
    * Refer to Mapbox's documentation of data-driven styling expressions
    * for more information on data-driven styling:
    * https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions/
-   * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'Point'`
+   * @return Mapbox style JSON for a {@link RenderFeature} of geometry type `'Point'`
    */
   (): CircleLayerStyle;
 }
@@ -75,7 +75,7 @@ export interface LineLayerStyleGenerator {
    * Note: Data-driven dash pattern styling is not yet supported by Mapbox
    * (https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/#paint-line-line-dasharray)
    *
-   * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'LineString'`
+   * @return Mapbox style JSON for a {@link RenderFeature} of geometry type `'LineString'`
    */
   (): LineLayerStyle;
 }
@@ -88,7 +88,7 @@ export interface PolygonLayerStyleGenerator {
    * Refer to Mapbox's documentation of data-driven styling expressions
    * for more information on data-driven styling:
    * https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions/
-   * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'Polygon'`
+   * @return Mapbox style JSON for a {@link RenderFeature} of geometry type `'Polygon'`
    */
   (): FillLayerStyle;
 }
@@ -124,33 +124,33 @@ export interface StyleGeneratorMap {
   readonly selectedVertex: DraggablePointStyleGenerator;
   /**
    * Style generator for non-draggable point features.
-   * Features will be of type [[RenderFeature]] and will have a geometry
+   * Features will be of type {@link RenderFeature} and will have a geometry
    * of type `'Point'`
    */
   readonly point: CircleLayerStyleGenerator;
   /**
    * Style generator for point features that mark vertices of non-point features
    * in the process of being created or edited.
-   * Features will be of type [[RenderFeature]] and will have a geometry
+   * Features will be of type {@link RenderFeature} and will have a geometry
    * of type `'Point'`
    */
   readonly vertex: CircleLayerStyleGenerator;
   /**
    * Style generator for LineString features that mark edges of polygon features
    * in the process of being created or edited.
-   * Features will be of type [[RenderFeature]] and will have a geometry
+   * Features will be of type {@link RenderFeature} and will have a geometry
    * of type `'LineString'`
    */
   readonly edge: LineLayerStyleGenerator;
   /**
    * Style generator for polygon features.
-   * Features will be of type [[RenderFeature]] and will have a geometry
+   * Features will be of type {@link RenderFeature} and will have a geometry
    * of type `'Polygon'`
    */
   readonly polygon: PolygonLayerStyleGenerator;
   /**
    * Style generator for polyline features.
-   * Features will be of type [[RenderFeature]] and will have a geometry
+   * Features will be of type {@link RenderFeature} and will have a geometry
    * of type `'LineString'`
    */
   readonly polyline: LineLayerStyleGenerator;

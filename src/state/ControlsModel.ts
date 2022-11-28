@@ -158,7 +158,7 @@ export class ControlsModel extends Model({
    */
   selectedVertex: prop<{
     /**
-     * The ID of the [[FeatureModel]] to which the vertex belongs
+     * The ID of the {@link FeatureModel} to which the vertex belongs
      */
     id: RnmgeID;
     /**
@@ -168,7 +168,7 @@ export class ControlsModel extends Model({
   } | null>(() => null),
 }) {
   /**
-   * Retrieve the [[MetadataInteraction]] corresponding to current user interface state
+   * Retrieve the {@link MetadataInteraction} corresponding to current user interface state
    */
   @computed
   get metadataInteraction(): MetadataInteraction {
@@ -219,7 +219,7 @@ export class ControlsModel extends Model({
   }
 
   /**
-   * Return whether the [[delete]] action can be performed
+   * Return whether the {@link delete} action can be performed
    */
   @computed
   get canDelete() {
@@ -457,7 +457,7 @@ export class ControlsModel extends Model({
   }
 
   /**
-   * Save a copy of `pendingMetadata` to the [[FeatureListModel]]
+   * Save a copy of `pendingMetadata` to the {@link FeatureListModel}
    * and clear both `pendingMetadata` and `isDirty`.
    */
   @modelAction
@@ -496,7 +496,7 @@ export class ControlsModel extends Model({
   }
 
   /**
-   * An internal version of [[confirm]] that accepts more arguments
+   * An internal version of {@link confirm} that accepts more arguments
    *
    * @param force If `true`, skip opening any confirmation dialogs that would
    *              normally prevent a page from being closed, and immediately
@@ -998,7 +998,7 @@ export class ControlsModel extends Model({
   }
 
   /**
-   * Touch event handler for geometry in the cold layer. See [[ColdGeometry]]
+   * Touch event handler for geometry in the cold layer. See {@link ColdGeometry}
    *
    * @param e The features that were pressed, and information about the location pressed
    */
@@ -1048,7 +1048,7 @@ export class ControlsModel extends Model({
   }
 
   /**
-   * Touch event handler for geometry in the hot layer. See [[HotGeometry]]
+   * Touch event handler for geometry in the hot layer. See {@link HotGeometry}
    *
    * @param e The features that were pressed, and information about the location pressed
    */

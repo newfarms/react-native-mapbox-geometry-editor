@@ -23,7 +23,7 @@ export function eventPosition(e: OnPressEvent): Position {
 }
 
 /**
- * [[ColdGeometry]] layers touch event handler helper function
+ * {@link ColdGeometry} layers touch event handler helper function
  * that returns the ID of the topmost feature
  *
  * If the touch event has no features, returns `undefined`

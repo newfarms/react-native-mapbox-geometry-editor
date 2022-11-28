@@ -1,5 +1,5 @@
 /**
- * Callbacks that a [[PageOpenCb]] receives
+ * Callbacks that a {@link PageOpenCb} receives
  */
 export interface PageControls {
   /**

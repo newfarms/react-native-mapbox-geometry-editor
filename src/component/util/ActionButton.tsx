@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 /**
  * For some reason, React Native Paper does not export these types,
  * so re-copy them here in order for TypeScript to understand
- * what [[IconSource]] is.
+ * what {@link IconSource} is.
  */
 type IconSourceBase = string | ImageSourcePropType;
 type IconProps = {
@@ -36,7 +36,7 @@ type IconSource =
 
 /**
  * Extra rendering properties used by React Native Paper's FAB
- * that are not directly used by [[ActionButton]]
+ * that are not directly used by {@link ActionButton}
  */
 export interface RestProps {
   icon: IconSource;

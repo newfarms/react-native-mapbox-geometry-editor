@@ -150,6 +150,6 @@ function _MetadataPreview() {
 }
 
 /**
- * Renderable MobX wrapper for [[_MetadataPreview]]
+ * Renderable MobX wrapper for {@link _MetadataPreview}
  */
 export const MetadataPreview = observer(_MetadataPreview);

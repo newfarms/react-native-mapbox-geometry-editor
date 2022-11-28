@@ -84,7 +84,7 @@ function NonPointLayers({
    */
   shapeComparator?: ShapeComparator;
   /**
-   * Refer to the documentation of [[_ColdGeometry]]
+   * Refer to the documentation of {@link _ColdGeometry}
    */
   aboveLayerID?: string;
 }) {
@@ -429,6 +429,6 @@ function _ColdGeometry({
 }
 
 /**
- * Renderable MobX wrapper for [[_ColdGeometry]]
+ * Renderable MobX wrapper for {@link _ColdGeometry}
  */
 export const ColdGeometry = observer(_ColdGeometry);
