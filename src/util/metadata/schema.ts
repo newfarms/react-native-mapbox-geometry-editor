@@ -305,7 +305,7 @@ function processEnumSchemaField(
   }
   if (yup.array().of(yup.string().required()).min(1).isValidSync(options)) {
     // The field is valid, now inspect the data object
-    let initialValue = options[0];
+    let initialValue = options[0]; // We ensured above that there is at least one element
     if (options.includes(data[key])) {
       initialValue = data[key];
     } else {

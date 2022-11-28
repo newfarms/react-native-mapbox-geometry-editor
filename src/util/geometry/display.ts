@@ -5,7 +5,7 @@ import booleanDisjoint from '@turf/boolean-disjoint';
 import bbox from '@turf/bbox';
 import centroid from '@turf/centroid';
 import length from '@turf/length';
-import type { Feature, LineString, Polygon } from 'geojson';
+import type { Feature, LineString, Polygon, GeoJsonProperties } from 'geojson';
 
 import type { BBox2D, EditableFeature } from '../../type/geometry';
 import { Comparison, groupSort } from '../collections';
@@ -68,7 +68,7 @@ export function findBoundingBox(feature: EditableFeature): BBox2D | null {
  * @param a The first polygon to compare
  * @param b The second polygon to compare
  */
-function comparePolygonsByOverlap<Props>(
+function comparePolygonsByOverlap<Props extends GeoJsonProperties>(
   a: Feature<Polygon, Props>,
   b: Feature<Polygon, Props>
 ): Comparison | undefined {
@@ -98,7 +98,7 @@ function comparePolygonsByOverlap<Props>(
  * @param a The first shape to compare
  * @param b The second shape to compare
  */
-export function compareShapesByOverlap<Props>(
+export function compareShapesByOverlap<Props extends GeoJsonProperties>(
   a: Feature<Polygon | LineString, Props>,
   b: Feature<Polygon | LineString, Props>
 ): Comparison | undefined {
@@ -136,7 +136,7 @@ export function compareShapesByOverlap<Props>(
  * @param shapes The shapes to group and order
  * @param compare An optional function defining an order between shapes
  */
-export function orderShapes<Props>(
+export function orderShapes<Props extends GeoJsonProperties>(
   shapes: Array<Feature<Polygon | LineString, Props>>,
   compare: Comparator<
     Feature<Polygon | LineString, Props>
