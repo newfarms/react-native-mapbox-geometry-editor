@@ -209,5 +209,8 @@
     "react-native-paper": "^4.12.5",
     "react-native-responsive-screen": "^1.4.2",
     "yup": "^0.32.11"
+  },
+  "resolutions": {
+    "@types/react": "17.0.21"
   }
 }
