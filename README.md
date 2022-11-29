@@ -225,6 +225,9 @@ Otherwise, it will continue to be difficult to adapt geometry editing controls t
 In the future, this library should be published to a package repository, such as NPM, for easier use with package managers.
 
 ### Minor general issues
+
+- There are some temporary changes to [`tsconfig.json`](tsconfig.json) to work around TypeScript errors in `@rnmapbox/maps`
+  (see https://github.com/rnmapbox/maps/issues/2333).
 - In some client applications, while running in development mode, the library will emit the following warning:
   `"[mobx] Derivation observer_StoreProvider is created/updated without reading any observable value"`
   Refer to the comments in `src/state/StoreProvider.tsx` for details.

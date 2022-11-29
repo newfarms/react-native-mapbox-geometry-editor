@@ -8,7 +8,13 @@
     "allowUnusedLabels": false,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "importsNotUsedAsValues": "error",
+    /* Changed from
+       ```
+       "importsNotUsedAsValues": "error",
+       ```
+       to work around https://github.com/rnmapbox/maps/issues/2333
+     */
+    "importsNotUsedAsValues": "remove",
     "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
     "lib": ["esnext"],
@@ -18,7 +24,13 @@
     "noImplicitReturns": true,
     "noImplicitUseStrict": false,
     "noStrictGenericChecks": false,
-    "noUnusedLocals": true,
+    /* Changed from
+       ```
+       "noUnusedLocals": true,
+       ```
+       to work around https://github.com/rnmapbox/maps/issues/2333
+     */
+    "noUnusedLocals": false,
     "noUnusedParameters": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
