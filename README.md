@@ -18,7 +18,6 @@ Interactive shape editing on top of the Mapbox Maps SDK for React Native
 - [API Documentation](#api-documentation)
 - [Utility scripts](#utility-scripts)
 - [Known issues and future work](#known-issues-and-future-work)
-  - [Dependency updates](#dependency-updates)
   - [Custom user interface](#custom-user-interface)
   - [Packaging and publishing](#packaging-and-publishing)
   - [Minor general issues](#minor-general-issues)
@@ -71,7 +70,9 @@ Note that there is no need to set up FontAwesome 5 support with `react-native-ve
 
 The unofficial Mapbox Maps SDK for React Native, `@rnmapbox/maps` is a peer dependency.
 To use it, you must have a [Mapbox API access token](https://docs.mapbox.com/help/how-mapbox-works/access-tokens/), unless you plan to use a different map provider.
-See [below](#dependency-updates) for more remarks concerning the Mapbox dependency.
+The example app is set up to use Mapbox as both a map provider, and as the native Android and iOS SDK underneath the Mapbox Maps SDK for React Native.
+Mapbox setup for the example app is described in [CONTRIBUTING.md](CONTRIBUTING.md#mapbox).
+Refer to the [Mapbox Maps SDK for React Native's documentation](https://github.com/rnmapbox/maps) for more information about alternative map providers and native map libraries (although the project appears to be phasing out these alternatives).
 
 ### Import options
 
@@ -196,18 +197,6 @@ HTML API documentation for the library can be generated using Typedoc as follows
 
 ## Known issues and future work
 
-### Dependency updates
-
-The library and its example app need to be updated to the latest versions of their dependencies, in particular:
-- [React Native](https://reactnative.dev/)
-- [react-native-paper](https://github.com/callstack/react-native-paper)
-- [Mapbox Maps SDK for React Native](https://github.com/rnmapbox/maps)
-
-The Mapbox Maps SDK now supports multiple different map library implementations, and the documentation of this library should be updated to describe how to take advantage of the different map libraries.
-Presently, this library's example uses MapLibre on Android, and a version of Mapbox prior to v10 on iOS.
-Other map libraries should work, but need to be tested.
-On both platforms, the example app is configured to use Mapbox's services as its map provider, but the library could be used with other map servers supported by the Mapbox Maps SDK for React Native.
-
 ### Custom user interface
 
 The `<GeometryEditorUI/>` component renders a graphical user interface for editing geometry on top of a map.
@@ -242,8 +231,6 @@ In the future, this library should be published to a package repository, such as
 ### Android-specific issues
 - Geometry rendering on an Android emulator may exhibit visual problems such as rendering points in grey instead of in their desired colours.
   Zooming in and out on the map may make colours randomly appear and disappear.
-- Draggable points/vertices will usually render underneath all other geometry
-  (https://github.com/rnmapbox/maps/issues/806).
 
 ### iOS-specific issues
 - To drag an editable point, it may be necessary to first tap on the point (press and release) before pressing and holding to drag the point.

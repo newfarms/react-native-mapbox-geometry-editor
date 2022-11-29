@@ -6,10 +6,22 @@ We want this community to be friendly and respectful to each other. Please follo
 
 ## Development workflow
 
+### Prerequisites
+
+#### React Native
+
 We assume you have set up your [React Native](https://reactnative.dev/) development tools. To run the example app in this repository, you will need [React Native CLI](https://reactnative.dev/docs/environment-setup) tools. (The example is not managed by [Expo](https://expo.io/) tools.)
 
-You will also need a [Mapbox API access token](https://docs.mapbox.com/help/how-mapbox-works/access-tokens/), and must copy it into `example/mapbox_token.json` (see [example/mapbox_token.json.example](./example/mapbox_token.json.example)).
+#### Mapbox
+
+To build the example app, your build system needs to download the Mapbox Android and/or iOS SDKs. Instructions for configuring your build system(s) to authenticate with Mapbox can be found at the following links:
+- [Android](https://docs.mapbox.com/android/maps/guides/install/#configure-credentials)
+- [iOS](https://docs.mapbox.com/ios/maps/guides/install/#configure-credentials)
+
+To run the example app, you also need a [Mapbox API access token](https://docs.mapbox.com/help/how-mapbox-works/access-tokens/), and must copy it into `example/mapbox_token.json` (see [example/mapbox_token.json.example](./example/mapbox_token.json.example)).
 If you do not need to run the example app, you can use an arbitrary string instead of a token, which will at least allow the example app to build.
+
+### Development
 
 Run `yarn bootstrap` in the root directory to install the required dependencies for each package:
 
