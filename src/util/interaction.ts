@@ -9,9 +9,14 @@ import filter from 'lodash/filter';
 import type { OnPressEvent } from '@rnmapbox/maps';
 import type { Feature, LineString, Point, Polygon, Position } from 'geojson';
 
-import { COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY } from '../component/geometry/ColdGeometry';
 import type { RenderProperties, RnmgeID } from '../type/geometry';
 import type { FeatureListModel } from '../state/FeatureListModel';
+
+/**
+ * The GeoJSON property giving the height index for rendering,
+ * used to determine the overlap order of geometry other than points.
+ */
+export const NONPOINT_ZINDEX_PROPERTY = 'rnmgeZIndex';
 
 /**
  * Obtain a GeoJSON `Position` for the location of a touch event
@@ -68,8 +73,7 @@ export function pickTopmostFeature(
               break;
             case 'LineString':
             case 'Polygon':
-              let zIndex =
-                feature.properties?.[COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY];
+              let zIndex = feature.properties?.[NONPOINT_ZINDEX_PROPERTY];
               if (typeof zIndex === 'number') {
                 if (
                   typeof topmostZIndex !== 'number' ||
@@ -86,7 +90,7 @@ export function pickTopmostFeature(
                 idSet.add(id);
               } else {
                 console.warn(
-                  `Feature with ID ${id} does not have a numerical ${COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY} property.`
+                  `Feature with ID ${id} does not have a numerical ${NONPOINT_ZINDEX_PROPERTY} property.`
                 );
               }
               break;
@@ -111,8 +115,7 @@ export function pickTopmostFeature(
         const nonPointTopFeatures = filter(
           nonPoints,
           (feature) =>
-            feature.properties[COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY] ===
-            topmostZIndex
+            feature.properties[NONPOINT_ZINDEX_PROPERTY] === topmostZIndex
         );
         if (nonPointTopFeatures.length > 1) {
           topFeatures = nonPointTopFeatures.map((feature) =>

@@ -1,49 +1,13 @@
 import { useContext, useMemo } from 'react';
-import { StyleSheet } from 'react-native';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { Button, Paragraph, Surface } from 'react-native-paper';
 
 import { StoreContext } from '../../../state/StoreContext';
 import { InteractionMode } from '../../../state/ControlsModel';
 import { MetadataEditorConsumer } from '../metadata/MetadataEditorConsumer';
 import { MetadataView } from '../metadata/MetadataView';
+import { DefaultContent } from './DefaultContent';
 import { ConfirmationPage } from './ConfirmationPage';
-
-/**
- * @ignore
- */
-const styles = StyleSheet.create({
-  surface: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  paragraph: {
-    alignSelf: 'center',
-  },
-});
-
-/**
- * Fallback content that is displayed when the page is rendered
- * while {@link ControlsModel} is not in an appropriate state
- * for the page to be rendered.
- * @param props Rendering props
- */
-export function DefaultContent({
-  closeCb,
-}: {
-  /**
-   * A callback that will close the page
-   */
-  closeCb: () => void;
-}) {
-  return (
-    <Surface style={styles.surface}>
-      <Paragraph style={styles.paragraph}>Return to the map</Paragraph>
-      <Button onPress={closeCb}>Close</Button>
-    </Surface>
-  );
-}
 
 /**
  * A component to be rendered inside a full page display

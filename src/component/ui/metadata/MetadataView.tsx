@@ -6,7 +6,7 @@ import { Button, Card } from 'react-native-paper';
 
 import { StoreContext } from '../../../state/StoreContext';
 import { MetadataFieldList } from './MetadataList';
-import { DefaultContent } from '../page/PageContent';
+import { DefaultContent } from '../page/DefaultContent';
 import { useMetadata } from '../../../hooks/useMetadata';
 import { canUseMetadata } from '../../../util/metadata/display';
 import { InteractionMode } from '../../../state/ControlsModel';
