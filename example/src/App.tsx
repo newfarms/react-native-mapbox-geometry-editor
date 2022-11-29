@@ -86,8 +86,15 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignSelf: 'flex-end',
   },
-  button: {
-    marginBottom: 10,
+  importButton: {
+    marginTop: 10,
+    marginBottom: 5,
+    marginRight: 10,
+    padding: 3,
+    borderRadius: 10,
+  },
+  exportButton: {
+    marginBottom: 5,
     marginRight: 10,
     padding: 3,
     borderRadius: 10,
@@ -506,13 +513,20 @@ function IOControls({
   if (disabled) {
     buttonColor = 'grey';
   }
-  const buttonStyle = { ...styles.button, backgroundColor: buttonColor };
   return (
     <View style={styles.ioControlsContainer}>
-      <Pressable style={buttonStyle} onPress={onImport} disabled={disabled}>
+      <Pressable
+        style={[styles.importButton, { backgroundColor: buttonColor }]}
+        onPress={onImport}
+        disabled={disabled}
+      >
         <Text style={styles.text}>Import static shapes</Text>
       </Pressable>
-      <Pressable style={buttonStyle} onPress={onExport} disabled={disabled}>
+      <Pressable
+        style={[styles.exportButton, { backgroundColor: buttonColor }]}
+        onPress={onExport}
+        disabled={disabled}
+      >
         <Text style={styles.text}>Export shapes</Text>
       </Pressable>
     </View>
