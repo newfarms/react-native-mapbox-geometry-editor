@@ -2,7 +2,7 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { useContext, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@rnmapbox/maps';
 import { Button, Card } from 'react-native-paper';
 import type { Position } from 'geojson';
 

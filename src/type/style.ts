@@ -7,7 +7,7 @@ import type {
   FillLayerStyle,
   LineLayerStyle,
   SymbolLayerStyle,
-} from '@react-native-mapbox-gl/maps';
+} from '@rnmapbox/maps';
 
 import type { EditableFeature, CoordinateRole } from './geometry';
 

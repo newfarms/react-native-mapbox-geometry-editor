@@ -6,7 +6,7 @@ import {
   point,
 } from '@turf/helpers';
 import filter from 'lodash/filter';
-import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
+import type { OnPressEvent } from '@rnmapbox/maps';
 import type { Feature, LineString, Point, Polygon, Position } from 'geojson';
 
 import { COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY } from '../component/geometry/ColdGeometry';

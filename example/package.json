@@ -9,7 +9,7 @@
     "start": "react-native start"
   },
   "dependencies": {
-    "@react-native-mapbox-gl/maps": "^8.5.0",
+    "@rnmapbox/maps": "^10.0.0-beta.59",
     "react": "18.1.0",
     "react-native": "0.70.6",
     "react-native-get-random-values": "^1.7.2",

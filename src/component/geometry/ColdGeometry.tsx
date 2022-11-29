@@ -1,14 +1,11 @@
 import { action, toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { useContext, useMemo } from 'react';
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@rnmapbox/maps';
 import cloneDeep from 'lodash/cloneDeep';
-import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
-import type { Expression } from '@react-native-mapbox-gl/maps';
-import type {
-  FillLayerStyle,
-  LineLayerStyle,
-} from '@react-native-mapbox-gl/maps';
+import type { OnPressEvent } from '@rnmapbox/maps';
+import type { Expression } from '@rnmapbox/maps';
+import type { FillLayerStyle, LineLayerStyle } from '@rnmapbox/maps';
 import type { Feature, LineString, Polygon } from 'geojson';
 
 import { StoreContext } from '../../state/StoreContext';
@@ -50,7 +47,7 @@ const COLD_NON_POINT_LAYER_PAIR_COUNT = 10;
  * of layers actually needed to display overlapping geometry.
  * Unfortunately, there seemed to be bugs in the Mapbox library that prevented
  * layers from displaying or updating. Therefore, layers are now static.
- * See also https://github.com/react-native-mapbox-gl/maps/issues/248
+ * See also https://github.com/rnmapbox/maps/issues/248
  *
  * @param props Render properties
  */
@@ -349,7 +346,7 @@ function _ColdGeometry({
    * The ID of the map layer above which all layers will be rendered.
    * It is possible that Mapbox will not respect changes
    * to its value during subsequent re-renders.
-   * See https://github.com/react-native-mapbox-gl/maps/issues/248
+   * See https://github.com/rnmapbox/maps/issues/248
    */
   aboveLayerID?: string;
 }) {

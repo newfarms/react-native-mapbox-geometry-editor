@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { DarkTheme } from 'react-native-paper';
 
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@rnmapbox/maps';
 
 import token from '../mapbox_token.json';
 import sampleFeatures from './sample.json';
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
 
 /* Set the Mapbox API access token
  * Changes to the token might only take effect after closing and reopening the app.
- * (see https://github.com/react-native-mapbox-gl/maps/issues/933)
+ * (see https://github.com/rnmapbox/maps/issues/933)
  */
 MapboxGL.setAccessToken(token.accessToken);
 

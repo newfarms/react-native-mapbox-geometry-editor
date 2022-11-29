@@ -14,24 +14,8 @@ buildscript {
             ndkVersion = "21.4.7075529"
         }
 
-        rnmbglMapboxLibs = {
-            implementation ("org.maplibre.gl:android-sdk:9.2.1")
-            implementation ("com.mapbox.mapboxsdk:mapbox-sdk-turf:5.8.0")
-            implementation ("com.mapbox.mapboxsdk:mapbox-android-telemetry:6.1.0")
-        }
-
-        rnmbglMapboxPlugins = {
-            implementation ("com.mapbox.mapboxsdk:mapbox-android-gestures:0.7.0")
-            implementation ("com.mapbox.mapboxsdk:mapbox-android-plugin-localization-v9:0.12.0")    {
-                exclude group: 'com.mapbox.mapboxsdk', module: 'mapbox-android-sdk'
-            }
-            implementation ("com.mapbox.mapboxsdk:mapbox-android-plugin-annotation-v9:0.8.0")        {
-                exclude group: 'com.mapbox.mapboxsdk', module: 'mapbox-android-sdk'
-            }
-            implementation ("com.mapbox.mapboxsdk:mapbox-android-plugin-markerview-v9:0.4.0") {
-                exclude group: 'com.mapbox.mapboxsdk', module: 'mapbox-android-sdk'
-            }
-        }
+        // From https://github.com/rnmapbox/maps/blob/main/android/install.md
+        RNMapboxMapsImpl = "mapbox"
     }
     repositories {
         google()
@@ -64,7 +48,20 @@ allprojects {
             }
         }
         google()
-        jcenter()
         maven { url 'https://www.jitpack.io' }
+        // From https://github.com/rnmapbox/maps/blob/main/android/install.md
+        maven {
+            url 'https://api.mapbox.com/downloads/v2/releases/maven'
+            authentication {
+                basic(BasicAuthentication)
+            }
+            credentials {
+                // Do not change the username below.
+                // This should always be `mapbox` (not your username).
+                username = 'mapbox'
+                // Use the secret token you stored in gradle.properties as the password
+                password = project.properties['MAPBOX_DOWNLOADS_TOKEN'] ?: ""
+            }
+        }
     }
 }

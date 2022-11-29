@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { useCallback, useContext, useMemo } from 'react';
 import { View } from 'react-native';
 import type { ViewStyle } from 'react-native';
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@rnmapbox/maps';
 
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';

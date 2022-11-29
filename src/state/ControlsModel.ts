@@ -1,6 +1,6 @@
 import { computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
-import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
+import type { OnPressEvent } from '@rnmapbox/maps';
 import type { Position, GeoJsonProperties } from 'geojson';
 
 import { eventPosition, pickTopmostFeature } from '../util/interaction';

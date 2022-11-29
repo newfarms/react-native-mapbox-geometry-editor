@@ -62,14 +62,14 @@ During geometry import operations (see [`src/util/geometry/io.tsx`](./src/util/g
 Presently this library is not published to a package repository. You can install it using a Git URL, along with its mandatory peer dependencies, as follows:
 
 ```sh
-yarn add git+https://github.com/newfarms/react-native-mapbox-geometry-editor#development @react-native-mapbox-gl/maps react-native-get-random-values
+yarn add git+https://github.com/newfarms/react-native-mapbox-geometry-editor#development @rnmapbox/maps react-native-get-random-values
 ```
 
 If you wish to use the default editing controls user interface (`<GeometryEditorUI/>`) from this library, then you must also install the peer dependency `react-native-vector-icons`.
 Run `yarn add react-native-vector-icons`, and then follow the additional instructions listed [here](https://github.com/oblador/react-native-vector-icons#installation).
 Note that there is no need to set up FontAwesome 5 support with `react-native-vector-icons`.
 
-The unofficial Mapbox Maps SDK for React Native, `@react-native-mapbox-gl/maps` is a peer dependency.
+The unofficial Mapbox Maps SDK for React Native, `@rnmapbox/maps` is a peer dependency.
 To use it, you must have a [Mapbox API access token](https://docs.mapbox.com/help/how-mapbox-works/access-tokens/), unless you plan to use a different map provider.
 See [below](#dependency-updates) for more remarks concerning the Mapbox dependency.
 
@@ -240,11 +240,11 @@ In the future, this library should be published to a package repository, such as
 - Geometry rendering on an Android emulator may exhibit visual problems such as rendering points in grey instead of in their desired colours.
   Zooming in and out on the map may make colours randomly appear and disappear.
 - Draggable points/vertices will usually render underneath all other geometry
-  (https://github.com/react-native-mapbox-gl/maps/issues/806).
+  (https://github.com/rnmapbox/maps/issues/806).
 
 ### iOS-specific issues
 - To drag an editable point, it may be necessary to first tap on the point (press and release) before pressing and holding to drag the point.
-- Editable points may snap back to their original positions while or after being dragged (https://github.com/react-native-mapbox-gl/maps/issues/1117).
+- Editable points may snap back to their original positions while or after being dragged (https://github.com/rnmapbox/maps/issues/1117).
 - To draw a new point, it may be necessary to first tap on the map, to switch focus to the map, after having tapped on a geometry object or on a user interface element.
   In other words, two taps on the map may be required to draw a new point.
 
