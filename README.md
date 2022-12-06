@@ -10,8 +10,6 @@ Interactive shape editing on top of the Mapbox Maps SDK for React Native
   - [Limitations](#limitations)
 - [Installation](#installation)
   - [Import options](#import-options)
-    - [Importing library builds (recommended)](#importing-library-builds-recommended)
-    - [Import library source (not recommended)](#import-library-source-not-recommended)
 - [Usage](#usage)
   - [Geometry format and metadata](#geometry-format-and-metadata)
     - [Advanced usage](#advanced-usage)
@@ -76,31 +74,18 @@ Refer to the [Mapbox Maps SDK for React Native's documentation](https://github.c
 
 ### Import options
 
-#### Importing library builds (recommended)
+The library provides build targets to suit different transpilation mechanisms:
+- Commonjs module system: `lib/commonjs`
+- ES6 module system (useful for tree-shaking): `lib/module`
+- TypeScript: `lib/typescript`
 
-The library provides builds to suit different transpilation mechanisms:
-
-```js
-// commonjs module system
-import { GeometryEditorUI } from 'react-native-mapbox-geometry-editor/lib/commonjs';
-
-// ES6 module system
-// Useful for tree-shaking
-import { GeometryEditorUI } from 'react-native-mapbox-geometry-editor/lib/module';
-
-// TypeScript
-import { GeometryEditorUI } from 'react-native-mapbox-geometry-editor/lib/typescript';
-```
-
-For more information about the build targets, see https://github.com/callstack/react-native-builder-bob#targets
-
-#### Import library source (not recommended)
+If you import the library as usual, your build system should use the appropriate target:
 
 ```js
 import { GeometryEditorUI } from 'react-native-mapbox-geometry-editor';
 ```
 
-The plain import will import the source code of the library, meaning that your code will need to be transpiled under Babel or TypeScript configurations that are compatible with those used to develop the library.
+For more information about the build targets, see https://github.com/callstack/react-native-builder-bob#targets
 
 ## Usage
 
