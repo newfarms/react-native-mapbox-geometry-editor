@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { useCallback, useContext, useMemo } from 'react';
 import { View } from 'react-native';
 import type { ViewStyle } from 'react-native';
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@rnmapbox/maps';
 
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
@@ -129,7 +129,7 @@ function _SinglePoint(props: {
 }
 
 /**
- * Renderable MobX wrapper for [[_SinglePoint]]
+ * Renderable MobX wrapper for {@link _SinglePoint}
  */
 const SinglePoint = observer(_SinglePoint);
 
@@ -142,7 +142,7 @@ function _DraggablePoints() {
 
   /**
    * Render all points by mapping the appropriate
-   * data to [[SinglePoint]]
+   * data to {@link SinglePoint}
    */
   const renderSinglePoint = useCallback(
     (_point: unknown, index: number) => (
@@ -154,6 +154,6 @@ function _DraggablePoints() {
 }
 
 /**
- * Renderable MobX wrapper for [[_DraggablePoints]]
+ * Renderable MobX wrapper for {@link _DraggablePoints}
  */
 export const DraggablePoints = observer(_DraggablePoints);

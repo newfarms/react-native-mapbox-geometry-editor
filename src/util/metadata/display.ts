@@ -33,14 +33,14 @@ export function hasValue(value: unknown): boolean {
  * A predicate that determines whether a metadata field can be subject
  * to the given usage based on the field's attributes and current value.
  *
- * See also [[canUseMetadata]]
+ * See also {@link canUseMetadata}
  *
  * @param attributes Attributes of the field
  * @param value The current value of the field
  * @param use The requested use of the field
  * @return An object containing the permission test result and
  *         indicating whether the field's value is empty
- *         (as tested by [[hasValue]])
+ *         (as tested by {@link hasValue})
  */
 export function canUseField(
   attributes: FieldAttributes,
@@ -52,7 +52,7 @@ export function canUseField(
    */
   canUse: boolean;
   /**
-   * Whether `value` is non-empty according to [[hasValue]]
+   * Whether `value` is non-empty according to {@link hasValue}
    */
   exists: boolean;
 } {
@@ -101,7 +101,7 @@ export function canUseField(
  * A predicate that determines whether a metadata object can be subject
  * to the given usage based on the object's attributes and current value.
  *
- * See also [[canUseField]]
+ * See also {@link canUseField}
  *
  * @param attributes Attributes of the object
  * @param value The metadata object

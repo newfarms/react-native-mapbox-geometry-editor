@@ -64,6 +64,6 @@ function _ConfirmationDialog({
 }
 
 /**
- * Renderable MobX wrapper for [[_ConfirmationDialog]]
+ * Renderable MobX wrapper for {@link _ConfirmationDialog}
  */
 export const ConfirmationDialog = observer(_ConfirmationDialog);

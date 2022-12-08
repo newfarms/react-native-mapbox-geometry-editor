@@ -103,6 +103,6 @@ function _ActionToolbox() {
 }
 
 /**
- * Renderable MobX wrapper for [[_UndoControl]]
+ * Renderable MobX wrapper for {@link _UndoControl}
  */
 export const ActionToolbox = observer(_ActionToolbox);

@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 
 /**
  * A component that renders a metadata editing form,
- * using data from [[MetadataEditorContext]]
+ * using data from {@link MetadataEditorContext}
  */
 function _MetadataEditorConsumer() {
   /**
@@ -88,6 +88,6 @@ function _MetadataEditorConsumer() {
 }
 
 /**
- * Renderable MobX wrapper for [[_MetadataEditorConsumer]]
+ * Renderable MobX wrapper for {@link _MetadataEditorConsumer}
  */
 export const MetadataEditorConsumer = observer(_MetadataEditorConsumer);

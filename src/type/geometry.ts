@@ -24,7 +24,7 @@ export type BBox2D = [number, number, number, number];
 export type EditableGeometry = Point | LineString | Polygon;
 
 /**
- * The valid values for the "type" property of [[EditableGeometry]] objects.
+ * The valid values for the "type" property of {@link EditableGeometry} objects.
  */
 export type EditableGeometryType = EditableGeometry['type'];
 
@@ -161,7 +161,7 @@ export enum LineStringRole {
 }
 
 /**
- * The equivalent of [[CoordinateRole]] and [[LineStringRole]] for geometrical
+ * The equivalent of {@link CoordinateRole} and {@link LineStringRole} for geometrical
  * features that are not points or line strings.
  * This enum provides a value to fill an otherwise empty
  * field when that field is relevant only to other types of features.
@@ -175,7 +175,7 @@ export enum GeometryRole {
 
 /**
  * The type of feature IDs
- * See [[RenderProperties]]
+ * See {@link RenderProperties}
  */
 export type RnmgeID = string;
 
@@ -204,7 +204,7 @@ export interface RenderProperties {
   /**
    * For point and line string features, the geometrical role in their
    * containing features.
-   * For other features, it is set to [[GeometryRole.Other]]
+   * For other features, it is set to {@link GeometryRole.Other}
    */
   readonly rnmgeRole: CoordinateRole | LineStringRole | GeometryRole;
   /**
@@ -227,7 +227,7 @@ export interface RenderProperties {
 export type RenderFeature = Feature<EditableGeometry, RenderProperties>;
 
 /**
- * A collection of [[RenderFeature]] features
+ * A collection of {@link RenderFeature} features
  */
 export type RenderFeatureCollection = FeatureCollection<
   EditableGeometry,
@@ -235,7 +235,7 @@ export type RenderFeatureCollection = FeatureCollection<
 >;
 
 /**
- * A collection of [[RenderFeature]] point features
+ * A collection of {@link RenderFeature} point features
  */
 export type RenderPointFeatureCollection = FeatureCollection<
   Point,
@@ -243,7 +243,7 @@ export type RenderPointFeatureCollection = FeatureCollection<
 >;
 
 /**
- * A collection of [[RenderFeature]] non-point features
+ * A collection of {@link RenderFeature} non-point features
  */
 export type RenderNonPointFeatureCollection = FeatureCollection<
   LineString | Polygon,
@@ -252,7 +252,7 @@ export type RenderNonPointFeatureCollection = FeatureCollection<
 
 /**
  * Data associated with a draggable point
- * Note that there are some properties of [[RenderProperties]] that do not need
+ * Note that there are some properties of {@link RenderProperties} that do not need
  * to be included, because they have implied constant values:
  * ```
  * rnmgeStage: FeatureLifecycleStage = FeatureLifecycleStage.EditShape

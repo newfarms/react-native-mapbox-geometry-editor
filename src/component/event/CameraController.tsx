@@ -102,6 +102,6 @@ function _CameraController({
 }
 
 /**
- * Renderable MobX wrapper for [[_CameraController]]
+ * Renderable MobX wrapper for {@link _CameraController}
  */
 export const CameraController = observer(_CameraController);

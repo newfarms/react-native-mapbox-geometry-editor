@@ -1,19 +1,17 @@
 import { action, toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { useContext, useMemo } from 'react';
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@rnmapbox/maps';
 import cloneDeep from 'lodash/cloneDeep';
-import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
-import type { Expression } from '@react-native-mapbox-gl/maps';
-import type {
-  FillLayerStyle,
-  LineLayerStyle,
-} from '@react-native-mapbox-gl/maps';
+import type { OnPressEvent } from '@rnmapbox/maps';
+import type { Expression } from '@rnmapbox/maps';
+import type { FillLayerStyle, LineLayerStyle } from '@rnmapbox/maps';
 import type { Feature, LineString, Polygon } from 'geojson';
 
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
 import { orderShapes } from '../../util/geometry/display';
+import { NONPOINT_ZINDEX_PROPERTY } from '../../util/interaction';
 import type {
   RenderNonPointFeatureCollection,
   RenderProperties,
@@ -26,11 +24,6 @@ import type { Comparator } from '../../util/collections';
 export type ShapeComparator = Comparator<
   Feature<Polygon | LineString, RenderProperties>
 >;
-
-/**
- * The GeoJSON property giving the height index for rendering
- */
-export const COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY = 'rnmgeZIndex';
 
 /**
  * The ID of the bottommost points layer is referred to by other layers.
@@ -50,7 +43,7 @@ const COLD_NON_POINT_LAYER_PAIR_COUNT = 10;
  * of layers actually needed to display overlapping geometry.
  * Unfortunately, there seemed to be bugs in the Mapbox library that prevented
  * layers from displaying or updating. Therefore, layers are now static.
- * See also https://github.com/react-native-mapbox-gl/maps/issues/248
+ * See also https://github.com/rnmapbox/maps/issues/248
  *
  * @param props Render properties
  */
@@ -84,7 +77,7 @@ function NonPointLayers({
    */
   shapeComparator?: ShapeComparator;
   /**
-   * Refer to the documentation of [[_ColdGeometry]]
+   * Refer to the documentation of {@link _ColdGeometry}
    */
   aboveLayerID?: string;
 }) {
@@ -106,7 +99,7 @@ function NonPointLayers({
     list.forEach((feature) => {
       const indexFromEnd = arr.length - index - 1;
       const height = COLD_NON_POINT_LAYER_PAIR_COUNT - indexFromEnd - 1;
-      feature.properties[COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY] = height;
+      feature.properties[NONPOINT_ZINDEX_PROPERTY] = height;
     });
   });
 
@@ -130,7 +123,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'Polygon'],
-          ['<=', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 0],
+          ['<=', ['get', NONPOINT_ZINDEX_PROPERTY], 0],
         ]}
         style={fillLayerStyle}
       />
@@ -140,7 +133,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
-          ['<=', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 0],
+          ['<=', ['get', NONPOINT_ZINDEX_PROPERTY], 0],
         ]}
         style={lineLayerStyle}
       />
@@ -150,7 +143,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'Polygon'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 1],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 1],
         ]}
         style={fillLayerStyle}
       />
@@ -160,7 +153,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 1],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 1],
         ]}
         style={lineLayerStyle}
       />
@@ -170,7 +163,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'Polygon'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 2],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 2],
         ]}
         style={fillLayerStyle}
       />
@@ -180,7 +173,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 2],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 2],
         ]}
         style={lineLayerStyle}
       />
@@ -190,7 +183,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'Polygon'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 3],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 3],
         ]}
         style={fillLayerStyle}
       />
@@ -200,7 +193,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 3],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 3],
         ]}
         style={lineLayerStyle}
       />
@@ -210,7 +203,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'Polygon'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 4],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 4],
         ]}
         style={fillLayerStyle}
       />
@@ -220,7 +213,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 4],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 4],
         ]}
         style={lineLayerStyle}
       />
@@ -230,7 +223,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'Polygon'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 5],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 5],
         ]}
         style={fillLayerStyle}
       />
@@ -240,7 +233,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 5],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 5],
         ]}
         style={lineLayerStyle}
       />
@@ -250,7 +243,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'Polygon'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 6],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 6],
         ]}
         style={fillLayerStyle}
       />
@@ -260,7 +253,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 6],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 6],
         ]}
         style={lineLayerStyle}
       />
@@ -270,7 +263,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'Polygon'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 7],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 7],
         ]}
         style={fillLayerStyle}
       />
@@ -280,7 +273,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 7],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 7],
         ]}
         style={lineLayerStyle}
       />
@@ -290,7 +283,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'Polygon'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 8],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 8],
         ]}
         style={fillLayerStyle}
       />
@@ -300,7 +293,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 8],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 8],
         ]}
         style={lineLayerStyle}
       />
@@ -310,7 +303,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'Polygon'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 9],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 9],
         ]}
         style={fillLayerStyle}
       />
@@ -320,7 +313,7 @@ function NonPointLayers({
         filter={[
           'all',
           ['==', ['geometry-type'], 'LineString'],
-          ['==', ['get', COLD_GEOMETRY_NONPOINT_ZINDEX_PROPERTY], 9],
+          ['==', ['get', NONPOINT_ZINDEX_PROPERTY], 9],
         ]}
         style={lineLayerStyle}
       />
@@ -349,7 +342,7 @@ function _ColdGeometry({
    * The ID of the map layer above which all layers will be rendered.
    * It is possible that Mapbox will not respect changes
    * to its value during subsequent re-renders.
-   * See https://github.com/react-native-mapbox-gl/maps/issues/248
+   * See https://github.com/rnmapbox/maps/issues/248
    */
   aboveLayerID?: string;
 }) {
@@ -429,6 +422,6 @@ function _ColdGeometry({
 }
 
 /**
- * Renderable MobX wrapper for [[_ColdGeometry]]
+ * Renderable MobX wrapper for {@link _ColdGeometry}
  */
 export const ColdGeometry = observer(_ColdGeometry);

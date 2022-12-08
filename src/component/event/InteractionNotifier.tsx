@@ -34,6 +34,6 @@ function _InteractionNotifier({
 }
 
 /**
- * Renderable MobX wrapper for [[_InteractionNotifier]]
+ * Renderable MobX wrapper for {@link _InteractionNotifier}
  */
 export const InteractionNotifier = observer(_InteractionNotifier);

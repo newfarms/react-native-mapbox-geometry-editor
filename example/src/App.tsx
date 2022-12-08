@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { DarkTheme } from 'react-native-paper';
 
-import MapboxGL from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@rnmapbox/maps';
 
 import token from '../mapbox_token.json';
 import sampleFeatures from './sample.json';
@@ -86,8 +86,15 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignSelf: 'flex-end',
   },
-  button: {
-    marginBottom: 10,
+  importButton: {
+    marginTop: 10,
+    marginBottom: 5,
+    marginRight: 10,
+    padding: 3,
+    borderRadius: 10,
+  },
+  exportButton: {
+    marginBottom: 5,
     marginRight: 10,
     padding: 3,
     borderRadius: 10,
@@ -99,7 +106,7 @@ const styles = StyleSheet.create({
 
 /* Set the Mapbox API access token
  * Changes to the token might only take effect after closing and reopening the app.
- * (see https://github.com/react-native-mapbox-gl/maps/issues/933)
+ * (see https://github.com/rnmapbox/maps/issues/933)
  */
 MapboxGL.setAccessToken(token.accessToken);
 
@@ -145,7 +152,7 @@ enum ZoneType {
 }
 
 /**
- * Default colours for [[ZoneType]] types
+ * Default colours for {@link ZoneType} types
  * @param stage The zone type
  * @return A specific or a default colour, depending on whether `type` is defined
  */
@@ -506,13 +513,20 @@ function IOControls({
   if (disabled) {
     buttonColor = 'grey';
   }
-  const buttonStyle = { ...styles.button, backgroundColor: buttonColor };
   return (
     <View style={styles.ioControlsContainer}>
-      <Pressable style={buttonStyle} onPress={onImport} disabled={disabled}>
+      <Pressable
+        style={[styles.importButton, { backgroundColor: buttonColor }]}
+        onPress={onImport}
+        disabled={disabled}
+      >
         <Text style={styles.text}>Import static shapes</Text>
       </Pressable>
-      <Pressable style={buttonStyle} onPress={onExport} disabled={disabled}>
+      <Pressable
+        style={[styles.exportButton, { backgroundColor: buttonColor }]}
+        onPress={onExport}
+        disabled={disabled}
+      >
         <Text style={styles.text}>Export shapes</Text>
       </Pressable>
     </View>
