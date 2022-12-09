@@ -7,7 +7,7 @@ import { RootModel } from './RootModel';
 
 /**
  * A React context provider used to give children components access
- * to a [[StoreContext]] context.
+ * to a {@link StoreContext} context.
  *
  * This component may emit a MobX warning depending on how the client application uses
  * this library:
@@ -47,6 +47,6 @@ function _StoreProvider(props: { readonly children?: ReactNode }) {
 }
 
 /**
- * Renderable MobX wrapper for [[_StoreProvider]]
+ * Renderable MobX wrapper for {@link _StoreProvider}
  */
 export const StoreProvider = observer(_StoreProvider);

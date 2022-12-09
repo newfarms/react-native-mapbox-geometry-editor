@@ -66,7 +66,7 @@ export interface FieldAttributes {
     /**
      * Whether the user can see the field
      * If `false`, all other permissions have no effect.
-     * Overridden by [[MetadataAttributes.titleFieldKey]] when obtaining
+     * Overridden by {@link MetadataAttributes.titleFieldKey} when obtaining
      * a title for the object.
      */
     view: boolean;
@@ -191,7 +191,7 @@ export interface MetadataAttributes {
   /**
    * The key of the field that contains the object's "title"
    * Overrides `title`.
-   * This setting also overrides [[FieldAttributes]] permissions that
+   * This setting also overrides {@link FieldAttributes} permissions that
    * would not allow the field to be viewed for other purposes.
    */
   titleFieldKey?: string;

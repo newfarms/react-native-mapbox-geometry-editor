@@ -28,7 +28,7 @@ import type { InteractionEventProps } from '../type/ui';
 import type { GeometryIORef } from './geometry/GeometryIO';
 
 /**
- * Render properties for [[GeometryEditorUI]]
+ * Render properties for {@link GeometryEditorUI}
  */
 export interface GeometryEditorUIProps extends GeometryEditorProps {
   /**

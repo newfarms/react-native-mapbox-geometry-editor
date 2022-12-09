@@ -7,7 +7,7 @@ import { action } from 'mobx';
 import { forwardRef, useContext, useMemo } from 'react';
 import type { ReactNode, Ref } from 'react';
 import { StyleSheet } from 'react-native';
-import MapboxGL, { MapViewProps } from '@react-native-mapbox-gl/maps';
+import MapboxGL, { MapViewProps } from '@rnmapbox/maps';
 
 import { DraggablePoints } from './geometry/DraggablePoints';
 import { ColdGeometry } from './geometry/ColdGeometry';
@@ -25,11 +25,11 @@ import type { ShapeComparator } from './geometry/ColdGeometry';
 import type { GeometryIORef } from './geometry/GeometryIO';
 
 /**
- * Render properties for [[GeometryEditor]]
+ * Render properties for {@link GeometryEditor}
  */
 export interface GeometryEditorProps {
   /**
-   * Additional properties for the [map](https://github.com/react-native-mapbox-gl/maps/blob/master/docs/MapView.md), including `style`.
+   * Additional properties for the [map](https://github.com/rnmapbox/maps/blob/master/docs/MapView.md), including `style`.
    */
   readonly mapProps?: MapViewProps;
   /**
@@ -53,7 +53,7 @@ export interface GeometryEditorProps {
    * The ID of the map layer above which all layers will be rendered.
    * While this is a `prop`, it is possible that Mapbox will not respect changes
    * to its value during subsequent re-renders, so it may be better to set it to a constant.
-   * See https://github.com/react-native-mapbox-gl/maps/issues/248
+   * See https://github.com/rnmapbox/maps/issues/248
    */
   aboveLayerID?: string;
   /**

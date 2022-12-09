@@ -26,7 +26,7 @@ function _RedoControl() {
 }
 
 /**
- * Renderable MobX wrapper for [[_RedoControl]]
+ * Renderable MobX wrapper for {@link _RedoControl}
  */
 export const RedoControl = observer(_RedoControl);
 
@@ -50,7 +50,7 @@ function _UndoControl() {
 }
 
 /**
- * Renderable MobX wrapper for [[_UndoControl]]
+ * Renderable MobX wrapper for {@link _UndoControl}
  */
 export const UndoControl = observer(_UndoControl);
 
@@ -80,7 +80,7 @@ function _DeleteControl() {
 }
 
 /**
- * Renderable MobX wrapper for [[_DeleteControl]]
+ * Renderable MobX wrapper for {@link _DeleteControl}
  */
 export const DeleteControl = observer(_DeleteControl);
 
@@ -125,7 +125,7 @@ function _FinishControl() {
 }
 
 /**
- * Renderable MobX wrapper for [[_FinishControl]]
+ * Renderable MobX wrapper for {@link _FinishControl}
  */
 export const FinishControl = observer(_FinishControl);
 
@@ -154,6 +154,6 @@ function _RollbackControl() {
 }
 
 /**
- * Renderable MobX wrapper for [[_RollbackControl]]
+ * Renderable MobX wrapper for {@link _RollbackControl}
  */
 export const RollbackControl = observer(_RollbackControl);

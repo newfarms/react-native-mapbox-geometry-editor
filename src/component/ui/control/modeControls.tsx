@@ -129,6 +129,6 @@ function _ShapeEditControl() {
 }
 
 /**
- * Renderable MobX wrapper for [[_ShapeEditControl]]
+ * Renderable MobX wrapper for {@link _ShapeEditControl}
  */
 export const ShapeEditControl = observer(_ShapeEditControl);

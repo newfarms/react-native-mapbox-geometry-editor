@@ -10,15 +10,12 @@ Interactive shape editing on top of the Mapbox Maps SDK for React Native
   - [Limitations](#limitations)
 - [Installation](#installation)
   - [Import options](#import-options)
-    - [Importing library builds (recommended)](#importing-library-builds-recommended)
-    - [Import library source (not recommended)](#import-library-source-not-recommended)
 - [Usage](#usage)
   - [Geometry format and metadata](#geometry-format-and-metadata)
     - [Advanced usage](#advanced-usage)
 - [API Documentation](#api-documentation)
 - [Utility scripts](#utility-scripts)
 - [Known issues and future work](#known-issues-and-future-work)
-  - [Dependency updates](#dependency-updates)
   - [Custom user interface](#custom-user-interface)
   - [Packaging and publishing](#packaging-and-publishing)
   - [Minor general issues](#minor-general-issues)
@@ -62,44 +59,33 @@ During geometry import operations (see [`src/util/geometry/io.tsx`](./src/util/g
 Presently this library is not published to a package repository. You can install it using a Git URL, along with its mandatory peer dependencies, as follows:
 
 ```sh
-yarn add git+https://github.com/newfarms/react-native-mapbox-geometry-editor#development @react-native-mapbox-gl/maps react-native-get-random-values
+yarn add git+https://github.com/newfarms/react-native-mapbox-geometry-editor#development @rnmapbox/maps react-native-get-random-values
 ```
 
 If you wish to use the default editing controls user interface (`<GeometryEditorUI/>`) from this library, then you must also install the peer dependency `react-native-vector-icons`.
 Run `yarn add react-native-vector-icons`, and then follow the additional instructions listed [here](https://github.com/oblador/react-native-vector-icons#installation).
 Note that there is no need to set up FontAwesome 5 support with `react-native-vector-icons`.
 
-The unofficial Mapbox Maps SDK for React Native, `@react-native-mapbox-gl/maps` is a peer dependency.
+The unofficial Mapbox Maps SDK for React Native, `@rnmapbox/maps` is a peer dependency.
 To use it, you must have a [Mapbox API access token](https://docs.mapbox.com/help/how-mapbox-works/access-tokens/), unless you plan to use a different map provider.
-See [below](#dependency-updates) for more remarks concerning the Mapbox dependency.
+The example app is set up to use Mapbox as both a map provider, and as the native Android and iOS SDK underneath the Mapbox Maps SDK for React Native.
+Mapbox setup for the example app is described in [CONTRIBUTING.md](CONTRIBUTING.md#mapbox).
+Refer to the [Mapbox Maps SDK for React Native's documentation](https://github.com/rnmapbox/maps) for more information about alternative map providers and native map libraries (although the project appears to be phasing out these alternatives).
 
 ### Import options
 
-#### Importing library builds (recommended)
+The library provides build targets to suit different transpilation mechanisms:
+- Commonjs module system: `lib/commonjs`
+- ES6 module system (useful for tree-shaking): `lib/module`
+- TypeScript: `lib/typescript`
 
-The library provides builds to suit different transpilation mechanisms:
-
-```js
-// commonjs module system
-import { GeometryEditorUI } from 'react-native-mapbox-geometry-editor/lib/commonjs';
-
-// ES6 module system
-// Useful for tree-shaking
-import { GeometryEditorUI } from 'react-native-mapbox-geometry-editor/lib/module';
-
-// TypeScript
-import { GeometryEditorUI } from 'react-native-mapbox-geometry-editor/lib/typescript';
-```
-
-For more information about the build targets, see https://github.com/callstack/react-native-builder-bob#targets
-
-#### Import library source (not recommended)
+If you import the library as usual, your build system should use the appropriate target:
 
 ```js
 import { GeometryEditorUI } from 'react-native-mapbox-geometry-editor';
 ```
 
-The plain import will import the source code of the library, meaning that your code will need to be transpiled under Babel or TypeScript configurations that are compatible with those used to develop the library.
+For more information about the build targets, see https://github.com/callstack/react-native-builder-bob#targets
 
 ## Usage
 
@@ -196,18 +182,6 @@ HTML API documentation for the library can be generated using Typedoc as follows
 
 ## Known issues and future work
 
-### Dependency updates
-
-The library and its example app need to be updated to the latest versions of their dependencies, in particular:
-- [React Native](https://reactnative.dev/)
-- [react-native-paper](https://github.com/callstack/react-native-paper)
-- [Mapbox Maps SDK for React Native](https://github.com/rnmapbox/maps)
-
-The Mapbox Maps SDK now supports multiple different map library implementations, and the documentation of this library should be updated to describe how to take advantage of the different map libraries.
-Presently, this library's example uses MapLibre on Android, and a version of Mapbox prior to v10 on iOS.
-Other map libraries should work, but need to be tested.
-On both platforms, the example app is configured to use Mapbox's services as its map provider, but the library could be used with other map servers supported by the Mapbox Maps SDK for React Native.
-
 ### Custom user interface
 
 The `<GeometryEditorUI/>` component renders a graphical user interface for editing geometry on top of a map.
@@ -225,6 +199,9 @@ Otherwise, it will continue to be difficult to adapt geometry editing controls t
 In the future, this library should be published to a package repository, such as NPM, for easier use with package managers.
 
 ### Minor general issues
+
+- There are some temporary changes to [`tsconfig.json`](tsconfig.json) to work around TypeScript errors in `@rnmapbox/maps`
+  (see https://github.com/rnmapbox/maps/issues/2333).
 - In some client applications, while running in development mode, the library will emit the following warning:
   `"[mobx] Derivation observer_StoreProvider is created/updated without reading any observable value"`
   Refer to the comments in `src/state/StoreProvider.tsx` for details.
@@ -239,12 +216,10 @@ In the future, this library should be published to a package repository, such as
 ### Android-specific issues
 - Geometry rendering on an Android emulator may exhibit visual problems such as rendering points in grey instead of in their desired colours.
   Zooming in and out on the map may make colours randomly appear and disappear.
-- Draggable points/vertices will usually render underneath all other geometry
-  (https://github.com/react-native-mapbox-gl/maps/issues/806).
 
 ### iOS-specific issues
 - To drag an editable point, it may be necessary to first tap on the point (press and release) before pressing and holding to drag the point.
-- Editable points may snap back to their original positions while or after being dragged (https://github.com/react-native-mapbox-gl/maps/issues/1117).
+- Editable points may snap back to their original positions while or after being dragged (https://github.com/rnmapbox/maps/issues/1117).
 - To draw a new point, it may be necessary to first tap on the map, to switch focus to the map, after having tapped on a geometry object or on a user interface element.
   In other words, two taps on the map may be required to draw a new point.
 
@@ -255,3 +230,7 @@ See the [contributing guide](CONTRIBUTING.md) to learn how to run the example ap
 ## License
 
 MIT
+
+---
+
+Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)

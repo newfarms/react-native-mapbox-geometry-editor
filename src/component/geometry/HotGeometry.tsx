@@ -1,8 +1,8 @@
 import { action, toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { useContext, useMemo } from 'react';
-import MapboxGL from '@react-native-mapbox-gl/maps';
-import type { OnPressEvent } from '@react-native-mapbox-gl/maps';
+import MapboxGL from '@rnmapbox/maps';
+import type { OnPressEvent } from '@rnmapbox/maps';
 
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
@@ -89,6 +89,6 @@ function _HotGeometry() {
 }
 
 /**
- * Renderable MobX wrapper for [[_HotGeometry]]
+ * Renderable MobX wrapper for {@link _HotGeometry}
  */
 export const HotGeometry = observer(_HotGeometry);

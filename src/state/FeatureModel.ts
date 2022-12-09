@@ -675,10 +675,10 @@ export class FeatureModel extends Model({
    * for a non-point feature that is in a "hot" lifecycle stage.
    * Returns an empty list for a point feature.
    * If this feature is in a "hot" lifecycle stage, all of its points are
-   * returned in a flat list, except for any vertex selected by [[ControlsModel]].
+   * returned in a flat list, except for any vertex selected by {@link ControlsModel}.
    * If this feature is in a "cold" lifecycle stage, returns an empty list.
    *
-   * Note: Any selected vertex is output in [[draggablePositions]] instead.
+   * Note: Any selected vertex is output in {@link draggablePositions} instead.
    */
   @computed
   private get fixedPositions(): Array<RenderFeature> {
@@ -974,7 +974,7 @@ export class FeatureModel extends Model({
    * Returns `false` if this feature cannot have any vertices remoed
    * without becoming a different type of geometry.
    * Also returns `false` if this feature is not complete.
-   * See [[isCompleteFeature]].
+   * See {@link isCompleteFeature}.
    */
   @computed
   get canRemoveVertices() {

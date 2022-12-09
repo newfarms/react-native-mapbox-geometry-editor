@@ -78,6 +78,6 @@ export function _ModeToolbox() {
 }
 
 /**
- * Renderable MobX wrapper for [[_ModeToolbox]]
+ * Renderable MobX wrapper for {@link _ModeToolbox}
  */
 export const ModeToolbox = observer(_ModeToolbox);

@@ -333,7 +333,7 @@ export function MetadataFieldList({
         return fieldPermission && !typeError;
       }).map((item) => {
         /**
-         * Package field descriptions with data values for [[ListItem]]
+         * Package field descriptions with data values for {@link ListItem}
          */
         return {
           value: data?.[item.key],

@@ -114,10 +114,10 @@ export type GeometryImportError =
   | UnsupportedGeometryError;
 
 /**
- * Implementation of [[GeometryIORef.import]], with an additional `store`
+ * Implementation of {@link GeometryIORef.import}, with an additional `store`
  * parameter
  *
- * Refer to the documentation of [[GeometryIORef.import]].
+ * Refer to the documentation of {@link GeometryIORef.import}.
  *
  * @param store The store that receives the imported geometry
  */
@@ -186,7 +186,7 @@ function validateAndTransformGeometry(
    */
   exact: boolean;
   /**
-   * Features that can be used with [[FeatureModel.importFeatures]]
+   * Features that can be used with {@link FeatureModel.importFeatures}
    */
   features: Array<EditableFeature>;
 }> {
@@ -294,10 +294,10 @@ function validateAndTransformGeometry(
 }
 
 /**
- * Implementation of [[GeometryIORef.export]], with an additional `store`
+ * Implementation of {@link GeometryIORef.export}, with an additional `store`
  * parameter
  *
- * Refer to the documentation of [[GeometryIORef.export]].
+ * Refer to the documentation of {@link GeometryIORef.export}.
  *
  * @param store The store that exports the geometry
  */

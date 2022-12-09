@@ -16,9 +16,9 @@ import type {
 import { MetadataEditorContext } from './MetadataEditorContext';
 
 /**
- * An inner component that [[MetadataEditorProvider]] delegates
+ * An inner component that {@link MetadataEditorProvider} delegates
  * rendering a metadata editing context to, when the user interface
- * has the appropriate [[MetadataInteraction]].
+ * has the appropriate {@link MetadataInteraction}.
  *
  * @param props Render properties
  * @return React children
@@ -37,7 +37,7 @@ function _InnerMetadataEditorProvider({
   use: MetadataInteraction.Create | MetadataInteraction.Edit;
   /**
    * Whether metadata editing is possible
-   * See [[useMetadata]]
+   * See {@link useMetadata}
    */
   canUse: boolean;
   /**
@@ -112,18 +112,18 @@ function _InnerMetadataEditorProvider({
 }
 
 /**
- * Renderable MobX wrapper for [[_InnerMetadataEditorProvider]]
+ * Renderable MobX wrapper for {@link _InnerMetadataEditorProvider}
  */
 const InnerMetadataEditorProvider = observer(_InnerMetadataEditorProvider);
 
 /**
  * A component that provides a React Context for editing geometry metadata.
  * This component allows a geometry metadata editing form
- * (a consumer of [[MetadataEditorContext]]) to be unmounted
+ * (a consumer of {@link MetadataEditorContext}) to be unmounted
  * and then re-mounted without losing editing state.
  *
  * Caution: This component only renders a metadata editing context provider
- * when the user interface has an appropriate [[MetadataInteraction]].
+ * when the user interface has an appropriate {@link MetadataInteraction}.
  *
  * @param props Render properties
  * @return React children
@@ -173,6 +173,6 @@ function _MetadataEditorProvider({
 }
 
 /**
- * Renderable MobX wrapper for [[_MetadataEditorProvider]]
+ * Renderable MobX wrapper for {@link _MetadataEditorProvider}
  */
 export const MetadataEditorProvider = observer(_MetadataEditorProvider);

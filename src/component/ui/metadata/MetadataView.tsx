@@ -6,7 +6,7 @@ import { Button, Card } from 'react-native-paper';
 
 import { StoreContext } from '../../../state/StoreContext';
 import { MetadataFieldList } from './MetadataList';
-import { DefaultContent } from '../page/PageContent';
+import { DefaultContent } from '../page/DefaultContent';
 import { useMetadata } from '../../../hooks/useMetadata';
 import { canUseMetadata } from '../../../util/metadata/display';
 import { InteractionMode } from '../../../state/ControlsModel';
@@ -103,6 +103,6 @@ function _MetadataView() {
 }
 
 /**
- * Renderable MobX wrapper for [[_MetadataView]]
+ * Renderable MobX wrapper for {@link _MetadataView}
  */
 export const MetadataView = observer(_MetadataView);

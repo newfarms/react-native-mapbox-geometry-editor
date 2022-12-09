@@ -3,7 +3,7 @@ import type {
   FillLayerStyle,
   LineLayerStyle,
   SymbolLayerStyle,
-} from '@react-native-mapbox-gl/maps';
+} from '@rnmapbox/maps';
 
 import {
   CoordinateRole,
@@ -195,7 +195,7 @@ const MISSING_WIDTH = 2;
 
 /**
  * The default style generation function for non-draggable point features
- * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'Point'`
+ * @return Mapbox style JSON for a {@link RenderFeature} of geometry type `'Point'`
  */
 function getDefaultPointStyle(): CircleLayerStyle {
   return {
@@ -242,7 +242,7 @@ function getDefaultPointStyle(): CircleLayerStyle {
 
 /**
  * The default style generation function for vertices of non-point features
- * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'Point'`
+ * @return Mapbox style JSON for a {@link RenderFeature} of geometry type `'Point'`
  */
 function getDefaultVertexStyle(): CircleLayerStyle {
   return {
@@ -281,7 +281,7 @@ function getDefaultVertexStyle(): CircleLayerStyle {
 
 /**
  * The default style generation function for edges of non-line string features
- * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'LineString'`
+ * @return Mapbox style JSON for a {@link RenderFeature} of geometry type `'LineString'`
  */
 function getDefaultEdgeStyle(): LineLayerStyle {
   return {
@@ -316,7 +316,7 @@ function getDefaultEdgeStyle(): LineLayerStyle {
 
 /**
  * The default style generation function for polygon features
- * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'Polygon'`
+ * @return Mapbox style JSON for a {@link RenderFeature} of geometry type `'Polygon'`
  */
 function getDefaultPolygonStyle(): FillLayerStyle {
   return {
@@ -347,7 +347,7 @@ function getDefaultPolygonStyle(): FillLayerStyle {
 
 /**
  * The default style generation function for line string features
- * @return Mapbox style JSON for a [[RenderFeature]] of geometry type `'LineString'`
+ * @return Mapbox style JSON for a {@link RenderFeature} of geometry type `'LineString'`
  */
 function getDefaultPolylineStyle(): LineLayerStyle {
   return {

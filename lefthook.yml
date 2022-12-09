@@ -1,0 +1,12 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      run: yarn lint
+    types:
+      run: yarn typescript
+commit-msg:
+  parallel: true
+  commands:
+    commitlint:
+      run: npx commitlint --edit

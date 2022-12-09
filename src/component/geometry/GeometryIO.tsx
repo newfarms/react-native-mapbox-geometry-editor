@@ -120,7 +120,7 @@ function GeometryIOComponent(
 }
 
 /**
- * Renderable version of [[GeometryIOComponent]]
+ * Renderable version of {@link GeometryIOComponent}
  *
  * Note: This line is needed because `useImperativeHandle()`
  * and `forwardRef()` should be used together
