@@ -3,7 +3,7 @@ description: Submit a proposal for a new feature
 title: '[Feature]: '
 labels:
   - feature
-assignees: null
+assignees: []
 body:
   - type: markdown
     attributes:
@@ -29,9 +29,9 @@ body:
     attributes:
       label: Feature Description
       description: >-
-        A description of what you would like to happen. 
-        Be as descriptive as possible to give a clear idea of the feature. 
-        Describe what would be in the scope of the feature and out of the scope of the feature. 
+        A description of what you would like to happen.
+        Be as descriptive as possible to give a clear idea of the feature.
+        Describe what would be in the scope of the feature and out of the scope of the feature.
         Explanatory mockups or sketches are also welcome.
     validations:
       required: true

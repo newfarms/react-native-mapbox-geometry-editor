@@ -3,7 +3,7 @@ description: File a bug report
 title: '[Bug]: '
 labels:
   - bug
-assignees: null
+assignees: []
 body:
   - type: markdown
     attributes:
@@ -33,8 +33,8 @@ body:
       description: >-
         Please link the pull request or commit corresponding to the behaviour
         described in the bug report.
-      validations:
-        required: false
+    validations:
+      required: false
   - type: textarea
     id: environment
     attributes:
@@ -42,14 +42,14 @@ body:
       description: >-
         Describe the environment(s) in which the bug occurs, including both
         build and runtime environments, where relevant.
-      validations:
-        required: false
+    validations:
+      required: false
   - type: textarea
     id: reproduce
     attributes:
       label: Steps to Reproduce
       description: >
-        1. Go to '...' 
+        1. Go to '...'
 
         2. Tap on '....'
 
@@ -61,22 +61,22 @@ body:
         If applicable, add screenshots to help explain your problem. All
         screenshots must be resized so that they display at a comfortable size
         for viewing.
-      validations:
-        required: false
+    validations:
+      required: false
   - type: textarea
     id: expected
     attributes:
       label: Expected Behaviour
       description: A clear and concise description of what you expected to happen.
-      validations:
-        required: false
+    validations:
+      required: false
   - type: textarea
     id: extra
     attributes:
       label: Additional Information
       description: Any additional information about the problem that might be relevant.
-      validations:
-        required: false
+    validations:
+      required: false
   - type: textarea
     id: solution
     attributes:
@@ -86,5 +86,5 @@ body:
         and suggest directions for future investigation in the absence of
         obvious solutions. Discuss any partial solutions or unsuccessful
         approaches that have been tested so far.
-      validations:
-        required: false
+    validations:
+      required: false
