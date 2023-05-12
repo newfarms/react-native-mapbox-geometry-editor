@@ -1,4 +1,4 @@
-import { useContext, useMemo } from 'react';
+import { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
 
@@ -6,22 +6,53 @@ import { ActionButton } from '../../util/ActionButton';
 import { StoreContext } from '../../../state/StoreContext';
 import { InteractionMode } from '../../../state/ControlsModel';
 
+export function useOnPressRedoControl() {
+  const { controls } = useContext(StoreContext);
+  return action('redo_control_press', () => {
+    controls.redo();
+  });
+}
+
+export function useOnPressUndoControl() {
+  const { controls } = useContext(StoreContext);
+  return action('undo_control_press', () => {
+    controls.undo();
+  });
+}
+
+export function useOnPressDeleteControl() {
+  const { controls } = useContext(StoreContext);
+  return action('delete_control_press', () => {
+    controls.delete();
+  });
+}
+
+export function useOnPressFinishControl() {
+  const { controls } = useContext(StoreContext);
+  return action('finish_control_press', () => {
+    controls.confirm();
+  });
+}
+
+export function useOnPressCancelControl() {
+  const { controls } = useContext(StoreContext);
+  return action('rollback_control_press', () => {
+    controls.cancel();
+  });
+}
+
 /**
  * A component that renders a redo control
  */
 function _RedoControl() {
-  const { controls, features } = useContext(StoreContext);
-  // Button press callback
-  const onPress = useMemo(
-    () =>
-      action('redo_control_press', () => {
-        controls.redo();
-      }),
-    [controls]
-  );
+  const { features } = useContext(StoreContext);
 
   return (
-    <ActionButton icon="redo" disabled={!features.canRedo} onPress={onPress} />
+    <ActionButton
+      icon="redo"
+      disabled={!features.canRedo}
+      onPress={useOnPressRedoControl}
+    />
   );
 }
 
@@ -34,18 +65,14 @@ export const RedoControl = observer(_RedoControl);
  * A component that renders an undo control
  */
 function _UndoControl() {
-  const { controls, features } = useContext(StoreContext);
-  // Button press callback
-  const onPress = useMemo(
-    () =>
-      action('undo_control_press', () => {
-        controls.undo();
-      }),
-    [controls]
-  );
+  const { features } = useContext(StoreContext);
 
   return (
-    <ActionButton icon="undo" disabled={!features.canUndo} onPress={onPress} />
+    <ActionButton
+      icon="undo"
+      disabled={!features.canUndo}
+      onPress={useOnPressUndoControl}
+    />
   );
 }
 
@@ -59,14 +86,6 @@ export const UndoControl = observer(_UndoControl);
  */
 function _DeleteControl() {
   const { controls } = useContext(StoreContext);
-  // Button press callback
-  const onPress = useMemo(
-    () =>
-      action('delete_control_press', () => {
-        controls.delete();
-      }),
-    [controls]
-  );
 
   const enabled = controls.canDelete;
 
@@ -76,7 +95,13 @@ function _DeleteControl() {
     icon = 'delete-off-outline';
   }
 
-  return <ActionButton icon={icon} disabled={!enabled} onPress={onPress} />;
+  return (
+    <ActionButton
+      icon={icon}
+      disabled={!enabled}
+      onPress={useOnPressDeleteControl}
+    />
+  );
 }
 
 /**
@@ -90,14 +115,6 @@ export const DeleteControl = observer(_DeleteControl);
  */
 function _FinishControl() {
   const { controls, features } = useContext(StoreContext);
-  // Button press callback
-  const onPress = useMemo(
-    () =>
-      action('finish_control_press', () => {
-        controls.confirm();
-      }),
-    [controls]
-  );
 
   /**
    * Disable when there are no changes to save or discard
@@ -121,7 +138,13 @@ function _FinishControl() {
       break;
   }
 
-  return <ActionButton icon="check" disabled={disabled} onPress={onPress} />;
+  return (
+    <ActionButton
+      icon="check"
+      disabled={disabled}
+      onPress={useOnPressFinishControl}
+    />
+  );
 }
 
 /**
@@ -135,22 +158,18 @@ export const FinishControl = observer(_FinishControl);
  * history as well.
  */
 function _RollbackControl() {
-  const { controls } = useContext(StoreContext);
-  // Button press callback
-  const onPress = useMemo(
-    () =>
-      action('rollback_control_press', () => {
-        controls.cancel();
-      }),
-    [controls]
-  );
-
   /**
    * The button is always enabled because it should always be possible for the user
    * to escape the current editing context. The rest of the user interface is responsible
    * for rendering this button only when it makes sense.
    */
-  return <ActionButton icon="cancel" disabled={false} onPress={onPress} />;
+  return (
+    <ActionButton
+      icon="cancel"
+      disabled={false}
+      onPress={useOnPressCancelControl}
+    />
+  );
 }
 
 /**

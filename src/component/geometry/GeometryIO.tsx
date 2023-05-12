@@ -6,6 +6,56 @@ import { StoreContext } from '../../state/StoreContext';
 import { exportGeometry, importGeometry } from '../../util/geometry/io';
 import type { GeometryImportError } from '../../util/geometry/io';
 import type { EditableGeometry } from '../../type/geometry';
+import {
+  useOnPressControl,
+  useOnPressEditControl,
+} from '../ui/control/modeControls';
+import {
+  useOnPressCancelControl,
+  useOnPressDeleteControl,
+  useOnPressFinishControl,
+  useOnPressRedoControl,
+  useOnPressUndoControl,
+} from '../ui/control/actionControls';
+
+/**
+ * Possible geometry editing modes
+ */
+export enum InteractionMode {
+  /**
+   * Reposition point geometry
+   */
+  DragPoint = 'DRAGPOINT',
+  /**
+   * Draw new point features
+   */
+  DrawPoint = 'DRAWPOINT',
+  /**
+   * Draw a new polygon
+   */
+  DrawPolygon = 'DRAWPOLYGON',
+  /**
+   * Draw a new polyline (line string)
+   */
+  DrawPolyline = 'DRAWPOLYLINE',
+  /**
+   * Edit metadata associated with a shape
+   */
+  EditMetadata = 'EDITMETADATA',
+  /**
+   * Edit compound shape vertices
+   */
+  EditVertices = 'EDITVERTICES',
+  /**
+   * Add shapes to the set of shapes selected for editing
+   */
+  SelectMultiple = 'SELECTMULTIPLE',
+  /**
+   * Select a shape to view its metadata or set it as
+   * the active shape for future editing
+   */
+  SelectSingle = 'SELECTSINGLE',
+}
 
 /**
  * Options controlling geometry import
@@ -88,6 +138,17 @@ export interface GeometryIORef {
    *         managed by this library.
    */
   export: () => Promise<FeatureCollection<EditableGeometry>>;
+  drawPolygon: () => void;
+  drawPoint: () => void;
+  drawPolyline: () => void;
+  edit: () => void;
+  selectSingleShape: () => void;
+  selectMultipleShapes: () => void;
+  undo: () => void;
+  redo: () => void;
+  cancel: () => void;
+  deleteShape: () => void;
+  confirm: () => void;
 }
 
 /**
@@ -103,14 +164,50 @@ function GeometryIOComponent(
 ) {
   const store = useContext(StoreContext);
 
+  const drawPoint = useOnPressControl(InteractionMode.DrawPoint);
+  const drawPolygon = useOnPressControl(InteractionMode.DrawPolygon);
+  const drawPolyline = useOnPressControl(InteractionMode.DrawPolyline);
+  const edit = useOnPressEditControl();
+  const selectSingleShape = useOnPressControl(InteractionMode.SelectSingle);
+  const selectMultipleShapes = useOnPressControl(InteractionMode.SelectSingle);
+  const undo = useOnPressUndoControl();
+  const redo = useOnPressRedoControl();
+  const cancel = useOnPressCancelControl();
+  const deleteShape = useOnPressDeleteControl();
+  const confirm = useOnPressFinishControl();
+
   useImperativeHandle(
     ref,
     (): GeometryIORef => ({
       import: (features: FeatureCollection, options: GeometryImportOptions) =>
         importGeometry(store, features, options),
       export: () => exportGeometry(store),
+      drawPoint,
+      drawPolygon,
+      drawPolyline,
+      edit,
+      selectSingleShape,
+      selectMultipleShapes,
+      undo,
+      redo,
+      cancel,
+      deleteShape,
+      confirm,
     }),
-    [store]
+    [
+      store,
+      drawPoint,
+      drawPolygon,
+      drawPolyline,
+      edit,
+      selectSingleShape,
+      selectMultipleShapes,
+      undo,
+      redo,
+      cancel,
+      deleteShape,
+      confirm,
+    ]
   );
   /**
    * This component has nothing meaningful to render, and is just used to integrate

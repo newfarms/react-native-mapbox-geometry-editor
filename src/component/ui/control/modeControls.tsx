@@ -6,23 +6,31 @@ import { ToggleButton } from 'react-native-paper';
 import { InteractionMode } from '../../../state/ControlsModel';
 import { StoreContext } from '../../../state/StoreContext';
 
+export function useOnPressControl(mode: InteractionMode) {
+  const { controls } = useContext(StoreContext);
+  return action('mode_control_press', () => {
+    controls.toggleMode(mode);
+  });
+}
+
+export function useOnPressEditControl() {
+  const { controls } = useContext(StoreContext);
+
+  return action('edit_control_press', () => {
+    controls.toggleMode(InteractionMode.EditVertices);
+  });
+}
+
 /**
  * Create a toggle button that enables and disables an editing mode
  * @param mode The editing mode
  * @param icon The icon to apply to the toggle button
  * @return A React component for rendering an editing mode toggle button
  */
-function makeModeControl(mode: InteractionMode, icon: string) {
+export function makeModeControl(mode: InteractionMode, icon: string) {
   return observer(() => {
     const { controls } = useContext(StoreContext);
 
-    const onPress = useMemo(
-      () =>
-        action('mode_control_press', () => {
-          controls.toggleMode(mode);
-        }),
-      [controls]
-    );
     let status: 'unchecked' | 'checked' = 'unchecked';
     if (controls.mode === mode) {
       status = 'checked';
@@ -31,7 +39,7 @@ function makeModeControl(mode: InteractionMode, icon: string) {
     return (
       <ToggleButton
         icon={icon}
-        onPress={onPress}
+        onPress={useOnPressControl(mode)}
         value={mode}
         status={status}
       />
@@ -84,7 +92,7 @@ function _ShapeEditControl() {
 
   // Button enabled/disabled state
   let enabled = false;
-  // Any editing mode that pressing the button will activate
+  // Any editing mode that pressing the button will activate  let nextMode:
   let nextMode:
     | null
     | InteractionMode.DragPoint
