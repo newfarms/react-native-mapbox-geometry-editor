@@ -64,6 +64,10 @@ export interface GeometryEditorProps {
    * Additional child elements to render as children of the map
    */
   readonly children?: ReactNode;
+  /**
+   * Whether or not the Geometry Editor is using a custom UI, if left blank it will assume false
+   */
+  isCustomUI?: boolean;
 }
 
 /**
@@ -94,10 +98,17 @@ function GeometryEditorComponent(
     aboveLayerID,
     mapProps = {},
     styleGenerators = defaultStyleGeneratorMap,
+    isCustomUI,
   } = props;
   const { style: mapStyle, onPress: outerOnPress, ...restMapProps } = mapProps;
 
   const store = useContext(StoreContext);
+
+  const setCustomUIProperty = action('set_custom_ui', () => {
+    return store.setCustomUI(isCustomUI);
+  });
+  setCustomUIProperty();
+
   /**
    * A touch callback for the map that will add a new point
    */

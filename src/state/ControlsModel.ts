@@ -138,6 +138,10 @@ export class ControlsModel extends Model({
    */
   isPageOpen: prop<boolean>(false),
   /**
+   * Whether there is a custom UI for the Geometry Editor
+   */
+  isCustomUI: prop<boolean | undefined>(false),
+  /**
    * The user interface can set this property as-needed to inform the controller
    * that there are unsaved changes somewhere.
    * When it is `true`, the controller will warn about unsaved changes.
@@ -505,7 +509,6 @@ export class ControlsModel extends Model({
   @modelAction
   private _confirm(force?: boolean) {
     const features = featureListContext.get(this);
-
     if (this.confirmation) {
       // This is a state change to a confirmation dialog
       switch (this.mode) {
@@ -577,13 +580,16 @@ export class ControlsModel extends Model({
       switch (this.mode) {
         case InteractionMode.DrawPoint:
           // Save the new point
-          this.saveMetadata();
           features?.confirmNewFeatures();
-          this.isPageOpen = false;
+          this.setDefaultMode();
           break;
         case InteractionMode.DrawPolygon:
         case InteractionMode.DrawPolyline:
-          if (this.isPageOpen) {
+          if (this.isCustomUI) {
+            features?.confirmNewFeatures();
+            features?.clearHistory();
+            this.setDefaultMode();
+          } else if (this.isPageOpen) {
             // User has finished entering metadata
             this.saveMetadata();
             this.clearMetadata(); // Clear draft metadata
@@ -609,18 +615,31 @@ export class ControlsModel extends Model({
           break;
         case InteractionMode.DragPoint:
         case InteractionMode.EditVertices:
-          if (features?.canUndoOrRedo) {
+          if (features?.canUndoOrRedo && this.isCustomUI) {
+            features?.clearHistory();
+            this.confirmation = null;
+            this.exitShapeModificationMode();
+            break;
+          } else if (features?.canUndoOrRedo && !force) {
             this.confirmation = new ConfirmationModel({
               message:
                 'Do you wish to save changes and clear the editing history?',
               reason: ConfirmationReason.Commit,
             });
+          } else if (force) {
+            break;
           } else {
             console.warn(`There are no actions to confirm.`);
           }
           break;
         case InteractionMode.SelectMultiple:
         case InteractionMode.SelectSingle:
+          if (this.isCustomUI) {
+            features?.clearHistory();
+            this.confirmation = null;
+            this.exitShapeModificationMode();
+            break;
+          }
           if (this.mode === InteractionMode.SelectSingle && this.isPageOpen) {
             this.isPageOpen = false;
           } else if (features?.canUndo) {
@@ -658,13 +677,21 @@ export class ControlsModel extends Model({
 
       switch (this.mode) {
         case InteractionMode.DrawPoint:
+          if (this.isCustomUI) {
+            break;
+          }
           this.confirmation = new ConfirmationModel({
             message: 'Discard this point and its details?',
           });
           break;
         case InteractionMode.DrawPolygon:
         case InteractionMode.DrawPolyline:
-          if (this.isPageOpen) {
+          if (this.isCustomUI) {
+            features?.discardNewFeatures();
+            this.clearMetadata();
+            this.isPageOpen = false;
+            break;
+          } else if (this.isPageOpen) {
             // User goes back to drawing from metadata entry
             this.isPageOpen = false;
           } else {
@@ -704,7 +731,12 @@ export class ControlsModel extends Model({
           break;
         case InteractionMode.DragPoint:
         case InteractionMode.EditVertices:
-          if (features?.canUndo) {
+          if (this.isCustomUI) {
+            features?.rollbackEditingSession();
+            features?.clearHistory();
+            this.exitShapeModificationMode();
+            break;
+          } else if (features?.canUndo) {
             this.confirmation = new ConfirmationModel({
               message: 'Discard all changes and clear the editing history?',
               reason: ConfirmationReason.Discard,
@@ -864,6 +896,7 @@ export class ControlsModel extends Model({
       case InteractionMode.SelectMultiple:
       case InteractionMode.SelectSingle:
         features?.deleteSelected();
+        features?.clearHistory();
         break;
       case InteractionMode.DragPoint:
       case InteractionMode.DrawPoint:
@@ -937,8 +970,12 @@ export class ControlsModel extends Model({
     // Do nothing if there already is a draft point
     if (features && !features.hasNewFeature) {
       features.addNewPoint(coordinates);
-      // The metadata creation page must now open
-      this.openPage();
+      if (this.isCustomUI) {
+        this.confirm();
+      } else {
+        // The metadata creation page must now open
+        this.openPage();
+      }
     }
   }
 

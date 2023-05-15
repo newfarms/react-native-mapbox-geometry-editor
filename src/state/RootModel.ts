@@ -41,6 +41,21 @@ export class RootModel extends Model({
   }
 
   /**
+   * Sets the value stating whether or not the geometry editor is using a custom UI or not
+   *
+   * @param isCustomUI whether or not the geometry editor is using a custom UI
+   */
+  @modelAction
+  setCustomUI(isCustomUI?: boolean) {
+    if (isCustomUI) {
+      console.log('setting custom UI');
+      this.controls.isCustomUI = isCustomUI;
+    } else {
+      this.controls.isCustomUI = false;
+    }
+  }
+
+  /**
    * Import features into the state stores
    * @param features The new features to store
    * @param options Options controlling the import operation
