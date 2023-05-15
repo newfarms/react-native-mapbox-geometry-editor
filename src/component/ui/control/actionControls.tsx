@@ -4,40 +4,35 @@ import { action } from 'mobx';
 
 import { ActionButton } from '../../util/ActionButton';
 import { StoreContext } from '../../../state/StoreContext';
-import { InteractionMode } from '../../../state/ControlsModel';
+import { ControlsModel, InteractionMode } from '../../../state/ControlsModel';
 
-export function useOnPressRedoControl() {
-  const { controls } = useContext(StoreContext);
+export function useOnPressRedoControl(controls: ControlsModel | null) {
   return action('redo_control_press', () => {
-    controls.redo();
+    controls?.redo();
   });
 }
 
-export function useOnPressUndoControl() {
-  const { controls } = useContext(StoreContext);
+export function useOnPressUndoControl(controls: ControlsModel | null) {
   return action('undo_control_press', () => {
-    controls.undo();
+    controls?.undo();
   });
 }
 
-export function useOnPressDeleteControl() {
-  const { controls } = useContext(StoreContext);
+export function useOnPressDeleteControl(controls: ControlsModel | null) {
   return action('delete_control_press', () => {
-    controls.delete();
+    controls?.delete();
   });
 }
 
-export function useOnPressFinishControl() {
-  const { controls } = useContext(StoreContext);
+export function useOnPressFinishControl(controls: ControlsModel | null) {
   return action('finish_control_press', () => {
-    controls.confirm();
+    controls?.confirm();
   });
 }
 
-export function useOnPressCancelControl() {
-  const { controls } = useContext(StoreContext);
+export function useOnPressCancelControl(controls: ControlsModel | null) {
   return action('rollback_control_press', () => {
-    controls.cancel();
+    controls?.cancel();
   });
 }
 
@@ -45,13 +40,13 @@ export function useOnPressCancelControl() {
  * A component that renders a redo control
  */
 function _RedoControl() {
-  const { features } = useContext(StoreContext);
+  const { controls, features } = useContext(StoreContext);
 
   return (
     <ActionButton
       icon="redo"
       disabled={!features.canRedo}
-      onPress={useOnPressRedoControl}
+      onPress={useOnPressRedoControl(controls)}
     />
   );
 }
@@ -65,13 +60,13 @@ export const RedoControl = observer(_RedoControl);
  * A component that renders an undo control
  */
 function _UndoControl() {
-  const { features } = useContext(StoreContext);
+  const { controls, features } = useContext(StoreContext);
 
   return (
     <ActionButton
       icon="undo"
       disabled={!features.canUndo}
-      onPress={useOnPressUndoControl}
+      onPress={useOnPressUndoControl(controls)}
     />
   );
 }
@@ -99,7 +94,7 @@ function _DeleteControl() {
     <ActionButton
       icon={icon}
       disabled={!enabled}
-      onPress={useOnPressDeleteControl}
+      onPress={useOnPressDeleteControl(controls)}
     />
   );
 }
@@ -142,7 +137,7 @@ function _FinishControl() {
     <ActionButton
       icon="check"
       disabled={disabled}
-      onPress={useOnPressFinishControl}
+      onPress={useOnPressFinishControl(controls)}
     />
   );
 }
@@ -158,6 +153,7 @@ export const FinishControl = observer(_FinishControl);
  * history as well.
  */
 function _RollbackControl() {
+  const { controls } = useContext(StoreContext);
   /**
    * The button is always enabled because it should always be possible for the user
    * to escape the current editing context. The rest of the user interface is responsible
@@ -167,7 +163,7 @@ function _RollbackControl() {
     <ActionButton
       icon="cancel"
       disabled={false}
-      onPress={useOnPressCancelControl}
+      onPress={useOnPressCancelControl(controls)}
     />
   );
 }

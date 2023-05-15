@@ -3,21 +3,20 @@ import { action } from 'mobx';
 import { useContext, useMemo } from 'react';
 import { ToggleButton } from 'react-native-paper';
 
-import { InteractionMode } from '../../../state/ControlsModel';
+import { ControlsModel, InteractionMode } from '../../../state/ControlsModel';
 import { StoreContext } from '../../../state/StoreContext';
 
-export function useOnPressControl(mode: InteractionMode) {
-  const { controls } = useContext(StoreContext);
+export function useOnPressControl(
+  controls: ControlsModel | null,
+  mode: InteractionMode
+) {
   return action('mode_control_press', () => {
-    controls.toggleMode(mode);
+    controls?.toggleMode(mode);
   });
 }
-
-export function useOnPressEditControl() {
-  const { controls } = useContext(StoreContext);
-
+export function useOnPressEditControl(controls: ControlsModel | null) {
   return action('edit_control_press', () => {
-    controls.toggleMode(InteractionMode.EditVertices);
+    controls?.toggleMode(InteractionMode.EditVertices);
   });
 }
 
@@ -39,7 +38,7 @@ export function makeModeControl(mode: InteractionMode, icon: string) {
     return (
       <ToggleButton
         icon={icon}
-        onPress={useOnPressControl(mode)}
+        onPress={useOnPressControl(controls, mode)}
         value={mode}
         status={status}
       />

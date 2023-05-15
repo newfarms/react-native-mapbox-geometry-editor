@@ -17,6 +17,8 @@ import {
   useOnPressRedoControl,
   useOnPressUndoControl,
 } from '../ui/control/actionControls';
+import { autorun } from 'mobx';
+import { ControlsModel } from 'src/state/ControlsModel';
 
 /**
  * Possible geometry editing modes
@@ -164,17 +166,37 @@ function GeometryIOComponent(
 ) {
   const store = useContext(StoreContext);
 
-  const drawPoint = useOnPressControl(InteractionMode.DrawPoint);
-  const drawPolygon = useOnPressControl(InteractionMode.DrawPolygon);
-  const drawPolyline = useOnPressControl(InteractionMode.DrawPolyline);
-  const edit = useOnPressEditControl();
-  const selectSingleShape = useOnPressControl(InteractionMode.SelectSingle);
-  const selectMultipleShapes = useOnPressControl(InteractionMode.SelectSingle);
-  const undo = useOnPressUndoControl();
-  const redo = useOnPressRedoControl();
-  const cancel = useOnPressCancelControl();
-  const deleteShape = useOnPressDeleteControl();
-  const confirm = useOnPressFinishControl();
+  let control: ControlsModel | null = null;
+  /**
+   * We need to use a MobX observable in a reactive context,
+   * which is provided by `autorun`
+   * (https://mobx.js.org/reactions.html).
+   *
+   * Since we don't need the function to run whenever the observable changes
+   * in the future, we dispose of the reaction afterwards.
+   */
+  const disposer = autorun(() => {
+    control = store.controls;
+  });
+  disposer();
+
+  const drawPoint = useOnPressControl(control, InteractionMode.DrawPoint);
+  const drawPolygon = useOnPressControl(control, InteractionMode.DrawPolygon);
+  const drawPolyline = useOnPressControl(control, InteractionMode.DrawPolyline);
+  const edit = useOnPressEditControl(control);
+  const selectSingleShape = useOnPressControl(
+    control,
+    InteractionMode.SelectSingle
+  );
+  const selectMultipleShapes = useOnPressControl(
+    control,
+    InteractionMode.SelectSingle
+  );
+  const undo = useOnPressUndoControl(control);
+  const redo = useOnPressRedoControl(control);
+  const cancel = useOnPressCancelControl(control);
+  const deleteShape = useOnPressDeleteControl(control);
+  const confirm = useOnPressFinishControl(control);
 
   useImperativeHandle(
     ref,
