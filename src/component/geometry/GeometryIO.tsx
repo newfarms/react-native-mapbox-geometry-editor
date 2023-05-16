@@ -1,4 +1,4 @@
-import { forwardRef, useContext, useImperativeHandle } from 'react';
+import { forwardRef, useContext, useImperativeHandle, useState } from 'react';
 import type { ReactNode, Ref } from 'react';
 import type { FeatureCollection } from 'geojson';
 
@@ -169,14 +169,14 @@ function GeometryIOComponent(
   { children }: { readonly children?: ReactNode },
   ref: Ref<GeometryIORef>
 ) {
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+  const [cannotUndoAndRedo, setCannotUndoAndRedo] = useState(true);
+  const [hasCompleteNewFeature, setHasCompleteNewFeature] = useState(false);
+  const [canDelete, setCanDelete] = useState<boolean | undefined>(false);
   const store = useContext(StoreContext);
 
   let controls: ControlsModel | null = null;
-  let canUndo: boolean = false;
-  let canRedo: boolean = false;
-  let cannotUndoAndRedo: boolean = true;
-  let hasCompleteNewFeature: boolean = false;
-  let canDelete: boolean | undefined = false;
   /**
    * We need to use a MobX observable in a reactive context,
    * which is provided by `autorun`
@@ -185,15 +185,29 @@ function GeometryIOComponent(
    * Since we don't need the function to run whenever the observable changes
    * in the future, we dispose of the reaction afterwards.
    */
-  const disposer = autorun(() => {
+  const dispose = autorun(() => {
     controls = store.controls;
-    canUndo = store.features.canRedo;
-    canRedo = store.features.canRedo;
-    cannotUndoAndRedo = store.features.canRedo;
-    hasCompleteNewFeature = store.features.canRedo;
-    canDelete = store.controls.canDelete;
+    if (store.features.canUndo !== canUndo) {
+      setCanUndo(store.features.canUndo);
+      dispose();
+    }
+    if (store.features.canRedo !== canRedo) {
+      setCanRedo(store.features.canRedo);
+      dispose();
+    }
+    if (store.features.cannotUndoAndRedo !== cannotUndoAndRedo) {
+      setCannotUndoAndRedo(store.features.cannotUndoAndRedo);
+      dispose();
+    }
+    if (store.features.hasCompleteNewFeature !== hasCompleteNewFeature) {
+      setHasCompleteNewFeature(store.features.hasCompleteNewFeature);
+      dispose();
+    }
+    if (store.controls.canDelete !== canDelete) {
+      setCanDelete(store.controls.canDelete);
+      dispose();
+    }
   });
-  disposer();
 
   const drawPoint = useOnPressControl(controls, InteractionMode.DrawPoint);
   const drawPolygon = useOnPressControl(controls, InteractionMode.DrawPolygon);

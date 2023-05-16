@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 import { Observer } from 'mobx-react-lite';
-import { action, autorun } from 'mobx';
+import { action } from 'mobx';
 import { forwardRef, useContext, useMemo } from 'react';
 import type { ReactNode, Ref } from 'react';
 import { StyleSheet } from 'react-native';
