@@ -19,7 +19,6 @@ import {
 } from '../ui/control/actionControls';
 import { autorun } from 'mobx';
 import { ControlsModel } from 'src/state/ControlsModel';
-import { FeatureListModel } from 'src/state/FeatureListModel';
 
 /**
  * Possible geometry editing modes
@@ -173,7 +172,10 @@ function GeometryIOComponent(
   const store = useContext(StoreContext);
 
   let controls: ControlsModel | null = null;
-  let features: FeatureListModel | null = null;
+  let canUndo: boolean = false;
+  let canRedo: boolean = false;
+  let cannotUndoAndRedo: boolean = true;
+  let hasCompleteNewFeature: boolean = false;
   /**
    * We need to use a MobX observable in a reactive context,
    * which is provided by `autorun`
@@ -184,7 +186,10 @@ function GeometryIOComponent(
    */
   const disposer = autorun(() => {
     controls = store.controls;
-    features = store.features;
+    canUndo = store.features.canRedo;
+    canRedo = store.features.canRedo;
+    cannotUndoAndRedo = store.features.canRedo;
+    hasCompleteNewFeature = store.features.canRedo;
   });
   disposer();
 
@@ -228,10 +233,10 @@ function GeometryIOComponent(
       cancel,
       deleteShape,
       confirm,
-      canRedo: features?.canRedo,
-      canUndo: features?.canUndo,
-      cannotUndoAndRedo: features?.cannotUndoAndRedo,
-      hasCompleteNewFeature: features?.hasCompleteNewFeature,
+      canRedo,
+      canUndo,
+      cannotUndoAndRedo,
+      hasCompleteNewFeature,
       canDelete: controls?.canDelete,
     }),
     [
@@ -247,7 +252,10 @@ function GeometryIOComponent(
       cancel,
       deleteShape,
       confirm,
-      features,
+      canUndo,
+      canRedo,
+      cannotUndoAndRedo,
+      hasCompleteNewFeature,
       controls,
     ]
   );
