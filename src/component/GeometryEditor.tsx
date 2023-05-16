@@ -3,7 +3,7 @@
  * @packageDocumentation
  */
 import { Observer } from 'mobx-react-lite';
-import { action } from 'mobx';
+import { action, autorun } from 'mobx';
 import { forwardRef, useContext, useMemo } from 'react';
 import type { ReactNode, Ref } from 'react';
 import { StyleSheet } from 'react-native';
@@ -107,9 +107,7 @@ function GeometryEditorComponent(
   const setCustomUIProperty = action('set_custom_ui', () => {
     return store.setCustomUI(isCustomUI);
   });
-  if (store.controls.isCustomUI !== isCustomUI) {
-    setCustomUIProperty();
-  }
+  setCustomUIProperty();
 
   /**
    * A touch callback for the map that will add a new point
