@@ -176,6 +176,7 @@ function GeometryIOComponent(
   let canRedo: boolean = false;
   let cannotUndoAndRedo: boolean = true;
   let hasCompleteNewFeature: boolean = false;
+  let canDelete: boolean | undefined = false;
   /**
    * We need to use a MobX observable in a reactive context,
    * which is provided by `autorun`
@@ -190,6 +191,7 @@ function GeometryIOComponent(
     canRedo = store.features.canRedo;
     cannotUndoAndRedo = store.features.canRedo;
     hasCompleteNewFeature = store.features.canRedo;
+    canDelete = store.controls.canDelete;
   });
   disposer();
 
@@ -237,7 +239,7 @@ function GeometryIOComponent(
       canUndo,
       cannotUndoAndRedo,
       hasCompleteNewFeature,
-      canDelete: controls?.canDelete,
+      canDelete,
     }),
     [
       store,
@@ -256,7 +258,7 @@ function GeometryIOComponent(
       canRedo,
       cannotUndoAndRedo,
       hasCompleteNewFeature,
-      controls,
+      canDelete,
     ]
   );
   /**
