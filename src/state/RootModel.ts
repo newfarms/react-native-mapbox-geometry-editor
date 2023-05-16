@@ -48,7 +48,6 @@ export class RootModel extends Model({
   @modelAction
   setCustomUI(isCustomUI?: boolean) {
     if (isCustomUI) {
-      console.log('setting custom UI');
       this.controls.isCustomUI = isCustomUI;
     } else {
       this.controls.isCustomUI = false;

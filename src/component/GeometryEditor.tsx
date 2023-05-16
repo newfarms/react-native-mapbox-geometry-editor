@@ -4,7 +4,7 @@
  */
 import { Observer } from 'mobx-react-lite';
 import { action } from 'mobx';
-import { forwardRef, useContext, useMemo } from 'react';
+import { forwardRef, useContext, useEffect, useMemo } from 'react';
 import type { ReactNode, Ref } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL, { MapViewProps } from '@rnmapbox/maps';
@@ -107,7 +107,11 @@ function GeometryEditorComponent(
   const setCustomUIProperty = action('set_custom_ui', () => {
     return store.setCustomUI(isCustomUI);
   });
-  setCustomUIProperty();
+  useEffect(() => {
+    if (store.controls.isCustomUI !== isCustomUI) {
+      setCustomUIProperty();
+    }
+  }, [store.controls.isCustomUI, setCustomUIProperty, isCustomUI]);
 
   /**
    * A touch callback for the map that will add a new point
