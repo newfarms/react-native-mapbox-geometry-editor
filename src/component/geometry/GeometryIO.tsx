@@ -19,6 +19,7 @@ import {
 } from '../ui/control/actionControls';
 import { autorun } from 'mobx';
 import { ControlsModel } from 'src/state/ControlsModel';
+import { FeatureListModel } from 'src/state/FeatureListModel';
 
 /**
  * Possible geometry editing modes
@@ -151,6 +152,11 @@ export interface GeometryIORef {
   cancel: () => void;
   deleteShape: () => void;
   confirm: () => void;
+  canUndo: boolean | undefined;
+  canRedo: boolean | undefined;
+  cannotUndoAndRedo: boolean | undefined;
+  hasCompleteNewFeature: boolean | undefined;
+  canDelete: boolean | undefined;
 }
 
 /**
@@ -166,7 +172,8 @@ function GeometryIOComponent(
 ) {
   const store = useContext(StoreContext);
 
-  let control: ControlsModel | null = null;
+  let controls: ControlsModel | null = null;
+  let features: FeatureListModel | null = null;
   /**
    * We need to use a MobX observable in a reactive context,
    * which is provided by `autorun`
@@ -176,33 +183,39 @@ function GeometryIOComponent(
    * in the future, we dispose of the reaction afterwards.
    */
   const disposer = autorun(() => {
-    control = store.controls;
+    controls = store.controls;
+    features = store.features;
   });
   disposer();
 
-  const drawPoint = useOnPressControl(control, InteractionMode.DrawPoint);
-  const drawPolygon = useOnPressControl(control, InteractionMode.DrawPolygon);
-  const drawPolyline = useOnPressControl(control, InteractionMode.DrawPolyline);
-  const edit = useOnPressEditControl(control);
+  const drawPoint = useOnPressControl(controls, InteractionMode.DrawPoint);
+  const drawPolygon = useOnPressControl(controls, InteractionMode.DrawPolygon);
+  const drawPolyline = useOnPressControl(
+    controls,
+    InteractionMode.DrawPolyline
+  );
+  const edit = useOnPressEditControl(controls);
   const selectSingleShape = useOnPressControl(
-    control,
+    controls,
     InteractionMode.SelectSingle
   );
   const selectMultipleShapes = useOnPressControl(
-    control,
+    controls,
     InteractionMode.SelectSingle
   );
-  const undo = useOnPressUndoControl(control);
-  const redo = useOnPressRedoControl(control);
-  const cancel = useOnPressCancelControl(control);
-  const deleteShape = useOnPressDeleteControl(control);
-  const confirm = useOnPressFinishControl(control);
+  const undo = useOnPressUndoControl(controls);
+  const redo = useOnPressRedoControl(controls);
+  const cancel = useOnPressCancelControl(controls);
+  const deleteShape = useOnPressDeleteControl(controls);
+  const confirm = useOnPressFinishControl(controls);
 
   useImperativeHandle(
     ref,
     (): GeometryIORef => ({
-      import: (features: FeatureCollection, options: GeometryImportOptions) =>
-        importGeometry(store, features, options),
+      import: (
+        featureCollection: FeatureCollection,
+        options: GeometryImportOptions
+      ) => importGeometry(store, featureCollection, options),
       export: () => exportGeometry(store),
       drawPoint,
       drawPolygon,
@@ -215,6 +228,11 @@ function GeometryIOComponent(
       cancel,
       deleteShape,
       confirm,
+      canRedo: features?.canRedo,
+      canUndo: features?.canUndo,
+      cannotUndoAndRedo: features?.cannotUndoAndRedo,
+      hasCompleteNewFeature: features?.hasCompleteNewFeature,
+      canDelete: controls?.canDelete,
     }),
     [
       store,
@@ -229,6 +247,8 @@ function GeometryIOComponent(
       cancel,
       deleteShape,
       confirm,
+      features,
+      controls,
     ]
   );
   /**
