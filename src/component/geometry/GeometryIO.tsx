@@ -1,4 +1,4 @@
-import { forwardRef, useContext, useImperativeHandle, useState } from 'react';
+import { forwardRef, useContext, useImperativeHandle } from 'react';
 import type { ReactNode, Ref } from 'react';
 import type { FeatureCollection } from 'geojson';
 
@@ -151,11 +151,6 @@ export interface GeometryIORef {
   cancel: () => void;
   deleteShape: () => void;
   confirm: () => void;
-  canUndo: boolean | undefined;
-  canRedo: boolean | undefined;
-  cannotUndoAndRedo: boolean | undefined;
-  hasCompleteNewFeature: boolean | undefined;
-  canDelete: boolean | undefined;
 }
 
 /**
@@ -169,13 +164,7 @@ function GeometryIOComponent(
   { children }: { readonly children?: ReactNode },
   ref: Ref<GeometryIORef>
 ) {
-  const [canUndo, setCanUndo] = useState(false);
-  const [canRedo, setCanRedo] = useState(false);
-  const [cannotUndoAndRedo, setCannotUndoAndRedo] = useState(true);
-  const [hasCompleteNewFeature, setHasCompleteNewFeature] = useState(false);
-  const [canDelete, setCanDelete] = useState<boolean | undefined>(false);
   const store = useContext(StoreContext);
-
   let controls: ControlsModel | null = null;
   /**
    * We need to use a MobX observable in a reactive context,
@@ -187,27 +176,8 @@ function GeometryIOComponent(
    */
   const dispose = autorun(() => {
     controls = store.controls;
-    if (store.features.canUndo !== canUndo) {
-      setCanUndo(store.features.canUndo);
-      dispose();
-    }
-    if (store.features.canRedo !== canRedo) {
-      setCanRedo(store.features.canRedo);
-      dispose();
-    }
-    if (store.features.cannotUndoAndRedo !== cannotUndoAndRedo) {
-      setCannotUndoAndRedo(store.features.cannotUndoAndRedo);
-      dispose();
-    }
-    if (store.features.hasCompleteNewFeature !== hasCompleteNewFeature) {
-      setHasCompleteNewFeature(store.features.hasCompleteNewFeature);
-      dispose();
-    }
-    if (store.controls.canDelete !== canDelete) {
-      setCanDelete(store.controls.canDelete);
-      dispose();
-    }
   });
+  dispose();
 
   const drawPoint = useOnPressControl(controls, InteractionMode.DrawPoint);
   const drawPolygon = useOnPressControl(controls, InteractionMode.DrawPolygon);
@@ -249,11 +219,6 @@ function GeometryIOComponent(
       cancel,
       deleteShape,
       confirm,
-      canRedo,
-      canUndo,
-      cannotUndoAndRedo,
-      hasCompleteNewFeature,
-      canDelete,
     }),
     [
       store,
@@ -268,11 +233,6 @@ function GeometryIOComponent(
       cancel,
       deleteShape,
       confirm,
-      canUndo,
-      canRedo,
-      cannotUndoAndRedo,
-      hasCompleteNewFeature,
-      canDelete,
     ]
   );
   /**

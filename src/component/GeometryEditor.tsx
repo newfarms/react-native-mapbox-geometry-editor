@@ -3,8 +3,8 @@
  * @packageDocumentation
  */
 import { Observer } from 'mobx-react-lite';
-import { action } from 'mobx';
-import { forwardRef, useContext, useMemo } from 'react';
+import { action, autorun } from 'mobx';
+import { forwardRef, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode, Ref } from 'react';
 import { StyleSheet } from 'react-native';
 import MapboxGL, { MapViewProps } from '@rnmapbox/maps';
@@ -68,6 +68,11 @@ export interface GeometryEditorProps {
    * Whether or not the Geometry Editor is using a custom UI, if left blank it will assume false
    */
   isCustomUI?: boolean;
+  setCanRedo?: React.Dispatch<React.SetStateAction<boolean>>;
+  setCanUndo?: React.Dispatch<React.SetStateAction<boolean>>;
+  setCannotUndoAndRedo?: React.Dispatch<React.SetStateAction<boolean>>;
+  setHasCompleteNewFeature?: React.Dispatch<React.SetStateAction<boolean>>;
+  setCanDelete?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 /**
@@ -99,15 +104,86 @@ function GeometryEditorComponent(
     mapProps = {},
     styleGenerators = defaultStyleGeneratorMap,
     isCustomUI,
+    setCanRedo,
+    setCanUndo,
+    setCannotUndoAndRedo,
+    setHasCompleteNewFeature,
+    setCanDelete,
   } = props;
   const { style: mapStyle, onPress: outerOnPress, ...restMapProps } = mapProps;
 
   const store = useContext(StoreContext);
 
+  const [localCanRedo, setLocalCanRedo] = useState(false);
+  const [localCanUndo, setLocalCanUndo] = useState(false);
+  const [localCannotUndoAndRedo, setLocalCannotUndoAndRedo] = useState(true);
+  const [localHasCompleteNewFeature, setLocalHasCompleteNewFeature] =
+    useState(false);
+  const [localCanDelete, setLocalCanDelete] = useState(false);
+  let currentCustomUI = null;
+  const dispose = autorun(() => {
+    currentCustomUI = store.controls.isCustomUI;
+    if (store.features.canRedo !== localCanRedo) {
+      setLocalCanRedo(store.features.canRedo);
+      dispose();
+    }
+    if (store.features.canUndo !== localCanUndo) {
+      setLocalCanUndo(store.features.canUndo);
+      dispose();
+    }
+    if (store.features.cannotUndoAndRedo !== localCannotUndoAndRedo) {
+      setLocalCannotUndoAndRedo(store.features.cannotUndoAndRedo);
+      dispose();
+    }
+    if (store.features.hasCompleteNewFeature !== localHasCompleteNewFeature) {
+      setLocalHasCompleteNewFeature(store.features.hasCompleteNewFeature);
+      dispose();
+    }
+    if (store.controls.canDelete !== localCanDelete) {
+      setLocalCanDelete(!!store.controls.canDelete);
+      dispose();
+    }
+  });
+
+  /**
+   * Automatically call the function to update the values for the important information to know when a button should be active
+   * whenever the value for that information changes
+   */
+  useEffect(() => {
+    if (setCanRedo) {
+      setCanRedo(localCanRedo);
+    }
+  }, [localCanRedo, setCanRedo]);
+  useEffect(() => {
+    if (setCanUndo) {
+      setCanUndo(localCanUndo);
+    }
+  }, [localCanUndo, setCanUndo]);
+  useEffect(() => {
+    if (setCannotUndoAndRedo) {
+      setCannotUndoAndRedo(localCannotUndoAndRedo);
+    }
+  }, [localCannotUndoAndRedo, setCannotUndoAndRedo]);
+  useEffect(() => {
+    if (setHasCompleteNewFeature) {
+      setHasCompleteNewFeature(localHasCompleteNewFeature);
+    }
+  }, [localHasCompleteNewFeature, setHasCompleteNewFeature]);
+  useEffect(() => {
+    if (setCanDelete) {
+      setCanDelete(localCanDelete);
+    }
+  }, [localCanDelete, setCanDelete]);
+
+  /**
+   * Set the property in controls based on the isCustomUI prop
+   */
   const setCustomUIProperty = action('set_custom_ui', () => {
     return store.setCustomUI(isCustomUI);
   });
-  setCustomUIProperty();
+  if (currentCustomUI !== isCustomUI) {
+    setCustomUIProperty();
+  }
 
   /**
    * A touch callback for the map that will add a new point
