@@ -687,9 +687,11 @@ export class ControlsModel extends Model({
         case InteractionMode.DrawPolygon:
         case InteractionMode.DrawPolyline:
           if (this.isCustomUI) {
-            features?.discardNewFeatures();
-            this.clearMetadata();
-            this.isPageOpen = false;
+            features?.rollbackEditingSession();
+            features?.clearHistory();
+            this.clearMetadata(); // Clear any metadata entered up to now
+            this.confirmation = null; // Otherwise there will be a warning about changing the editing mode while there is a confirmation request open
+            this.setDefaultMode(); // Exit shape drawing mode
             break;
           } else if (this.isPageOpen) {
             // User goes back to drawing from metadata entry
