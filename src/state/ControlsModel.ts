@@ -1300,7 +1300,6 @@ export class ControlsModel extends Model({
   @modelAction
   selectTopShape() {
     const features = featureListContext.get(this);
-    console.log(features?.features[0].$modelId);
     switch (this.mode) {
       case InteractionMode.DragPoint:
       case InteractionMode.EditVertices:
