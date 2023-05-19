@@ -20,6 +20,12 @@ export function useOnPressEditControl(controls: ControlsModel | null) {
   });
 }
 
+export function useSelectTopShapeControl(controls: ControlsModel | null) {
+  return action('mode_control_select_top_shape', () => {
+    controls?.selectTopShape();
+  });
+}
+
 /**
  * Create a toggle button that enables and disables an editing mode
  * @param mode The editing mode

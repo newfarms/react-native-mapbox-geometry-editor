@@ -1292,4 +1292,47 @@ export class ControlsModel extends Model({
         return true;
     }
   }
+
+  /**
+   * Select the top geometry that has been imported to the Geometry Editing Library
+   * without having to tap on it
+   */
+  @modelAction
+  selectTopShape() {
+    const features = featureListContext.get(this);
+    console.log(features?.features[0].$modelId);
+    switch (this.mode) {
+      case InteractionMode.DragPoint:
+      case InteractionMode.EditVertices:
+      case InteractionMode.DrawPoint:
+      case InteractionMode.DrawPolygon:
+      case InteractionMode.DrawPolyline:
+      case InteractionMode.EditMetadata:
+        // Ignore
+        // We only want to select the shape if we are in select mode
+        break;
+      case InteractionMode.SelectMultiple:
+      case InteractionMode.SelectSingle:
+        //if there is a feature
+        if (features && features.features.length > 0) {
+          //get the id of the top feature
+          let id = features?.features[0].$modelId;
+          //select the top feature
+          if (this.mode === InteractionMode.SelectMultiple) {
+            features?.toggleSingleSelectFeature(id);
+          } else if (this.mode === InteractionMode.SelectSingle) {
+            features?.toggleSingleSelectFeature(id);
+          } else {
+            throw new Error(
+              `There is no branch for the current editing mode, ${this.mode}, for selecting features.`
+            );
+          }
+        } else {
+          throw new Error(
+            `There is not exactly one shape in the feature to select in selectOnlyShape.`
+          );
+        }
+        break;
+    }
+  }
 }

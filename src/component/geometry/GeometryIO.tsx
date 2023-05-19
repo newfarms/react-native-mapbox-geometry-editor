@@ -9,6 +9,7 @@ import type { EditableGeometry } from '../../type/geometry';
 import {
   useOnPressControl,
   useOnPressEditControl,
+  useSelectTopShapeControl,
 } from '../ui/control/modeControls';
 import {
   useOnPressCancelControl,
@@ -151,6 +152,7 @@ export interface GeometryIORef {
   cancel: () => void;
   deleteShape: () => void;
   confirm: () => void;
+  selectTopShape: () => void;
 }
 
 /**
@@ -194,6 +196,7 @@ function GeometryIOComponent(
     controls,
     InteractionMode.SelectSingle
   );
+  const selectTopShape = useSelectTopShapeControl(controls);
   const undo = useOnPressUndoControl(controls);
   const redo = useOnPressRedoControl(controls);
   const cancel = useOnPressCancelControl(controls);
@@ -219,6 +222,7 @@ function GeometryIOComponent(
       cancel,
       deleteShape,
       confirm,
+      selectTopShape,
     }),
     [
       store,
@@ -233,6 +237,7 @@ function GeometryIOComponent(
       cancel,
       deleteShape,
       confirm,
+      selectTopShape,
     ]
   );
   /**
