@@ -6,6 +6,12 @@ import { ToggleButton } from 'react-native-paper';
 import { ControlsModel, InteractionMode } from '../../../state/ControlsModel';
 import { StoreContext } from '../../../state/StoreContext';
 
+/**
+ * A function that toggles the current mode of the geometry editor
+ * @param controls
+ * @param mode: the mode to swap the geometry editor into
+ * @returns the function to call the mode toggle action
+ */
 export function useOnPressControl(
   controls: ControlsModel | null,
   mode: InteractionMode
@@ -14,12 +20,22 @@ export function useOnPressControl(
     controls?.toggleMode(mode);
   });
 }
+
+/**
+ * A function that calls an edit
+ * @param controls
+ * @returns the function to call the edit action
+ */
 export function useOnPressEditControl(controls: ControlsModel | null) {
   return action('edit_control_press', () => {
     controls?.toggleMode(InteractionMode.EditVertices);
   });
 }
-
+/**
+ * A function that calls a select top shape action
+ * @param controls
+ * @returns the function to call the select top shape action
+ */
 export function useSelectTopShapeControl(controls: ControlsModel | null) {
   return action('mode_control_select_top_shape', () => {
     controls?.selectTopShape();

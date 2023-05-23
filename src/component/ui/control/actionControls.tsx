@@ -6,30 +6,55 @@ import { ActionButton } from '../../util/ActionButton';
 import { StoreContext } from '../../../state/StoreContext';
 import { ControlsModel, InteractionMode } from '../../../state/ControlsModel';
 
+/**
+ * A function that calls a redo action
+ * @param controls
+ * @returns the function to call the redo action
+ */
 export function useOnPressRedoControl(controls: ControlsModel | null) {
   return action('redo_control_press', () => {
     controls?.redo();
   });
 }
 
+/**
+ * A function that calls an undo action
+ * @param controls
+ * @returns the function to call the undo action
+ */
 export function useOnPressUndoControl(controls: ControlsModel | null) {
   return action('undo_control_press', () => {
     controls?.undo();
   });
 }
 
+/**
+ * A function that calls a delete action
+ * @param controls
+ * @returns the function to call the delete action
+ */
 export function useOnPressDeleteControl(controls: ControlsModel | null) {
   return action('delete_control_press', () => {
     controls?.delete();
   });
 }
 
+/**
+ * A function that calls a confirm action
+ * @param controls
+ * @returns the function to call the confirm action
+ */
 export function useOnPressFinishControl(controls: ControlsModel | null) {
   return action('finish_control_press', () => {
     controls?.confirm();
   });
 }
 
+/**
+ * A function that calls a cancel action
+ * @param controls
+ * @returns the function to call the cancel action
+ */
 export function useOnPressCancelControl(controls: ControlsModel | null) {
   return action('rollback_control_press', () => {
     controls?.cancel();

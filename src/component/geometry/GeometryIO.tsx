@@ -141,17 +141,53 @@ export interface GeometryIORef {
    *         managed by this library.
    */
   export: () => Promise<FeatureCollection<EditableGeometry>>;
+  /**
+   * A function for setting the Geometry Editor into draw polygon mode
+   */
   drawPolygon: () => void;
+  /**
+   * A function for setting the Geometry Editor into draw point mode
+   */
   drawPoint: () => void;
+  /**
+   * A function for setting the Geometry Editor into draw polyline mode
+   */
   drawPolyline: () => void;
+  /**
+   * A function for setting the Geometry Editor to edit the selected shape
+   */
   edit: () => void;
+  /**
+   * A function for setting the Geometry Editor into select single shape mode
+   */
   selectSingleShape: () => void;
+  /**
+   * A function for setting the Geometry Editor into select multiple shapes mode
+   */
   selectMultipleShapes: () => void;
+  /**
+   * A function for undoing the last action of the Geometry Editor
+   */
   undo: () => void;
+  /**
+   * A function for redoing the last action of the Geometry Editor
+   */
   redo: () => void;
+  /**
+   * A function for canceling the last action of the Geometry Editor
+   */
   cancel: () => void;
-  deleteShape: () => void;
+  /**
+   * A function for deleting a shape or point the currently selected shape of the Geometry Editor
+   */
+  deleteShapeOrPoint: () => void;
+  /**
+   * A function for confirming the last action of the Geometry Editor
+   */
   confirm: () => void;
+  /**
+   * A function for selecting the top shape in the Geometry Editor without having to tap on it
+   */
   selectTopShape: () => void;
 }
 
@@ -200,7 +236,7 @@ function GeometryIOComponent(
   const undo = useOnPressUndoControl(controls);
   const redo = useOnPressRedoControl(controls);
   const cancel = useOnPressCancelControl(controls);
-  const deleteShape = useOnPressDeleteControl(controls);
+  const deleteShapeOrPoint = useOnPressDeleteControl(controls);
   const confirm = useOnPressFinishControl(controls);
 
   useImperativeHandle(
@@ -220,7 +256,7 @@ function GeometryIOComponent(
       undo,
       redo,
       cancel,
-      deleteShape,
+      deleteShapeOrPoint,
       confirm,
       selectTopShape,
     }),
@@ -235,7 +271,7 @@ function GeometryIOComponent(
       undo,
       redo,
       cancel,
-      deleteShape,
+      deleteShapeOrPoint,
       confirm,
       selectTopShape,
     ]

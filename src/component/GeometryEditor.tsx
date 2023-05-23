@@ -25,6 +25,56 @@ import type { ShapeComparator } from './geometry/ColdGeometry';
 import type { GeometryIORef } from './geometry/GeometryIO';
 
 /**
+ * A function that updates canUndo
+ */
+export interface CanUndoSetter {
+  /**
+   * @param canUndo Whether or not the undo button should be active
+   */
+  (canUndo: boolean): void;
+}
+
+/**
+ * A function that updates canRedo
+ */
+export interface CanRedoSetter {
+  /**
+   * @param canRedo Whether or not the redo button should be active
+   */
+  (canRedo: boolean): void;
+}
+
+/**
+ * A function that updates cannotUndoAndRedo
+ */
+export interface CannotUndoAndRedoSetter {
+  /**
+   * @param cannotUndoAndRedo Whether or not the undo and redo button are both inactive
+   */
+  (cannotUndoAndRedo: boolean): void;
+}
+
+/**
+ * A function that updates hasCompleteNewFeature
+ */
+export interface HasCompleteNewFeatureSetter {
+  /**
+   * @param hasCompleteNewFeature Whether or not the new feature is complete
+   */
+  (hasCompleteNewFeature: boolean): void;
+}
+
+/**
+ * A function that updates canDelete
+ */
+export interface CanDeleteSetter {
+  /**
+   * @param canDelete Whether or not the delete button should be active
+   */
+  (canDelete: boolean): void;
+}
+
+/**
  * Render properties for {@link GeometryEditor}
  */
 export interface GeometryEditorProps {
@@ -68,11 +118,26 @@ export interface GeometryEditorProps {
    * Whether or not the Geometry Editor is using a custom UI, if left blank it will assume false
    */
   isCustomUI?: boolean;
-  setCanRedo?: React.Dispatch<React.SetStateAction<boolean>>;
-  setCanUndo?: React.Dispatch<React.SetStateAction<boolean>>;
-  setCannotUndoAndRedo?: React.Dispatch<React.SetStateAction<boolean>>;
-  setHasCompleteNewFeature?: React.Dispatch<React.SetStateAction<boolean>>;
-  setCanDelete?: React.Dispatch<React.SetStateAction<boolean>>;
+  /**
+   * Function to set the value of whether the undo button should be active or not
+   */
+  setCanRedo?: CanRedoSetter;
+  /**
+   * Function to set the value of whether the redo button should be active or not
+   */
+  setCanUndo?: CanUndoSetter;
+  /**
+   * Function to set the value of whether undo and redo are both inactive
+   */
+  setCannotUndoAndRedo?: CannotUndoAndRedoSetter;
+  /**
+   * Function to set the value of whether the current feature is complete
+   */
+  setHasCompleteNewFeature?: HasCompleteNewFeatureSetter;
+  /**
+   * Function to set the value of whether the delete button should be active or not
+   */
+  setCanDelete?: CanDeleteSetter;
 }
 
 /**
@@ -120,30 +185,33 @@ function GeometryEditorComponent(
   const [localHasCompleteNewFeature, setLocalHasCompleteNewFeature] =
     useState(false);
   const [localCanDelete, setLocalCanDelete] = useState(false);
-  let currentCustomUI = null;
-  const dispose = autorun(() => {
-    currentCustomUI = store.controls.isCustomUI;
-    if (store.features.canRedo !== localCanRedo) {
-      setLocalCanRedo(store.features.canRedo);
-      dispose();
-    }
-    if (store.features.canUndo !== localCanUndo) {
-      setLocalCanUndo(store.features.canUndo);
-      dispose();
-    }
-    if (store.features.cannotUndoAndRedo !== localCannotUndoAndRedo) {
-      setLocalCannotUndoAndRedo(store.features.cannotUndoAndRedo);
-      dispose();
-    }
-    if (store.features.hasCompleteNewFeature !== localHasCompleteNewFeature) {
-      setLocalHasCompleteNewFeature(store.features.hasCompleteNewFeature);
-      dispose();
-    }
-    if (store.controls.canDelete !== localCanDelete) {
-      setLocalCanDelete(!!store.controls.canDelete);
-      dispose();
-    }
+
+  /**
+   * Set the property in controls based on the isCustomUI prop
+   */
+  const setCustomUIProperty = action('set_custom_ui', () => {
+    return store.setCustomUI(isCustomUI);
   });
+
+  /**
+   * Run autorun once so that we can access the mobx variables and set them to a state
+   */
+  useEffect(() => {
+    const dispose = autorun(() => {
+      if (store.controls.isCustomUI !== isCustomUI) {
+        setCustomUIProperty();
+      }
+      setLocalCanRedo(store.features.canRedo);
+      setLocalCanUndo(store.features.canUndo);
+      setLocalCannotUndoAndRedo(store.features.cannotUndoAndRedo);
+      setLocalHasCompleteNewFeature(store.features.hasCompleteNewFeature);
+      setLocalCanDelete(!!store.controls.canDelete);
+    });
+    return () => {
+      //dispose of the autorun so that we only have one active autorun if the useEffect gets re-rendered
+      dispose();
+    };
+  }, [isCustomUI, store, setCustomUIProperty]);
 
   /**
    * Automatically call the function to update the values for the important information to know when a button should be active
@@ -174,16 +242,6 @@ function GeometryEditorComponent(
       setCanDelete(localCanDelete);
     }
   }, [localCanDelete, setCanDelete]);
-
-  /**
-   * Set the property in controls based on the isCustomUI prop
-   */
-  const setCustomUIProperty = action('set_custom_ui', () => {
-    return store.setCustomUI(isCustomUI);
-  });
-  if (currentCustomUI !== isCustomUI) {
-    setCustomUIProperty();
-  }
 
   /**
    * A touch callback for the map that will add a new point
