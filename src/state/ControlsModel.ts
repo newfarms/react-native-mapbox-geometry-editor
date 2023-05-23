@@ -896,7 +896,9 @@ export class ControlsModel extends Model({
       case InteractionMode.SelectMultiple:
       case InteractionMode.SelectSingle:
         features?.deleteSelected();
-        features?.clearHistory();
+        if (this.isCustomUI) {
+          features?.clearHistory();
+        }
         break;
       case InteractionMode.DragPoint:
       case InteractionMode.DrawPoint:
