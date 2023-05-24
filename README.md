@@ -1,28 +1,33 @@
 <!-- omit in toc -->
+
 # react-native-mapbox-geometry-editor
 
 Interactive shape editing on top of the Mapbox Maps SDK for React Native
 
 <!-- omit in toc -->
+
 ## Table of Contents
-- [Example](#example)
-- [Features](#features)
-  - [Limitations](#limitations)
-- [Installation](#installation)
-  - [Import options](#import-options)
-- [Usage](#usage)
-  - [Geometry format and metadata](#geometry-format-and-metadata)
-    - [Advanced usage](#advanced-usage)
-- [API Documentation](#api-documentation)
-- [Utility scripts](#utility-scripts)
-- [Known issues and future work](#known-issues-and-future-work)
+
+- [react-native-mapbox-geometry-editor](#react-native-mapbox-geometry-editor)
+  - [Table of Contents](#table-of-contents)
+  - [Example](#example)
+  - [Features](#features)
+    - [Limitations](#limitations)
+  - [Installation](#installation)
+    - [Import options](#import-options)
+  - [Usage](#usage)
+    - [Geometry format and metadata](#geometry-format-and-metadata)
+      - [Advanced usage](#advanced-usage)
   - [Custom user interface](#custom-user-interface)
-  - [Packaging and publishing](#packaging-and-publishing)
-  - [Minor general issues](#minor-general-issues)
-  - [Android-specific issues](#android-specific-issues)
-  - [iOS-specific issues](#ios-specific-issues)
-- [Contributing](#contributing)
-- [License](#license)
+  - [API Documentation](#api-documentation)
+  - [Utility scripts](#utility-scripts)
+  - [Known issues and future work](#known-issues-and-future-work)
+    - [Packaging and publishing](#packaging-and-publishing)
+    - [Minor general issues](#minor-general-issues)
+    - [Android-specific issues](#android-specific-issues)
+    - [iOS-specific issues](#ios-specific-issues)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Example
 
@@ -75,6 +80,7 @@ Refer to the [Mapbox Maps SDK for React Native's documentation](https://github.c
 ### Import options
 
 The library provides build targets to suit different transpilation mechanisms:
+
 - Commonjs module system: `lib/commonjs`
 - ES6 module system (useful for tree-shaking): `lib/module`
 - TypeScript: `lib/typescript`
@@ -107,6 +113,7 @@ Note that schema descriptions are requested immediately before an interface is o
 If a schema description returned by a function is not `null`, it must be an object of the form parsed by [`@demvsystems/yup-ast`](https://github.com/demvsystems/yup-ast), subject to restrictions described below.
 
 The schema description must contain a top-level object:
+
 ```TypeScript
 [
   ['yup.object'],
@@ -123,6 +130,7 @@ The schema description must contain a top-level object:
 
 The `FIELDS` portion contains the actual fields of the GeoJSON metadata.
 The datatype of a field must be one of the following:
+
 - `fieldKey: [['yup.mixed'], ['yup.oneOf', ["ARRAY", "OF", "STRINGS" ]],]`: A string-typed enumeration, where the array of possible values must have at least one element
 - `fieldKey: [['yup.string']]`: A string
 - `fieldKey: [['yup.number']]`: A number
@@ -133,6 +141,7 @@ The library will only display and allow editing of fields of the supported types
 The library will also ignore all properties of metadata objects that are not described in the schema.
 
 The schema description can (and should) contain human-readable text to assist the user:
+
 - Fields can be given human-readable names using the `'yup.label'` attribute.
   For example, `fieldKey: [['yup.boolean'], ['yup.label', 'Field name'],]` gives the field a name of `'Field name'`.
   If a label is not provided, the field name will default to the field's key.
@@ -168,6 +177,20 @@ Object-level meta information is described by the `MetadataAttributes` interface
 Please read the code documentation comments of these interfaces for descriptions of the available options.
 Default values for meta information are provided by the `metadataAttributesImpl` and `fieldAttributesImpl` validators in `src/util/metadata/schema.ts`, so the client application only needs to provide any meta information properties whose values must differ from the defaults.
 
+## Custom user interface
+
+The `<GeometryEditorUI/>` component renders a graphical user interface for editing geometry on top of a map.
+(It also renders the map.)
+The user interface is not customizable aside from some coarse style settings.
+
+The library also exposes a `<GeometryEditor/>` component that renders a map, but no geometry editing controls.
+You can you can set the flag `isCustomUI` to true and use the exposed functions to create your own custom user interface while using this component. Most of the necessary functions are available as part of `ref`. There are also some variables that you may wish to access in order to know when certain buttons should be active or displayed, in order to access these you must pass a setter function as a prop so that the `<GeometryEditor/>` can set the value for you to use.
+
+If you are using a custom user interface you cannot currently add metadata to the shapes and will have to handle that externally.
+
+In the future, either `<GeometryEditorUI/>` should accept more user interface customization options, or `<GeometryEditor/>` may expose a more full programmatic interface for editing geometry.
+Otherwise, it will continue to be difficult to adapt geometry editing controls to the look and feel of the surrounding app.
+
 ## API Documentation
 
 HTML API documentation for the library can be generated using Typedoc as follows:
@@ -181,18 +204,6 @@ HTML API documentation for the library can be generated using Typedoc as follows
 - [`fix_winding.js`](./tool/fix_winding.js): A script that corrects the winding order of GeoJSON polygons in GeoJSON data. This script is helpful when preparing data to be imported into the geometry editing library.
 
 ## Known issues and future work
-
-### Custom user interface
-
-The `<GeometryEditorUI/>` component renders a graphical user interface for editing geometry on top of a map.
-(It also renders the map.)
-The user interface is not customizable aside from some coarse style settings.
-
-The library also exposes a `<GeometryEditor/>` component that renders a map, but no geometry editing controls.
-As a result, this component can only be used to display geometry.
-
-In the future, either `<GeometryEditorUI/>` should accept more user interface customization options, or `<GeometryEditor/>` should expose a full programmatic interface for editing geometry.
-Otherwise, it will continue to be difficult to adapt geometry editing controls to the look and feel of the surrounding app.
 
 ### Packaging and publishing
 
@@ -214,10 +225,12 @@ In the future, this library should be published to a package repository, such as
   The library is still able to handle enumeration and boolean-typed fields that have missing or invalid values, however, such as when rendering metadata created outside the library.
 
 ### Android-specific issues
+
 - Geometry rendering on an Android emulator may exhibit visual problems such as rendering points in grey instead of in their desired colours.
   Zooming in and out on the map may make colours randomly appear and disappear.
 
 ### iOS-specific issues
+
 - To drag an editable point, it may be necessary to first tap on the point (press and release) before pressing and holding to drag the point.
 - Editable points may snap back to their original positions while or after being dragged (https://github.com/rnmapbox/maps/issues/1117).
 - To draw a new point, it may be necessary to first tap on the map, to switch focus to the map, after having tapped on a geometry object or on a user interface element.
