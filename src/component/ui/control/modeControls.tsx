@@ -113,7 +113,7 @@ function _ShapeEditControl() {
 
   // Button enabled/disabled state
   let enabled = false;
-  // Any editing mode that pressing the button will activate  let nextMode:
+  // Any editing mode that pressing the button will activate
   let nextMode:
     | null
     | InteractionMode.DragPoint
