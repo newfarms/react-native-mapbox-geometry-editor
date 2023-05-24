@@ -579,9 +579,9 @@ export class ControlsModel extends Model({
       // This is a state change in the absence of a confirmation dialog
       switch (this.mode) {
         case InteractionMode.DrawPoint:
-          // Save the new point
+          this.saveMetadata();
           features?.confirmNewFeatures();
-          this.setDefaultMode();
+          this.isPageOpen = false;
           break;
         case InteractionMode.DrawPolygon:
         case InteractionMode.DrawPolyline:
