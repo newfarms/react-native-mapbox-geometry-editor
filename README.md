@@ -188,6 +188,8 @@ You can you can set the flag `isCustomUI` to true and use the exposed functions 
 
 If you are using a custom user interface you cannot currently add metadata to the shapes and will have to handle that externally.
 
+There is an example app that shows basic use of a custom user interface in `CustomUIApp.tsx`. In order to use this app follow the instructions for running the default [example](#example) app but rename `CustomUIApp.tsx` to `App.tsx`.
+
 In the future, either `<GeometryEditorUI/>` should accept more user interface customization options, or `<GeometryEditor/>` may expose a more full programmatic interface for editing geometry.
 Otherwise, it will continue to be difficult to adapt geometry editing controls to the look and feel of the surrounding app.
 
