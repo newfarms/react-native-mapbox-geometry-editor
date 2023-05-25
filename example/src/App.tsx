@@ -64,6 +64,7 @@ import type {
   SemanticGeometryType,
   StyleGeneratorMap,
 } from 'react-native-mapbox-geometry-editor';
+import { CustomUIApp } from './CustomUIApp';
 
 const styles = StyleSheet.create({
   container: {
@@ -85,6 +86,18 @@ const styles = StyleSheet.create({
   ioControlsContainer: {
     position: 'relative',
     alignSelf: 'flex-end',
+  },
+  buttonContainer: { flexDirection: 'row', justifyContent: 'space-between' },
+  toggleContainer: {
+    position: 'relative',
+    alignSelf: 'flex-start',
+  },
+  toggleButton: {
+    marginTop: 10,
+    marginBottom: 5,
+    marginLeft: 10,
+    padding: 3,
+    borderRadius: 10,
   },
   importButton: {
     marginTop: 10,
@@ -495,6 +508,7 @@ function IOControls({
   onImport,
   onExport,
   disabled,
+  setCustomUI,
 }: {
   /**
    * Import button press event handler
@@ -508,27 +522,42 @@ function IOControls({
    * Whether or not the buttons should be disabled
    */
   disabled: boolean;
+  /**
+   * Set whether or not to display a custom UI or the default UI
+   */
+  setCustomUI: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   let buttonColor = 'orange';
+  let toggleButtonColor = 'orange';
   if (disabled) {
     buttonColor = 'grey';
   }
   return (
-    <View style={styles.ioControlsContainer}>
-      <Pressable
-        style={[styles.importButton, { backgroundColor: buttonColor }]}
-        onPress={onImport}
-        disabled={disabled}
-      >
-        <Text style={styles.text}>Import static shapes</Text>
-      </Pressable>
-      <Pressable
-        style={[styles.exportButton, { backgroundColor: buttonColor }]}
-        onPress={onExport}
-        disabled={disabled}
-      >
-        <Text style={styles.text}>Export shapes</Text>
-      </Pressable>
+    <View style={styles.buttonContainer}>
+      <View style={styles.toggleContainer}>
+        <Pressable
+          style={[styles.toggleButton, { backgroundColor: toggleButtonColor }]}
+          onPress={() => setCustomUI((prevValue) => !prevValue)}
+        >
+          <Text style={styles.text}>Toggle UI</Text>
+        </Pressable>
+      </View>
+      <View style={styles.ioControlsContainer}>
+        <Pressable
+          style={[styles.importButton, { backgroundColor: buttonColor }]}
+          onPress={onImport}
+          disabled={disabled}
+        >
+          <Text style={styles.text}>Import static shapes</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.exportButton, { backgroundColor: buttonColor }]}
+          onPress={onExport}
+          disabled={disabled}
+        >
+          <Text style={styles.text}>Export shapes</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -642,34 +671,43 @@ export default function App() {
    * geometry editing operation
    */
   const [disableIO, setDisableIO] = useState(false);
+  const [customUI, setCustomUI] = useState(false);
   const interactionHandlers: InteractionEventProps = useMemo(() => {
     return {
       onEditingStatus: setDisableIO,
     };
   }, [setDisableIO]);
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <IOControls disabled={disableIO} {...ioHandlers} />
-      <GeometryEditorUI
-        cameraControls={cameraControls}
-        style={styles.libraryContainer}
-        theme={DarkTheme}
-        mapProps={{
-          style: styles.map,
-          styleURL: 'mapbox://styles/mapbox/dark-v10',
-        }}
-        metadataSchemaGeneratorMap={metadataSchemaGeneratorMap}
-        styleGenerators={styleGeneratorMap}
-        interactionEventProps={interactionHandlers}
-        ref={ioRef}
-      >
-        <MapboxGL.Camera
-          ref={cameraRef}
-          centerCoordinate={[3.380271, 6.464217]}
-          zoomLevel={14}
+  if (customUI) {
+    return <CustomUIApp setCustomUI={setCustomUI} />;
+  } else {
+    return (
+      <SafeAreaView style={styles.container}>
+        <IOControls
+          disabled={disableIO}
+          setCustomUI={setCustomUI}
+          {...ioHandlers}
         />
-      </GeometryEditorUI>
-    </SafeAreaView>
-  );
+        <GeometryEditorUI
+          cameraControls={cameraControls}
+          style={styles.libraryContainer}
+          theme={DarkTheme}
+          mapProps={{
+            style: styles.map,
+            styleURL: 'mapbox://styles/mapbox/dark-v10',
+          }}
+          metadataSchemaGeneratorMap={metadataSchemaGeneratorMap}
+          styleGenerators={styleGeneratorMap}
+          interactionEventProps={interactionHandlers}
+          ref={ioRef}
+        >
+          <MapboxGL.Camera
+            ref={cameraRef}
+            centerCoordinate={[3.380271, 6.464217]}
+            zoomLevel={14}
+          />
+        </GeometryEditorUI>
+      </SafeAreaView>
+    );
+  }
 }
