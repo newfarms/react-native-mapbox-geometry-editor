@@ -38,6 +38,7 @@ if (!getTimeMilliseconds) {
  */
 LogBox.ignoreLogs([
   "[mobx] Derivation 'observer_StoreProvider' is created/updated without reading any observable value.",
+  "[mobx] Derivation 'observerobserved' is created/updated without reading any observable value.",
 ]);
 
 /**
