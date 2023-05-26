@@ -1138,7 +1138,7 @@ export class ControlsModel extends Model({
                     CoordinateRole.PolygonStart
                   ) {
                     // If the polygon is fully-formed, send the user on to metadata entry
-                    if (features?.hasCompleteNewFeature) {
+                    if (features?.hasCompleteNewFeature && !this.isCustomUI) {
                       this.confirm();
                     }
                   }
