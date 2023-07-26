@@ -1,6 +1,6 @@
 import { computed, toJS } from 'mobx';
 import { model, Model, modelAction, prop } from 'mobx-keystone';
-import type { OnPressEvent } from '@rnmapbox/maps';
+import { OnPressEvent } from '@rnmapbox/maps/lib/typescript/types/OnPressEvent';
 import type { Position, GeoJsonProperties } from 'geojson';
 
 import { eventPosition, pickTopmostFeature } from '../util/interaction';

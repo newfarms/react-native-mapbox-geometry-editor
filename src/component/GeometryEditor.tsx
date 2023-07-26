@@ -7,7 +7,8 @@ import { action, autorun } from 'mobx';
 import { forwardRef, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode, Ref } from 'react';
 import { StyleSheet } from 'react-native';
-import MapboxGL, { MapViewProps } from '@rnmapbox/maps';
+import MapboxGL from '@rnmapbox/maps';
+import { MapView } from '@rnmapbox/maps';
 
 import { DraggablePoints } from './geometry/DraggablePoints';
 import { ColdGeometry } from './geometry/ColdGeometry';
@@ -81,7 +82,7 @@ export interface GeometryEditorProps {
   /**
    * Additional properties for the [map](https://github.com/rnmapbox/maps/blob/master/docs/MapView.md), including `style`.
    */
-  readonly mapProps?: MapViewProps;
+  readonly mapProps?: MapView['props'];
   /**
    * Custom styling functions for geometry rendered
    * on the map

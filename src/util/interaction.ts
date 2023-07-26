@@ -6,7 +6,7 @@ import {
   point,
 } from '@turf/helpers';
 import filter from 'lodash/filter';
-import type { OnPressEvent } from '@rnmapbox/maps';
+import { OnPressEvent } from '@rnmapbox/maps/lib/typescript/types/OnPressEvent';
 import type { Feature, LineString, Point, Polygon, Position } from 'geojson';
 
 import type { RenderProperties, RnmgeID } from '../type/geometry';

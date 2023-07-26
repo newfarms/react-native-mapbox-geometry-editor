@@ -3,10 +3,9 @@ import { observer } from 'mobx-react-lite';
 import { useContext, useMemo } from 'react';
 import MapboxGL from '@rnmapbox/maps';
 import cloneDeep from 'lodash/cloneDeep';
-import type { OnPressEvent } from '@rnmapbox/maps';
-import type { Expression } from '@rnmapbox/maps';
 import type { FillLayerStyle, LineLayerStyle } from '@rnmapbox/maps';
 import type { Feature, LineString, Polygon } from 'geojson';
+import { OnPressEvent } from '@rnmapbox/maps/lib/typescript/types/OnPressEvent';
 
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
@@ -357,7 +356,7 @@ function _ColdGeometry({
 
   const { styleGenerators } = useContext(StyleContext);
   // Geometry filter to prevent cluster layers from operating on other kinds of geometry
-  const clusterFilter: Expression = [
+  const clusterFilter = [
     'all',
     ['==', ['geometry-type'], 'Point'],
     ['has', 'point_count'],

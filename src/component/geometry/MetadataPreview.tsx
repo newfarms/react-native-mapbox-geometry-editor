@@ -134,7 +134,6 @@ function _MetadataPreview() {
       <MapboxGL.MarkerView
         coordinate={coordinates}
         anchor={{ x: 0.025, y: 0.975 }}
-        id="metadata_preview"
       >
         <MetadataAnnotationContent
           onDismiss={onDismiss}

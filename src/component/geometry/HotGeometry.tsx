@@ -2,7 +2,7 @@ import { action, toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { useContext, useMemo } from 'react';
 import MapboxGL from '@rnmapbox/maps';
-import type { OnPressEvent } from '@rnmapbox/maps';
+import { OnPressEvent } from '@rnmapbox/maps/lib/typescript/types/OnPressEvent';
 
 import { StoreContext } from '../../state/StoreContext';
 import { StyleContext } from '../StyleContext';
